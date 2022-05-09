@@ -1,4 +1,5 @@
 from cgitb import text
+from email import message
 
 from itertools import count
 from pydoc import describe
@@ -23,7 +24,7 @@ import mysql.connector
 
 
 fbilldb = mysql.connector.connect(
-  host="localhost", user="root", password="", database=" fbillingsintgrtd", port="3306"
+  host="localhost", user="root", password="", database=" fbilling", port="3306"
  )
 fbcursor = fbilldb.cursor(buffered=True)
 
@@ -135,6 +136,59 @@ def inv_create():
     customer_selection.geometry("930x650+240+10")
     customer_selection.resizable(False, False)
 
+    global select_cust_tree
+
+    select_cust_tree=ttk.Treeview(customer_selection, height=27)
+    select_cust_tree["columns"]=["1","2","3","4"]
+    select_cust_tree.column("#0", width=35)
+    select_cust_tree.column("1", width=160)
+    select_cust_tree.column("2", width=160)
+    select_cust_tree.column("3", width=140)
+    select_cust_tree.column("4", width=140)
+    select_cust_tree.heading("#0",text="")
+    select_cust_tree.heading("1",text="Customer/Ventor ID")
+    select_cust_tree.heading("2",text="Customer/Ventor Name")
+    select_cust_tree.heading("3",text="Tel.")
+    select_cust_tree.heading("4",text="Contact Person")
+    select_cust_tree.place(x=5, y=45)
+
+    sql_sel_cust = "SELECT * FROM Customer"
+    fbcursor.execute(sql_sel_cust)
+    customer_details = fbcursor.fetchall()
+    print(customer_details)
+
+    count=0
+    for i in customer_details:
+      if True:
+        select_cust_tree.insert(parent='',index='end',iid=i,text='',values=(i[0],i[4],i[10],i[8]))
+      else:
+        pass
+    count += 1
+
+
+    def cust_tree_fetch():
+      cust_tree_item = select_cust_tree.item(select_cust_tree.focus())["values"][0]
+      print(cust_tree_item)
+      sql = "SELECT * FROM Customer WHERE customerid=%s"
+      val = (cust_tree_item,)
+      fbcursor.execute(sql,val)
+      sel_cust_str = fbcursor.fetchone()
+      print(sel_cust_str)
+      inv_combo_e1.delete(0, END)
+      inv_combo_e1.insert(0,sel_cust_str[4])
+      inv_addr_e2.delete('1.0',END)
+      inv_addr_e2.insert('1.0',sel_cust_str[5])
+      inv_shipto_e3.delete(0, END)
+      inv_shipto_e3.insert(0, sel_cust_str[6])
+      inv_addr_e4.delete('1.0',END)
+      inv_addr_e4.insert('1.0',sel_cust_str[7])
+      inv_email_e5.delete(0,END)
+      inv_email_e5.insert(0,sel_cust_str[9])
+      inv_sms_e6.delete(0,END)
+      inv_sms_e6.insert(0,sel_cust_str[12])
+
+      customer_selection.destroy()
+
 
 
 
@@ -229,85 +283,37 @@ def inv_create():
 
       btn1=Button(ven,width=60,height=10,bg="#f5f3f2",compound = LEFT,image=tick ,text="OK").place(x=20, y=615)
       btn2=Button(ven,width=60,height=10,bg="#f5f3f2",compound = LEFT,image=cancel,text="Cancel").place(x=800, y=615)
-
-      
-      # add_cust = "INSET INTO invoice (customerid,category,businessname,businessaddress,shipname,shipaddress,contactperson,cpemail,cptelno,cpfax,cpmobileforsms,shipcontactperson,shipcpemail,shipcptelno,shipcpfax,country,city,notes) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-      # val_cust = (cid,cate,business_name,business_address,sh_name,sh_address,contact_p,contact_e,contact_t,contact_f,contact_m,shc_p,shc_e,shc_t,shc_f,c_country,c_city,c_notes)       
-      # fbcursor.execute(add_cust,val_cust)
-      # fbilldb.commit()
-
-
-    # global select_cust_tree
-
-    select_cust_tree=ttk.Treeview(customer_selection, height=27)
-    select_cust_tree["columns"]=["1","2","3","4"]
-    select_cust_tree.column("#0", width=35)
-    select_cust_tree.column("1", width=160)
-    select_cust_tree.column("2", width=160)
-    select_cust_tree.column("3", width=140)
-    select_cust_tree.column("4", width=140)
-    select_cust_tree.heading("#0",text="")
-    select_cust_tree.heading("1",text="Customer/Ventor ID")
-    select_cust_tree.heading("2",text="Customer/Ventor Name")
-    select_cust_tree.heading("3",text="Tel.")
-    select_cust_tree.heading("4",text="Contact Person")
-    select_cust_tree.place(x=5, y=45)
-
-    sql_sel_cust = "SELECT * FROM Customer"
-    fbcursor.execute(sql_sel_cust)
-    customer_details = fbcursor.fetchall()
-    print(customer_details)
-
-    count=0
-    for i in customer_details:
-      if True:
-        select_cust_tree.insert(parent='', index='end', iid=count, text='', values=(i[0],i[4],i[10],i[8]))  
-      else:
-        pass
-    count += 1
     
     
 
-    def filter_customer():
-      # global filttxt 
+    # def filter_customer():
+    #   # global filttxt 
   
-      filtr = filter_txt.get()
-      for record in select_cust_tree.get_children():
-        select_cust_tree.delete(record)
+    #   filtr = filter_txt.get()
+    #   for record in select_cust_tree.get_children():
+    #     select_cust_tree.delete(record)
 
-      sql_filter_cust = "SELECT * FROM Customer WHERE businessname=%s"
-      val_filter_cust = (filtr, )
-      fbcursor.execute(sql_filter_cust, val_filter_cust)
-      records = fbcursor.fetchall()
-      print(records)
+    #   sql_filter_cust = "SELECT * FROM Customer WHERE businessname=%s"
+    #   val_filter_cust = (filtr, )
+    #   fbcursor.execute(sql_filter_cust, val_filter_cust)
+    #   records = fbcursor.fetchall()
+    #   print(records)
 
   
-      count=0
-      for i in customer_details:
-        if True:
-         select_cust_tree.insert(parent='', index='end', iid=i, text='', values=(i[0],i[4],i[10],i[8]))  
-        else:
-          pass
-      count += 1
+    #   count=0
+    #   for i in customer_details:
+    #     if True:
+    #      select_cust_tree.insert(parent='', index='end', iid=i, text='', values=(i[0],i[4],i[10],i[8]))  
+    #     else:
+    #       pass
+    #   count += 1
 
     enter_filter=Label(customer_selection, text="Enter filter text").place(x=5, y=10)
     filter_txt=Entry(customer_selection, width=20).place(x=110, y=10)
     filter_col=Label(customer_selection, text="Filtered column").place(x=340, y=10)
     filter_entry=Entry(customer_selection, width=20).place(x=450, y=10)
 
-    cusventtree=ttk.Treeview(customer_selection, height=27)
-    cusventtree["columns"]=["1","2","3", "4"]
-    cusventtree.column("#0", width=35)
-    cusventtree.column("1", width=160)
-    cusventtree.column("2", width=160)
-    cusventtree.column("3", width=140)
-    cusventtree.column("4", width=140)
-    cusventtree.heading("#0",text="")
-    cusventtree.heading("1",text="Customer/Ventor ID")
-    cusventtree.heading("2",text="Customer/Ventor Name")
-    cusventtree.heading("3",text="Tel.")
-    cusventtree.heading("4",text="Contact Person")
-    cusventtree.place(x=5, y=45)
+
 
 
     ctegorytree=ttk.Treeview(customer_selection, height=27)
@@ -320,23 +326,71 @@ def inv_create():
 
     scrollbar = Scrollbar(customer_selection)
     scrollbar.place(x=640, y=45, height=560)
-    scrollbar.config( command=tree.yview )
+    scrollbar.config( command=select_cust_tree.yview )
 
-    btn1=Button(customer_selection,compound = LEFT,image=tick ,text="ok", width=60).place(x=15, y=610)
-    btn1=Button(customer_selection,compound = LEFT,image=tick,text="Edit selected customer", width=150,command=inv_create_newcustomer).place(x=250, y=610)
-    btn1=Button(customer_selection,compound = LEFT,image=tick, text="Add new customer", width=150,command=inv_create_newcustomer).place(x=435, y=610)
-    btn1=Button(customer_selection,compound = LEFT,image=cancel ,text="Cancel", width=60).place(x=740, y=610)   
+    ok_btn=Button(customer_selection,compound = LEFT,image=tick ,text="ok", width=60,command=cust_tree_fetch).place(x=15, y=610)
+    edit_btn=Button(customer_selection,compound = LEFT,image=tick,text="Edit selected customer", width=150,command=inv_create_newcustomer).place(x=250, y=610)
+    add_btn=Button(customer_selection,compound = LEFT,image=tick, text="Add new customer", width=150,command=inv_create_newcustomer).place(x=435, y=610)
+    cancel_btn=Button(customer_selection,compound = LEFT,image=cancel ,text="Cancel", width=60).place(x=740, y=610)   
 
 
 
     
 
   #add new line item
-  def newline():
-    newselection=Toplevel()
-    newselection.title("Product/Services")
-    newselection.geometry("930x650+240+10")
-    newselection.resizable(False, False)
+  def inv_newline():
+    #fetch new line item
+    def product_tree_fetch():
+      product_tree_item = product_sel_tree.item(product_sel_tree.focus())["values"][0]
+      print(product_tree_item)
+      sql = "SELECT * FROM Productservice WHERE Productserviceid=%s"
+      val = (product_tree_item,)
+      fbcursor.execute(sql,val)
+      sel_pro_str = fbcursor.fetchone()
+      print(sel_pro_str)
+      add_newline_tree.insert(parent='',index='end',iid=sel_pro_str,text='',values=(sel_pro_str[0],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18]))
+      inv_newline_sel.destroy()
+    show_newline = inv_combo_e1.get()
+    if show_newline == '':
+      messagebox.showinfo('F-Billing Revolution','Customer is required, please select customer before adding line item to invoice')
+    else:
+      inv_newline_sel=Toplevel()
+      inv_newline_sel.title("Product/Services")
+      inv_newline_sel.geometry("930x650+240+10")
+      inv_newline_sel.resizable(False, False)
+
+      global product_sel_tree
+
+      product_sel_tree=ttk.Treeview(inv_newline_sel, height=27)
+      product_sel_tree["columns"]=["1","2","3", "4","5"]
+      product_sel_tree.column("#0", width=35)
+      product_sel_tree.column("1", width=160)
+      product_sel_tree.column("2", width=160)
+      product_sel_tree.column("3", width=140)
+      product_sel_tree.column("4", width=70)
+      product_sel_tree.column("5", width=70)
+      product_sel_tree.heading("#0",text="")
+      product_sel_tree.heading("1",text="ID/SKU")
+      product_sel_tree.heading("2",text="Product/Service Name")
+      product_sel_tree.heading("3",text="Unit price")
+      product_sel_tree.heading("4",text="Service")
+      product_sel_tree.heading("5",text="Stock")
+      product_sel_tree.place(x=5, y=45)
+
+      sql = "SELECT * FROM Productservice"
+      fbcursor.execute(sql)
+      product_details = fbcursor.fetchall()
+      print(product_details)
+
+      count = 0
+      for p in product_details:
+        if True:
+          product_sel_tree.insert(parent='',index='end',iid=p,text='',values=(p[0],p[4],p[7],p[12],p[13]))
+        else:
+          pass
+      count += 1
+
+      
 
 
     #add new product
@@ -345,13 +399,12 @@ def inv_create():
       top.title("Add a new Product/Service")
       p2 = PhotoImage(file = 'images/fbicon.png')
       top.iconphoto(False, p2)
-    
       top.geometry("700x550+390+15")
       tabControl = ttk.Notebook(top)
       s = ttk.Style()
       s.theme_use('default')
       s.configure('TNotebook.Tab', background="#999999",padding=10,bd=0)
-
+          
 
       tab1 = ttk.Frame(tabControl)
       tab2 = ttk.Frame(tabControl)
@@ -502,29 +555,17 @@ def inv_create():
 
     
                     
-    enter=Label(newselection, text="Enter filter text").place(x=5, y=10)
-    e1=Entry(newselection, width=20).place(x=110, y=10)
-    text=Label(newselection, text="Filtered column").place(x=340, y=10)
-    e2=Entry(newselection, width=20).place(x=450, y=10)
-
-    cusventtree=ttk.Treeview(newselection, height=27)
-    cusventtree["columns"]=["1","2","3", "4","5"]
-    cusventtree.column("#0", width=35)
-    cusventtree.column("1", width=160)
-    cusventtree.column("2", width=160)
-    cusventtree.column("3", width=140)
-    cusventtree.column("4", width=70)
-    cusventtree.column("5", width=70)
-    cusventtree.heading("#0",text="")
-    cusventtree.heading("1",text="ID/SKU")
-    cusventtree.heading("2",text="Product/Service Name")
-    cusventtree.heading("3",text="Unit price")
-    cusventtree.heading("4",text="Service")
-    cusventtree.heading("5",text="Stock")
-    cusventtree.place(x=5, y=45)
+    enter=Label(inv_newline_sel, text="Enter filter text")
+    enter.place(x=5, y=10)
+    e1=Entry(inv_newline_sel, width=20).place(x=110, y=10)
+    text=Label(inv_newline_sel, text="Filtered column").place(x=340, y=10)
+    e2=Entry(inv_newline_sel, width=20).place(x=450, y=10)
 
 
-    ctegorytree=ttk.Treeview(newselection, height=27)
+    
+
+
+    ctegorytree=ttk.Treeview(inv_newline_sel, height=27)
     ctegorytree["columns"]=["1"]
     ctegorytree.column("#0", width=35, minwidth=20)
     ctegorytree.column("1", width=205, minwidth=25, anchor=CENTER)    
@@ -532,15 +573,15 @@ def inv_create():
     ctegorytree.heading("1",text="View filter by category", anchor=CENTER)
     ctegorytree.place(x=660, y=45)
 
-    scrollbar = Scrollbar(newselection)
+    scrollbar = Scrollbar(inv_newline_sel)
     scrollbar.place(x=640, y=45, height=560)
-    scrollbar.config( command=tree.yview )
+    scrollbar.config( command=add_newline_tree.yview )
    
 
-    btn1=Button(newselection,compound = LEFT,image=tick ,text="ok", width=60).place(x=15, y=610)
-    btn1=Button(newselection,compound = LEFT,image=tick , text="Edit product/Service", width=150,command=product).place(x=250, y=610)
-    btn1=Button(newselection,compound = LEFT,image=tick , text="Add product/Service", width=150,command=product).place(x=435, y=610)
-    btn1=Button(newselection,compound = LEFT,image=cancel ,text="Cancel", width=60).place(x=740, y=610)
+    product_ok_btn=Button(inv_newline_sel,compound = LEFT,image=tick ,text="ok", width=60,command=product_tree_fetch).place(x=15, y=610)
+    btn1=Button(inv_newline_sel,compound = LEFT,image=tick , text="Edit product/Service", width=150,command=product).place(x=250, y=610)
+    btn1=Button(inv_newline_sel,compound = LEFT,image=tick , text="Add product/Service", width=150,command=product).place(x=435, y=610)
+    btn1=Button(inv_newline_sel,compound = LEFT,image=cancel ,text="Cancel", width=60).place(x=740, y=610)
 
 
 
@@ -679,64 +720,65 @@ def inv_create():
     
     
 
-  firFrame=Frame(pop, bg="#f5f3f2", height=60)
-  firFrame.pack(side="top", fill=X)
+  inv_first_frame=Frame(pop, bg="#f5f3f2", height=60)
+  inv_first_frame.pack(side="top", fill=X)
 
-  w = Canvas(firFrame, width=1, height=65, bg="#b3b3b3", bd=0)
+  w = Canvas(inv_first_frame, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  create = Button(firFrame,compound="top", text="Select\nCustomer",relief=RAISED, image=customer,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=inv_sel_customer)
+  create = Button(inv_first_frame,compound="top", text="Select\nCustomer",relief=RAISED, image=customer,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=inv_sel_customer)
   create.pack(side="left", pady=3, ipadx=4)
 
 
-  w = Canvas(firFrame, width=1, height=65, bg="#b3b3b3", bd=0)
+  w = Canvas(inv_first_frame, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  add= Button(firFrame,compound="top", text="Add new\nline item",relief=RAISED, image=photo,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=newline)
+  add= Button(inv_first_frame,compound="top", text="Add new\nline item",relief=RAISED, image=photo,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=inv_newline)
   add.pack(side="left", pady=3, ipadx=4)
 
-  dele= Button(firFrame,compound="top", text="Delete line\nitem",relief=RAISED, image=photo2,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=delete1)
+  dele= Button(inv_first_frame,compound="top", text="Delete line\nitem",relief=RAISED, image=photo2,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=delete1)
   dele.pack(side="left", pady=3, ipadx=4)
 
-  w = Canvas(firFrame, width=1, height=65, bg="#b3b3b3", bd=0)
+  w = Canvas(inv_first_frame, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  prev= Button(firFrame,compound="top", text="Preview\nInvoice",relief=RAISED, image=photo4,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=previewline)
+  prev= Button(inv_first_frame,compound="top", text="Preview\nInvoice",relief=RAISED, image=photo4,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=previewline)
   prev.pack(side="left", pady=3, ipadx=4)
 
-  prin= Button(firFrame,compound="top", text="Print \nInvoice",relief=RAISED, image=photo5,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=printsele)
+  prin= Button(inv_first_frame,compound="top", text="Print \nInvoice",relief=RAISED, image=photo5,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=printsele)
   prin.pack(side="left", pady=3, ipadx=4)
 
-  w = Canvas(firFrame, width=1, height=65, bg="#b3b3b3", bd=0)
+  w = Canvas(inv_first_frame, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  mail= Button(firFrame,compound="top", text="Email\nInvoice",relief=RAISED, image=photo6,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=emailorder)
+  mail= Button(inv_first_frame,compound="top", text="Email\nInvoice",relief=RAISED, image=photo6,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=emailorder)
   mail.pack(side="left", pady=3, ipadx=4)
 
-  sms1= Button(firFrame,compound="top", text="Send SMS\nnotification",relief=RAISED, image=photo10,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=sms1)
+  sms1= Button(inv_first_frame,compound="top", text="Send SMS\nnotification",relief=RAISED, image=photo10,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=sms1)
   sms1.pack(side="left", pady=3, ipadx=4)
 
-  w = Canvas(firFrame, width=1, height=65, bg="#b3b3b3", bd=0)
+  w = Canvas(inv_first_frame, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  mark= Button(firFrame,compound="top", text="Mark invoice\nas 'Paid'",relief=RAISED, image=mark1,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=markinvo)
+  mark= Button(inv_first_frame,compound="top", text="Mark invoice\nas 'Paid'",relief=RAISED, image=mark1,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=markinvo)
   mark.pack(side="left", pady=3, ipadx=4)
 
-  void= Button(firFrame,compound="top", text="Void\ninvoice",relief=RAISED, image=mark2,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=voidinvoice)
+  void= Button(inv_first_frame,compound="top", text="Void\ninvoice",relief=RAISED, image=mark2,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=voidinvoice)
   void.pack(side="left", pady=3, ipadx=4)
 
 
-  w = Canvas(firFrame, width=1, height=65, bg="#b3b3b3", bd=0)
+  w = Canvas(inv_first_frame, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  calc= Button(firFrame,compound="top", text="Open\nCalculator",relief=RAISED, image=photo9,bg="#f5f3f2", fg="black", height=55, bd=1, width=55)
+  calc= Button(inv_first_frame,compound="top", text="Open\nCalculator",relief=RAISED, image=photo9,bg="#f5f3f2", fg="black", height=55, bd=1, width=55)
   calc.pack(side="left", pady=3, ipadx=4)
 
-  fir1Frame=Frame(pop, height=180,bg="#f5f3f2")
-  fir1Frame.pack(side="top", fill=X)
+  inv_first_frame_1=Frame(pop, height=180,bg="#f5f3f2")
+  inv_first_frame_1.pack(side="top", fill=X)
 
-  labelframe1 = LabelFrame(fir1Frame,text="Customers",font=("arial",15))
+  labelframe1 = LabelFrame(inv_first_frame_1,text="Customers",font=("arial",15))
   labelframe1.place(x=10,y=5,width=640,height=160)
+  
   def inv_to_combo(event):
     inv_to_str = inv_to.get()
     sql = "SELECT * FROM Customer WHERE businessname=%s"
@@ -748,36 +790,49 @@ def inv_create():
     inv_addr_e2.insert('1.0',inv_sel_combo[5])
     inv_shipto_e3.delete(0, END)
     inv_shipto_e3.insert(0, inv_sel_combo[6])
+    inv_addr_e4.delete('1.0',END)
+    inv_addr_e4.insert('1.0',inv_sel_combo[7])
+    inv_email_e5.delete(0,END)
+    inv_email_e5.insert(0,inv_sel_combo[9])
+    inv_sms_e6.delete(0,END)
+    inv_sms_e6.insert(0,inv_sel_combo[12])
 
 
   sql = "select businessname from Customer"
   fbcursor.execute(sql,)
   pdata = fbcursor.fetchall()
-  order = Label(labelframe1, text="Order to").place(x=10,y=5)
+
+  global inv_combo_e1,inv_addr_e2,inv_shipto_e3,inv_addr_e4,inv_email_e5,inv_sms_e6
+
+
+  invoice_to = Label(labelframe1, text="Invoice to").place(x=10,y=5)
   inv_to = StringVar()
   inv_combo_e1 = ttk.Combobox(labelframe1,width=28,textvariable=inv_to)
   inv_combo_e1.place(x=80,y=5)
   inv_combo_e1['values'] = pdata
   inv_combo_e1.bind("<<ComboboxSelected>>", inv_to_combo)
-  address=Label(labelframe1,text="Address").place(x=10,y=30)
+  inv_address=Label(labelframe1,text="Address").place(x=10,y=30)
   inv_addr_e2=scrolledtext.Text(labelframe1, undo=True,width=23)
   inv_addr_e2.place(x=80,y=30,height=70)
-  ship=Label(labelframe1,text="Ship to").place(x=342,y=5)
+  inv_ship_to=Label(labelframe1,text="Ship to").place(x=342,y=5)
   inv_shipto_e3=Entry(labelframe1,width=30)
   inv_shipto_e3.place(x=402,y=3)
-  address1=Label(labelframe1,text="Address").place(x=340,y=30)
-  e4=Text(labelframe1,width=23).place(x=402,y=30,height=70)
+  inv_address1=Label(labelframe1,text="Address").place(x=340,y=30)
+  inv_addr_e4=scrolledtext.Text(labelframe1, undo=True,width=23)
+  inv_addr_e4.place(x=402,y=30,height=70)
 
   btn1=Button(labelframe1,width=3,height=2,compound = LEFT,text=">>").place(x=280, y=50)
   
-  labelframe2 = LabelFrame(fir1Frame,text="")
+  labelframe2 = LabelFrame(inv_first_frame_1,text="")
   labelframe2.place(x=10,y=130,width=640,height=42)
-  email=Label(labelframe2,text="Email").place(x=10,y=5)
-  e5=Entry(labelframe2,width=30).place(x=80,y=5)
-  sms=Label(labelframe2,text="SMS Number").place(x=328,y=5)
-  e6=Entry(labelframe2,width=30).place(x=402,y=5)
+  inv_email=Label(labelframe2,text="Email").place(x=10,y=5)
+  inv_email_e5=Entry(labelframe2,width=30)
+  inv_email_e5.place(x=80,y=5)
+  inv_sms=Label(labelframe2,text="SMS Number").place(x=328,y=5)
+  inv_sms_e6=Entry(labelframe2,width=30)
+  inv_sms_e6.place(x=402,y=5)
     
-  labelframe = LabelFrame(fir1Frame,text="Invoice",font=("arial",15))
+  labelframe = LabelFrame(inv_first_frame_1,text="Invoice",font=("arial",15))
   labelframe.place(x=652,y=5,width=290,height=170)
   order=Label(labelframe,text="Invoice#").place(x=5,y=5)
   e1=Entry(labelframe,width=25).place(x=100,y=5,)
@@ -795,30 +850,30 @@ def inv_create():
   fir2Frame.pack(side="top", fill=X)
   listFrame = Frame(fir2Frame, bg="white", height=140,borderwidth=5,  relief=RIDGE)
   
-  tree=ttk.Treeview(listFrame)
-  tree["columns"]=["1","2","3","4","5","6","7","8"]
+  add_newline_tree=ttk.Treeview(listFrame)
+  add_newline_tree["columns"]=["1","2","3","4","5","6","7","8"]
 
-  tree.column("#0", width=40)
-  tree.column("1", width=80)
-  tree.column("2", width=190)
-  tree.column("3", width=190)
-  tree.column("4", width=80)
-  tree.column("5", width=60)
-  tree.column("6", width=60)
-  tree.column("7", width=60)
-  tree.column("8", width=80)
+  add_newline_tree.column("#0", width=40)
+  add_newline_tree.column("1", width=80)
+  add_newline_tree.column("2", width=190)
+  add_newline_tree.column("3", width=190)
+  add_newline_tree.column("4", width=80)
+  add_newline_tree.column("5", width=60)
+  add_newline_tree.column("6", width=60)
+  add_newline_tree.column("7", width=60)
+  add_newline_tree.column("8", width=80)
   
-  tree.heading("#0")
-  tree.heading("1",text="ID/SKU")
-  tree.heading("2",text="Product/Service")
-  tree.heading("3",text="Description")
-  tree.heading("4",text="Unit Price")
-  tree.heading("5",text="Quality")
-  tree.heading("6",text="Pcs/Weight")
-  tree.heading("7",text="Tax1")
-  tree.heading("8",text="Price")
+  add_newline_tree.heading("#0")
+  add_newline_tree.heading("1",text="ID/SKU")
+  add_newline_tree.heading("2",text="Product/Service")
+  add_newline_tree.heading("3",text="Description")
+  add_newline_tree.heading("4",text="Unit Price")
+  add_newline_tree.heading("5",text="Quality")
+  add_newline_tree.heading("6",text="Pcs/Weight")
+  add_newline_tree.heading("7",text="Tax1")
+  add_newline_tree.heading("8",text="Price")
   
-  tree.pack(fill="both", expand=1)
+  add_newline_tree.pack(fill="both", expand=1)
   listFrame.pack(side="top", fill="both", padx=5, pady=3, expand=1)
 
   fir3Frame=Frame(pop,height=200,width=700,bg="#f5f3f2")
@@ -889,17 +944,17 @@ def inv_create():
   btn1=Button(documentFrame,height=2,width=3,text="+").place(x=5,y=10)
   btn2=Button(documentFrame,height=2,width=3,text="-").place(x=5,y=50)
   text=Label(documentFrame,text="Attached documents or image files.If you attach large email then email taken long time to send").place(x=50,y=10)
-  cusventtree=ttk.Treeview(documentFrame, height=5)
-  cusventtree["columns"]=["1","2","3"]
-  cusventtree.column("#0", width=20)
-  cusventtree.column("1", width=250)
-  cusventtree.column("2", width=250)
-  cusventtree.column("2", width=200)
-  cusventtree.heading("#0",text="", anchor=W)
-  cusventtree.heading("1",text="Attach to Email")
-  cusventtree.heading("2",text="Filename")
-  cusventtree.heading("3",text="Filesize")  
-  cusventtree.place(x=50, y=45)
+  product_sel_tree=ttk.Treeview(documentFrame, height=5)
+  product_sel_tree["columns"]=["1","2","3"]
+  product_sel_tree.column("#0", width=20)
+  product_sel_tree.column("1", width=250)
+  product_sel_tree.column("2", width=250)
+  product_sel_tree.column("2", width=200)
+  product_sel_tree.heading("#0",text="", anchor=W)
+  product_sel_tree.heading("1",text="Attach to Email")
+  product_sel_tree.heading("2",text="Filename")
+  product_sel_tree.heading("3",text="Filesize")  
+  product_sel_tree.place(x=50, y=45)
   
 
   fir4Frame=Frame(pop,height=190,width=210,bg="#f5f3f2")
@@ -936,11 +991,11 @@ def inv_edit_view():
 
 
   #select customer
-  def custom():
-    cuselection=Toplevel()
-    cuselection.title("Select Customer")
-    cuselection.geometry("930x650+240+10")
-    cuselection.resizable(False, False)
+  def inv_sel_customer_1():
+    customer_selection_1=Toplevel()
+    customer_selection_1.title("Select Customer")
+    customer_selection_1.geometry("930x650+240+10")
+    customer_selection_1.resizable(False, False)
 
 
     #add new customer
@@ -1036,27 +1091,66 @@ def inv_edit_view():
         
                
 
-    enter=Label(cuselection, text="Enter filter text").place(x=5, y=10)
-    e1=Entry(cuselection, width=20).place(x=110, y=10)
-    text=Label(cuselection, text="Filtered column").place(x=340, y=10)
-    e2=Entry(cuselection, width=20).place(x=450, y=10)
+    enter=Label(customer_selection_1, text="Enter filter text").place(x=5, y=10)
+    e1=Entry(customer_selection_1, width=20).place(x=110, y=10)
+    text=Label(customer_selection_1, text="Filtered column").place(x=340, y=10)
+    e2=Entry(customer_selection_1, width=20).place(x=450, y=10)
 
-    cusventtree=ttk.Treeview(cuselection, height=27)
-    cusventtree["columns"]=["1","2","3", "4"]
-    cusventtree.column("#0", width=35)
-    cusventtree.column("1", width=160)
-    cusventtree.column("2", width=160)
-    cusventtree.column("3", width=140)
-    cusventtree.column("4", width=140)
-    cusventtree.heading("#0",text="")
-    cusventtree.heading("1",text="Customer/Ventor ID")
-    cusventtree.heading("2",text="Customer/Ventor Name")
-    cusventtree.heading("3",text="Tel.")
-    cusventtree.heading("4",text="Contact Person")
-    cusventtree.place(x=5, y=45)
+    select_cust_tree_1=ttk.Treeview(customer_selection_1, height=27)
+    select_cust_tree_1["columns"]=["1","2","3", "4"]
+    select_cust_tree_1.column("#0", width=35)
+    select_cust_tree_1.column("1", width=160)
+    select_cust_tree_1.column("2", width=160)
+    select_cust_tree_1.column("3", width=140)
+    select_cust_tree_1.column("4", width=140)
+    select_cust_tree_1.heading("#0",text="")
+    select_cust_tree_1.heading("1",text="Customer/Ventor ID")
+    select_cust_tree_1.heading("2",text="Customer/Ventor Name")
+    select_cust_tree_1.heading("3",text="Tel.")
+    select_cust_tree_1.heading("4",text="Contact Person")
+    select_cust_tree_1.place(x=5, y=45)
+
+    sql = "SELECT * FROM Customer"
+    fbcursor.execute(sql)
+    customer_details = fbcursor.fetchall()
+    print(customer_details)
+
+    count=0
+    for i in customer_details:
+      if True:
+        select_cust_tree_1.insert(parent='',index='end',iid=i,text='',values=(i[0],i[4],i[10],i[8]))
+      else:
+        pass
+    count += 1
 
 
-    ctegorytree=ttk.Treeview(cuselection, height=27)
+
+    def cust_tree_fetch_1():
+      cust_tree_item_1 = select_cust_tree_1.item(select_cust_tree_1.focus())["values"][0]
+      print(cust_tree_item_1)
+      sql = "SELECT * FROM Customer WHERE customerid=%s"
+      val = (cust_tree_item_1,)
+      fbcursor.execute(sql,val)
+      sel_cust_str_1 = fbcursor.fetchone()
+      print(sel_cust_str_1)
+      inv_combo_e1_1.delete(0, END)
+      inv_combo_e1_1.insert(0,sel_cust_str_1[4])
+      inv_addr_e2_1.delete('1.0',END)
+      inv_addr_e2_1.insert('1.0',sel_cust_str_1[5])
+      inv_shipto_e3_1.delete(0, END)
+      inv_shipto_e3_1.insert(0, sel_cust_str_1[6])
+      inv_addr_e4_1.delete('1.0',END)
+      inv_addr_e4_1.insert('1.0',sel_cust_str_1[7])
+      inv_email_e5_1.delete(0,END)
+      inv_email_e5_1.insert(0,sel_cust_str_1[9])
+      inv_sms_e6_1.delete(0,END)
+      inv_sms_e6_1.insert(0,sel_cust_str_1[12])
+
+      customer_selection_1.destroy()
+
+
+
+    ctegorytree=ttk.Treeview(customer_selection_1, height=27)
     ctegorytree["columns"]=["1"]
     ctegorytree.column("#0", width=35, minwidth=20)
     ctegorytree.column("1", width=205, minwidth=25, anchor=CENTER)    
@@ -1064,25 +1158,72 @@ def inv_edit_view():
     ctegorytree.heading("1",text="View filter by category", anchor=CENTER)
     ctegorytree.place(x=660, y=45)
 
-    scrollbar = Scrollbar(cuselection)
+    scrollbar = Scrollbar(customer_selection_1)
     scrollbar.place(x=640, y=45, height=560)
     scrollbar.config( command=tree.yview )
 
-    btn1=Button(cuselection,compound = LEFT,image=tick ,text="ok", width=60).place(x=15, y=610)
-    btn1=Button(cuselection,compound = LEFT,image=tick,text="Edit selected customer", width=150,command=create1).place(x=250, y=610)
-    btn1=Button(cuselection,compound = LEFT,image=tick, text="Add new customer", width=150,command=create1).place(x=435, y=610)
-    btn1=Button(cuselection,compound = LEFT,image=cancel ,text="Cancel", width=60).place(x=740, y=610)   
+    ok_btn_1=Button(customer_selection_1,compound = LEFT,image=tick ,text="ok", width=60,command=cust_tree_fetch_1)
+    ok_btn_1.place(x=15, y=610)
+    edit_btn_1=Button(customer_selection_1,compound = LEFT,image=tick,text="Edit selected customer", width=150,command=create1).place(x=250, y=610)
+    add_btn_1=Button(customer_selection_1,compound = LEFT,image=tick, text="Add new customer", width=150,command=create1).place(x=435, y=610)
+    cancel_btn_1=Button(customer_selection_1,compound = LEFT,image=cancel ,text="Cancel", width=60).place(x=740, y=610)   
 
 
 
     
 
   #add new line item
-  def newline():
-    newselection=Toplevel()
-    newselection.title("Product/Services")
-    newselection.geometry("930x650+240+10")
-    newselection.resizable(False, False)
+  def inv_newline_1():
+    #fetch new line item
+    def product_tree_fetch_1():
+      product_tree_item_1 = product_sel_tree_1.item(product_sel_tree_1.focus())["values"][0]
+      print(product_tree_item_1)
+      sql = "SELECT * FROM Productservice WHERE Productserviceid=%s"
+      val = (product_tree_item_1,)
+      fbcursor.execute(sql,val)
+      sel_pro_str = fbcursor.fetchone()
+      print(sel_pro_str)
+      add_newline_tree_1.insert(parent='',index='end',iid=sel_pro_str,text='',values=(sel_pro_str[0],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18]))
+      inv_newline_sel_1.destroy()
+    show_newline_1 = inv_combo_e1_1.get()
+    if show_newline_1 == '':
+      messagebox.showinfo('F-Billing Revolution','Customer is required, please select customer before adding line item to invoice')
+    else:
+      inv_newline_sel_1=Toplevel()
+      inv_newline_sel_1.title("Product/Services")
+      inv_newline_sel_1.geometry("930x650+240+10")
+      inv_newline_sel_1.resizable(False, False)
+
+      global product_sel_tree_1
+
+      product_sel_tree_1=ttk.Treeview(inv_newline_sel_1, height=27)
+      product_sel_tree_1["columns"]=["1","2","3", "4","5"]
+      product_sel_tree_1.column("#0", width=35)
+      product_sel_tree_1.column("1", width=160)
+      product_sel_tree_1.column("2", width=160)
+      product_sel_tree_1.column("3", width=140)
+      product_sel_tree_1.column("4", width=70)
+      product_sel_tree_1.column("5", width=70)
+      product_sel_tree_1.heading("#0",text="")
+      product_sel_tree_1.heading("1",text="ID/SKU")
+      product_sel_tree_1.heading("2",text="Product/Service Name")
+      product_sel_tree_1.heading("3",text="Unit price")
+      product_sel_tree_1.heading("4",text="Service")
+      product_sel_tree_1.heading("5",text="Stock")
+      product_sel_tree_1.place(x=5, y=45)
+
+      sql = "SELECT * FROM Productservice"
+      fbcursor.execute(sql)
+      product_details = fbcursor.fetchall()
+      print(product_details)
+
+      count = 0
+      for p in product_details:
+        if True:
+          product_sel_tree_1.insert(parent='',index='end',iid=p,text='',values=(p[0],p[4],p[7],p[12],p[13]))
+        else:
+          pass
+      count += 1
 
 
     #add new product
@@ -1248,29 +1389,14 @@ def inv_edit_view():
 
     
                     
-    enter=Label(newselection, text="Enter filter text").place(x=5, y=10)
-    e1=Entry(newselection, width=20).place(x=110, y=10)
-    text=Label(newselection, text="Filtered column").place(x=340, y=10)
-    e2=Entry(newselection, width=20).place(x=450, y=10)
-
-    cusventtree=ttk.Treeview(newselection, height=27)
-    cusventtree["columns"]=["1","2","3", "4","5"]
-    cusventtree.column("#0", width=35)
-    cusventtree.column("1", width=160)
-    cusventtree.column("2", width=160)
-    cusventtree.column("3", width=140)
-    cusventtree.column("4", width=70)
-    cusventtree.column("5", width=70)
-    cusventtree.heading("#0",text="")
-    cusventtree.heading("1",text="ID/SKU")
-    cusventtree.heading("2",text="Product/Service Name")
-    cusventtree.heading("3",text="Unit price")
-    cusventtree.heading("4",text="Service")
-    cusventtree.heading("5",text="Stock")
-    cusventtree.place(x=5, y=45)
+    enter=Label(inv_newline_sel_1, text="Enter filter text")
+    enter.place(x=5, y=10)
+    e1=Entry(inv_newline_sel_1, width=20).place(x=110, y=10)
+    text=Label(inv_newline_sel_1, text="Filtered column").place(x=340, y=10)
+    e2=Entry(inv_newline_sel_1, width=20).place(x=450, y=10)
 
 
-    ctegorytree=ttk.Treeview(newselection, height=27)
+    ctegorytree=ttk.Treeview(inv_newline_sel_1, height=27)
     ctegorytree["columns"]=["1"]
     ctegorytree.column("#0", width=35, minwidth=20)
     ctegorytree.column("1", width=205, minwidth=25, anchor=CENTER)    
@@ -1278,15 +1404,16 @@ def inv_edit_view():
     ctegorytree.heading("1",text="View filter by category", anchor=CENTER)
     ctegorytree.place(x=660, y=45)
 
-    scrollbar = Scrollbar(newselection)
+    scrollbar = Scrollbar(inv_newline_sel_1)
     scrollbar.place(x=640, y=45, height=560)
-    scrollbar.config( command=tree.yview )
+    scrollbar.config( command=product_sel_tree_1.yview )
    
 
-    btn1=Button(newselection,compound = LEFT,image=tick ,text="ok", width=60).place(x=15, y=610)
-    btn1=Button(newselection,compound = LEFT,image=tick , text="Edit product/Service", width=150,command=product).place(x=250, y=610)
-    btn1=Button(newselection,compound = LEFT,image=tick , text="Add product/Service", width=150,command=product).place(x=435, y=610)
-    btn1=Button(newselection,compound = LEFT,image=cancel ,text="Cancel", width=60).place(x=740, y=610)
+    product_ok_btn_1=Button(inv_newline_sel_1,compound = LEFT,image=tick ,text="ok", width=60,command=product_tree_fetch_1)
+    product_ok_btn_1.place(x=15, y=610)
+    btn1=Button(inv_newline_sel_1,compound = LEFT,image=tick , text="Edit product/Service", width=150,command=product).place(x=250, y=610)
+    btn1=Button(inv_newline_sel_1,compound = LEFT,image=tick , text="Add product/Service", width=150,command=product).place(x=435, y=610)
+    btn1=Button(inv_newline_sel_1,compound = LEFT,image=cancel ,text="Cancel", width=60).place(x=740, y=610)
 
 
 
@@ -1425,83 +1552,117 @@ def inv_edit_view():
     
     
 
-  firFrame=Frame(pop, bg="#f5f3f2", height=60)
-  firFrame.pack(side="top", fill=X)
+  inv_first_frame2=Frame(pop, bg="#f5f3f2", height=60)
+  inv_first_frame2.pack(side="top", fill=X)
 
-  w = Canvas(firFrame, width=1, height=65, bg="#b3b3b3", bd=0)
+  w = Canvas(inv_first_frame2, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  create = Button(firFrame,compound="top", text="Select\nCustomer",relief=RAISED, image=customer,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=custom)
+  create = Button(inv_first_frame2,compound="top", text="Select\nCustomer",relief=RAISED, image=customer,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=inv_sel_customer_1)
   create.pack(side="left", pady=3, ipadx=4)
 
 
-  w = Canvas(firFrame, width=1, height=65, bg="#b3b3b3", bd=0)
+  w = Canvas(inv_first_frame2, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  add= Button(firFrame,compound="top", text="Add new\nline item",relief=RAISED, image=photo,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=newline)
+  add= Button(inv_first_frame2,compound="top", text="Add new\nline item",relief=RAISED, image=photo,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=inv_newline_1)
   add.pack(side="left", pady=3, ipadx=4)
 
-  dele= Button(firFrame,compound="top", text="Delete line\nitem",relief=RAISED, image=photo2,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=delete1)
+  dele= Button(inv_first_frame2,compound="top", text="Delete line\nitem",relief=RAISED, image=photo2,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=delete1)
   dele.pack(side="left", pady=3, ipadx=4)
 
-  w = Canvas(firFrame, width=1, height=65, bg="#b3b3b3", bd=0)
+  w = Canvas(inv_first_frame2, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  prev= Button(firFrame,compound="top", text="Preview\nInvoice",relief=RAISED, image=photo4,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=previewline)
+  prev= Button(inv_first_frame2,compound="top", text="Preview\nInvoice",relief=RAISED, image=photo4,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=previewline)
   prev.pack(side="left", pady=3, ipadx=4)
 
-  prin= Button(firFrame,compound="top", text="Print \nInvoice",relief=RAISED, image=photo5,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=printsele)
+  prin= Button(inv_first_frame2,compound="top", text="Print \nInvoice",relief=RAISED, image=photo5,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=printsele)
   prin.pack(side="left", pady=3, ipadx=4)
 
-  w = Canvas(firFrame, width=1, height=65, bg="#b3b3b3", bd=0)
+  w = Canvas(inv_first_frame2, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  mail= Button(firFrame,compound="top", text="Email\nInvoice",relief=RAISED, image=photo6,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=emailorder)
+  mail= Button(inv_first_frame2,compound="top", text="Email\nInvoice",relief=RAISED, image=photo6,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=emailorder)
   mail.pack(side="left", pady=3, ipadx=4)
 
-  sms1= Button(firFrame,compound="top", text="Send SMS\nnotification",relief=RAISED, image=photo10,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=sms1)
+  sms1= Button(inv_first_frame2,compound="top", text="Send SMS\nnotification",relief=RAISED, image=photo10,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=sms1)
   sms1.pack(side="left", pady=3, ipadx=4)
 
-  w = Canvas(firFrame, width=1, height=65, bg="#b3b3b3", bd=0)
+  w = Canvas(inv_first_frame2, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  mark= Button(firFrame,compound="top", text="Mark invoice\nas 'Paid'",relief=RAISED, image=mark1,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=markinvo)
+  mark= Button(inv_first_frame2,compound="top", text="Mark invoice\nas 'Paid'",relief=RAISED, image=mark1,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=markinvo)
   mark.pack(side="left", pady=3, ipadx=4)
 
-  void= Button(firFrame,compound="top", text="Void\ninvoice",relief=RAISED, image=mark2,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=voidinvoice)
+  void= Button(inv_first_frame2,compound="top", text="Void\ninvoice",relief=RAISED, image=mark2,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=voidinvoice)
   void.pack(side="left", pady=3, ipadx=4)
 
 
-  w = Canvas(firFrame, width=1, height=65, bg="#b3b3b3", bd=0)
+  w = Canvas(inv_first_frame2, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  calc= Button(firFrame,compound="top", text="Open\nCalculator",relief=RAISED, image=photo9,bg="#f5f3f2", fg="black", height=55, bd=1, width=55)
+  calc= Button(inv_first_frame2,compound="top", text="Open\nCalculator",relief=RAISED, image=photo9,bg="#f5f3f2", fg="black", height=55, bd=1, width=55)
   calc.pack(side="left", pady=3, ipadx=4)
 
-  fir1Frame=Frame(pop, height=180,bg="#f5f3f2")
-  fir1Frame.pack(side="top", fill=X)
+  inv_first_frame2_1=Frame(pop, height=180,bg="#f5f3f2")
+  inv_first_frame2_1.pack(side="top", fill=X)
 
-  labelframe1 = LabelFrame(fir1Frame,text="Customers",font=("arial",15))
+  labelframe1 = LabelFrame(inv_first_frame2_1,text="Customers",font=("arial",15))
   labelframe1.place(x=10,y=5,width=640,height=160)
-  order = Label(labelframe1, text="Order to").place(x=10,y=5)
-  e1 = ttk.Combobox(labelframe1, value="Hello",width=28).place(x=80,y=5)
-  address=Label(labelframe1,text="Address").place(x=10,y=30)
-  e2=Text(labelframe1,width=23).place(x=80,y=30,height=70)
-  ship=Label(labelframe1,text="Ship to").place(x=342,y=5)
-  e3=Entry(labelframe1,width=30).place(x=402,y=3)
-  address1=Label(labelframe1,text="Address").place(x=340,y=30)
-  e4=Text(labelframe1,width=23).place(x=402,y=30,height=70)
+
+  def inv_to_combo_1(event):
+    inv_to_str_1 = inv_to_1.get()
+    sql = "SELECT * FROM Customer WHERE businessname=%s"
+    val = (inv_to_str_1,)
+    fbcursor.execute(sql,val)
+    inv_sel_combo_1 = fbcursor.fetchone()
+    print(inv_sel_combo_1)
+    inv_addr_e2_1.delete('1.0',END)
+    inv_addr_e2_1.insert('1.0',inv_sel_combo_1[5])
+    inv_shipto_e3_1.delete(0, END)
+    inv_shipto_e3_1.insert(0, inv_sel_combo_1[6])
+    inv_addr_e4_1.delete('1.0',END)
+    inv_addr_e4_1.insert('1.0',inv_sel_combo_1[7])
+    inv_email_e5_1.delete(0,END)
+    inv_email_e5_1.insert(0,inv_sel_combo_1[9])
+    inv_sms_e6_1.delete(0,END)
+    inv_sms_e6_1.insert(0,inv_sel_combo_1[12])
+
+  sql = "select businessname from Customer"
+  fbcursor.execute(sql,)
+  cdata = fbcursor.fetchall()
+
+  global inv_combo_e1_1,inv_addr_e2_1,inv_shipto_e3_1,inv_addr_e4_1,inv_email_e5_1,inv_sms_e6_1
+
+  invoice_to_1 = Label(labelframe1, text="Invoice to").place(x=10,y=5)
+  inv_to_1 = StringVar()
+  inv_combo_e1_1 = ttk.Combobox(labelframe1,width=28,textvariable=inv_to_1)
+  inv_combo_e1_1.place(x=80,y=5)
+  inv_combo_e1_1['values'] = cdata
+  inv_combo_e1_1.bind("<<ComboboxSelected>>", inv_to_combo_1)
+  inv_address_1=Label(labelframe1,text="Address").place(x=10,y=30)
+  inv_addr_e2_1=scrolledtext.Text(labelframe1, undo=True,width=23)
+  inv_addr_e2_1.place(x=80,y=30,height=70)
+  inv_ship_to_1=Label(labelframe1,text="Ship to").place(x=342,y=5)
+  inv_shipto_e3_1=Entry(labelframe1,width=30)
+  inv_shipto_e3_1.place(x=402,y=3)
+  inv_address1_1=Label(labelframe1,text="Address").place(x=340,y=30)
+  inv_addr_e4_1=scrolledtext.Text(labelframe1, undo=True,width=23)
+  inv_addr_e4_1.place(x=402,y=30,height=70)
 
   btn1=Button(labelframe1,width=3,height=2,compound = LEFT,text=">>").place(x=280, y=50)
   
-  labelframe2 = LabelFrame(fir1Frame,text="")
+  labelframe2 = LabelFrame(inv_first_frame2_1,text="")
   labelframe2.place(x=10,y=130,width=640,height=42)
-  email=Label(labelframe2,text="Email").place(x=10,y=5)
-  e5=Entry(labelframe2,width=30).place(x=80,y=5)
-  sms=Label(labelframe2,text="SMS Number").place(x=328,y=5)
-  e6=Entry(labelframe2,width=30).place(x=402,y=5)
+  inv_email_1=Label(labelframe2,text="Email").place(x=10,y=5)
+  inv_email_e5_1=Entry(labelframe2,width=30)
+  inv_email_e5_1.place(x=80,y=5)
+  inv_sms_1=Label(labelframe2,text="SMS Number").place(x=328,y=5)
+  inv_sms_e6_1=Entry(labelframe2,width=30)
+  inv_sms_e6_1.place(x=402,y=5)
     
-  labelframe = LabelFrame(fir1Frame,text="Invoice",font=("arial",15))
+  labelframe = LabelFrame(inv_first_frame2_1,text="Invoice",font=("arial",15))
   labelframe.place(x=652,y=5,width=290,height=170)
   order=Label(labelframe,text="Invoice#").place(x=5,y=5)
   e1=Entry(labelframe,width=25).place(x=100,y=5,)
@@ -1519,30 +1680,30 @@ def inv_edit_view():
   fir2Frame.pack(side="top", fill=X)
   listFrame = Frame(fir2Frame, bg="white", height=140,borderwidth=5,  relief=RIDGE)
   
-  tree=ttk.Treeview(listFrame)
-  tree["columns"]=["1","2","3","4","5","6","7","8"]
+  add_newline_tree_1=ttk.Treeview(listFrame)
+  add_newline_tree_1["columns"]=["1","2","3","4","5","6","7","8"]
 
-  tree.column("#0", width=40)
-  tree.column("1", width=80)
-  tree.column("2", width=190)
-  tree.column("3", width=190)
-  tree.column("4", width=80)
-  tree.column("5", width=60)
-  tree.column("6", width=60)
-  tree.column("7", width=60)
-  tree.column("8", width=80)
+  add_newline_tree_1.column("#0", width=40)
+  add_newline_tree_1.column("1", width=80)
+  add_newline_tree_1.column("2", width=190)
+  add_newline_tree_1.column("3", width=190)
+  add_newline_tree_1.column("4", width=80)
+  add_newline_tree_1.column("5", width=60)
+  add_newline_tree_1.column("6", width=60)
+  add_newline_tree_1.column("7", width=60)
+  add_newline_tree_1.column("8", width=80)
   
-  tree.heading("#0")
-  tree.heading("1",text="ID/SKU")
-  tree.heading("2",text="Product/Service")
-  tree.heading("3",text="Description")
-  tree.heading("4",text="Unit Price")
-  tree.heading("5",text="Quality")
-  tree.heading("6",text="Pcs/Weight")
-  tree.heading("7",text="Tax1")
-  tree.heading("8",text="Price")
+  add_newline_tree_1.heading("#0")
+  add_newline_tree_1.heading("1",text="ID/SKU")
+  add_newline_tree_1.heading("2",text="Product/Service")
+  add_newline_tree_1.heading("3",text="Description")
+  add_newline_tree_1.heading("4",text="Unit Price")
+  add_newline_tree_1.heading("5",text="Quality")
+  add_newline_tree_1.heading("6",text="Pcs/Weight")
+  add_newline_tree_1.heading("7",text="Tax1")
+  add_newline_tree_1.heading("8",text="Price")
   
-  tree.pack(fill="both", expand=1)
+  add_newline_tree_1.pack(fill="both", expand=1)
   listFrame.pack(side="top", fill="both", padx=5, pady=3, expand=1)
 
   fir3Frame=Frame(pop,height=200,width=700,bg="#f5f3f2")
@@ -1613,17 +1774,17 @@ def inv_edit_view():
   btn1=Button(documentFrame,height=2,width=3,text="+").place(x=5,y=10)
   btn2=Button(documentFrame,height=2,width=3,text="-").place(x=5,y=50)
   text=Label(documentFrame,text="Attached documents or image files.If you attach large email then email taken long time to send").place(x=50,y=10)
-  cusventtree=ttk.Treeview(documentFrame, height=5)
-  cusventtree["columns"]=["1","2","3"]
-  cusventtree.column("#0", width=20)
-  cusventtree.column("1", width=250)
-  cusventtree.column("2", width=250)
-  cusventtree.column("2", width=200)
-  cusventtree.heading("#0",text="", anchor=W)
-  cusventtree.heading("1",text="Attach to Email")
-  cusventtree.heading("2",text="Filename")
-  cusventtree.heading("3",text="Filesize")  
-  cusventtree.place(x=50, y=45)
+  product_sel_tree=ttk.Treeview(documentFrame, height=5)
+  product_sel_tree["columns"]=["1","2","3"]
+  product_sel_tree.column("#0", width=20)
+  product_sel_tree.column("1", width=250)
+  product_sel_tree.column("2", width=250)
+  product_sel_tree.column("2", width=200)
+  product_sel_tree.heading("#0",text="", anchor=W)
+  product_sel_tree.heading("1",text="Attach to Email")
+  product_sel_tree.heading("2",text="Filename")
+  product_sel_tree.heading("3",text="Filesize")  
+  product_sel_tree.place(x=50, y=45)
   
 
   fir4Frame=Frame(pop,height=190,width=210,bg="#f5f3f2")
