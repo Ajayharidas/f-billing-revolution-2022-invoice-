@@ -2,10 +2,12 @@ from cgitb import text
 from email import message
 
 from itertools import count
+from msilib.schema import ListBox
 from pydoc import describe
 from tkinter import *
 from tkinter import messagebox
 from tkinter import ttk
+from turtle import width
 from PIL import ImageTk, Image
 from numpy import insert
 import pandas as pd
@@ -156,7 +158,6 @@ def inv_create():
     sql_sel_cust = "SELECT * FROM Customer"
     fbcursor.execute(sql_sel_cust)
     customer_details = fbcursor.fetchall()
-    print(customer_details)
 
     count=0
     for i in customer_details:
@@ -169,12 +170,10 @@ def inv_create():
 
     def cust_tree_fetch():
       cust_tree_item = select_cust_tree.item(select_cust_tree.focus())["values"][0]
-      print(cust_tree_item)
       sql = "SELECT * FROM Customer WHERE customerid=%s"
       val = (cust_tree_item,)
       fbcursor.execute(sql,val)
       sel_cust_str = fbcursor.fetchone()
-      print(sel_cust_str)
       inv_combo_e1.delete(0, END)
       inv_combo_e1.insert(0,sel_cust_str[4])
       inv_addr_e2.delete('1.0',END)
@@ -189,6 +188,49 @@ def inv_create():
       inv_sms_e6.insert(0,sel_cust_str[12])
 
       customer_selection.destroy()
+    
+    # filter customers
+
+    def filter_customer():
+      if cust_filter_entry.get() == '':
+        sql = "SELECT * FROM Customer"
+        fbcursor.execute(sql,)
+        customer_details = fbcursor.fetchall()
+        for record in select_cust_tree.get_children():
+          select_cust_tree.delete(record)
+
+        count = 0
+        for i in customer_details:
+          if True:
+            select_cust_tree.insert(parent='',index='end',iid=i,text='',values=(i[0],i[4],i[10],i[8]))
+          else:
+            pass
+        count += 1
+      else:
+        filter = cust_filter_entry.get()
+        for record in select_cust_tree.get_children():
+          select_cust_tree.delete(record)
+
+        sql = "SELECT * FROM Customer WHERE businessname=%s"
+        val = (filter, )
+        fbcursor.execute(sql, val)
+        customer_details = fbcursor.fetchall()
+
+    
+        count=0
+        for i in customer_details:
+          if True:
+            select_cust_tree.insert(parent='', index='end', iid=i, text='', values=(i[0],i[4],i[10],i[8]))  
+          else:
+            pass
+        count += 1
+  
+
+    cust_filter_label=Label(customer_selection, text="Enter filter text").place(x=5, y=10)
+    cust_filter_entry=Entry(customer_selection, width=20)
+    cust_filter_entry.place(x=110, y=10)
+    cust_filter_button=Button(customer_selection, text='Click Here',command=filter_customer)
+    cust_filter_button.place(x=240, y=9,height=20,width=60)
 
 
 
@@ -286,35 +328,6 @@ def inv_create():
       btn2=Button(ven,width=60,height=10,bg="#f5f3f2",compound = LEFT,image=cancel,text="Cancel").place(x=800, y=615)
     
     
-    # filter customers
-
-    def filter_customer():
-      # global filttxt 
-  
-      filter = cust_filter_entry.get()
-      for record in select_cust_tree.get_children():
-        select_cust_tree.delete(record)
-
-      sql = "SELECT * FROM Customer WHERE businessname=%s"
-      val = (filter, )
-      fbcursor.execute(sql, val)
-      customer_details = fbcursor.fetchall()
-      print(customer_details)
-
-  
-      count=0
-      for i in customer_details:
-        if True:
-         select_cust_tree.insert(parent='', index='end', iid=i, text='', values=(i[0],i[4],i[10],i[8]))  
-        else:
-          pass
-      count += 1
-
-    cust_filter_label=Label(customer_selection, text="Enter filter text").place(x=5, y=10)
-    cust_filter_entry=Entry(customer_selection, width=20)
-    cust_filter_entry.place(x=110, y=10)
-    cust_filter_button=Button(customer_selection, text='Click Here',command=filter_customer)
-    cust_filter_button.place(x=240, y=9,height=20,width=60)
 
 
     cust_fil_cat_tree=ttk.Treeview(customer_selection, height=27)
@@ -325,13 +338,13 @@ def inv_create():
     cust_fil_cat_tree.heading("1",text="View filter by category", anchor=CENTER)
     cust_fil_cat_tree.place(x=660, y=45)
 
-    cust_fil_cat_list = Listbox(customer_selection,height=33,width=40,bg="white",activestyle="dotbox",fg="black",highlightbackground="white")
+    cust_fil_cat_list = Listbox(customer_selection,height=34,width=40,bg="white",activestyle="dotbox",fg="black",highlightbackground="white")
     cust_fil_cat_list.insert(0,"               View all records")
     cust_fil_cat_list.insert(1,"               View only Client/Vendor")
     cust_fil_cat_list.insert(2,"               View only Client type")
     cust_fil_cat_list.insert(3,"               View only Vendor type")
     cust_fil_cat_list.insert(4,"               Default")
-    cust_fil_cat_list.place(x=660,y=65)
+    cust_fil_cat_list.place(x=660,y=63)
     cust_fil_cat_list.bind('<<ListboxSelect>>')
 
 
@@ -353,12 +366,10 @@ def inv_create():
     #fetch new line item
     def product_tree_fetch():
       product_tree_item = product_sel_tree.item(product_sel_tree.focus())["values"][0]
-      print(product_tree_item)
       sql = "SELECT * FROM Productservice WHERE Productserviceid=%s"
       val = (product_tree_item,)
       fbcursor.execute(sql,val)
       sel_pro_str = fbcursor.fetchone()
-      print(sel_pro_str)
       add_newline_tree.insert(parent='',index='end',iid=sel_pro_str,text='',values=(sel_pro_str[0],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18]))
       inv_newline_sel.destroy()
     show_newline = inv_combo_e1.get()
@@ -391,7 +402,6 @@ def inv_create():
       sql = "SELECT * FROM Productservice"
       fbcursor.execute(sql)
       product_details = fbcursor.fetchall()
-      print(product_details)
 
       count = 0
       for p in product_details:
@@ -400,6 +410,51 @@ def inv_create():
         else:
           pass
       count += 1
+    
+    #filter product
+
+    def filter_product():
+      if product_filter_entry.get() == '':
+        sql = "SELECT * FROM Productservice"
+        fbcursor.execute(sql)
+        product_details = fbcursor.fetchall()
+        for record in product_sel_tree.get_children():
+          product_sel_tree.delete(record)
+
+        count = 0
+        for p in product_details:
+          if True:
+            product_sel_tree.insert(parent='',index='end',iid=p,text='',values=(p[0],p[4],p[7],p[12],p[13]))
+          else:
+            pass
+        count += 1
+
+      else:
+        filter = product_filter_entry.get()
+        for record in product_sel_tree.get_children():
+          product_sel_tree.delete(record)
+        
+        sql = "SELECT * FROM Productservice WHERE name=%s"
+        val = (filter, )
+        fbcursor.execute(sql, val)
+        records = fbcursor.fetchall()
+  
+    
+        count=0
+        for i in records:
+          if True:
+            product_sel_tree.insert(parent='', index='end', iid=i, text='', values=(i[0],i[4],i[10],i[8]))  
+          else:
+            pass
+        count += 1
+
+
+
+    product_filter_label=Label(inv_newline_sel, text="Enter filter text").place(x=5, y=10)
+    product_filter_entry=Entry(inv_newline_sel, width=20)
+    product_filter_entry.place(x=110, y=10)
+    product_filter_button=Button(inv_newline_sel, text='Click Here',command=filter_product)
+    product_filter_button.place(x=240, y=9,height=20,width=60)
 
       
 
@@ -563,26 +618,22 @@ def inv_create():
       removeButton.place(x=400,y=450)
 
 
-
-    
-                    
-    enter=Label(inv_newline_sel, text="Enter filter text")
-    enter.place(x=5, y=10)
-    e1=Entry(inv_newline_sel, width=20).place(x=110, y=10)
-    text=Label(inv_newline_sel, text="Filtered column").place(x=340, y=10)
-    e2=Entry(inv_newline_sel, width=20).place(x=450, y=10)
-
-
-    
+    pro_fil_cat_tree=ttk.Treeview(inv_newline_sel, height=27)
+    pro_fil_cat_tree["columns"]=["1"]
+    pro_fil_cat_tree.column("#0", width=35, minwidth=20)
+    pro_fil_cat_tree.column("1", width=205, minwidth=25, anchor=CENTER)    
+    pro_fil_cat_tree.heading("#0",text="", anchor=W)
+    pro_fil_cat_tree.heading("1",text="View filter by category", anchor=CENTER)
+    pro_fil_cat_tree.place(x=660, y=45)
 
 
-    ctegorytree=ttk.Treeview(inv_newline_sel, height=27)
-    ctegorytree["columns"]=["1"]
-    ctegorytree.column("#0", width=35, minwidth=20)
-    ctegorytree.column("1", width=205, minwidth=25, anchor=CENTER)    
-    ctegorytree.heading("#0",text="", anchor=W)
-    ctegorytree.heading("1",text="View filter by category", anchor=CENTER)
-    ctegorytree.place(x=660, y=45)
+    pro_fil_cat_list = Listbox(inv_newline_sel,height=34,width=40,bg="white",activestyle="dotbox",fg="black",highlightbackground="white")
+    pro_fil_cat_list.insert(0,"               View all Products/Services")
+    pro_fil_cat_list.insert(1,"               View all Products")
+    pro_fil_cat_list.insert(2,"               View all Services")
+    pro_fil_cat_list.insert(3,"               Default")
+    pro_fil_cat_list.place(x=660,y=63)
+    pro_fil_cat_list.bind('<<ListboxSelect>>')
 
     scrollbar = Scrollbar(inv_newline_sel)
     scrollbar.place(x=640, y=45, height=560)
@@ -590,9 +641,9 @@ def inv_create():
    
 
     product_ok_btn=Button(inv_newline_sel,compound = LEFT,image=tick ,text="ok", width=60,command=product_tree_fetch).place(x=15, y=610)
-    btn1=Button(inv_newline_sel,compound = LEFT,image=tick , text="Edit product/Service", width=150,command=product).place(x=250, y=610)
-    btn1=Button(inv_newline_sel,compound = LEFT,image=tick , text="Add product/Service", width=150,command=product).place(x=435, y=610)
-    btn1=Button(inv_newline_sel,compound = LEFT,image=cancel ,text="Cancel", width=60).place(x=740, y=610)
+    product_edit_btn=Button(inv_newline_sel,compound = LEFT,image=tick , text="Edit product/Service", width=150,command=product).place(x=250, y=610)
+    product_add_btn=Button(inv_newline_sel,compound = LEFT,image=tick , text="Add product/Service", width=150,command=product).place(x=435, y=610)
+    product_cancel_btn=Button(inv_newline_sel,compound = LEFT,image=cancel ,text="Cancel", width=60).place(x=740, y=610)
 
 
 
@@ -726,8 +777,9 @@ def inv_create():
     messagebox.askyesno("F-Billing Revolution","Are you sure to avoid this invoice?\nAll products will be placed back into stock and all payemnts will be voided.")
   
   #delete line item  
-  def delete1():
-    messagebox.showerror("F-Billing Revolution","Customer is required,please select customer before deleting line item .")
+  def delete_line_item():
+    selected_line_item = add_newline_tree.selection()[0]
+    add_newline_tree.delete(selected_line_item)
     
     
 
@@ -747,8 +799,8 @@ def inv_create():
   add= Button(inv_first_frame,compound="top", text="Add new\nline item",relief=RAISED, image=photo,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=inv_newline)
   add.pack(side="left", pady=3, ipadx=4)
 
-  dele= Button(inv_first_frame,compound="top", text="Delete line\nitem",relief=RAISED, image=photo2,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=delete1)
-  dele.pack(side="left", pady=3, ipadx=4)
+  del_line_item_btn= Button(inv_first_frame,compound="top", text="Delete line\nitem",relief=RAISED, image=photo2,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=delete_line_item)
+  del_line_item_btn.pack(side="left", pady=3, ipadx=4)
 
   w = Canvas(inv_first_frame, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
@@ -796,7 +848,6 @@ def inv_create():
     val = (inv_to_str,)
     fbcursor.execute(sql,val)
     inv_sel_combo = fbcursor.fetchone()
-    print(inv_sel_combo)
     inv_addr_e2.delete('1.0',END)
     inv_addr_e2.insert('1.0',inv_sel_combo[5])
     inv_shipto_e3.delete(0, END)
@@ -955,17 +1006,17 @@ def inv_create():
   btn1=Button(documentFrame,height=2,width=3,text="+").place(x=5,y=10)
   btn2=Button(documentFrame,height=2,width=3,text="-").place(x=5,y=50)
   text=Label(documentFrame,text="Attached documents or image files.If you attach large email then email taken long time to send").place(x=50,y=10)
-  product_sel_tree=ttk.Treeview(documentFrame, height=5)
-  product_sel_tree["columns"]=["1","2","3"]
-  product_sel_tree.column("#0", width=20)
-  product_sel_tree.column("1", width=250)
-  product_sel_tree.column("2", width=250)
-  product_sel_tree.column("2", width=200)
-  product_sel_tree.heading("#0",text="", anchor=W)
-  product_sel_tree.heading("1",text="Attach to Email")
-  product_sel_tree.heading("2",text="Filename")
-  product_sel_tree.heading("3",text="Filesize")  
-  product_sel_tree.place(x=50, y=45)
+  product_sel=ttk.Treeview(documentFrame, height=5)
+  product_sel["columns"]=["1","2","3"]
+  product_sel.column("#0", width=20)
+  product_sel.column("1", width=250)
+  product_sel.column("2", width=250)
+  product_sel.column("2", width=200)
+  product_sel.heading("#0",text="", anchor=W)
+  product_sel.heading("1",text="Attach to Email")
+  product_sel.heading("2",text="Filename")
+  product_sel.heading("3",text="Filesize")  
+  product_sel.place(x=50, y=45)
   
 
   fir4Frame=Frame(pop,height=190,width=210,bg="#f5f3f2")
@@ -996,9 +1047,9 @@ def inv_create():
 
 
 def inv_edit_view():
-  pop=Toplevel(inv_midFrame)
-  pop.title("Invoice")
-  pop.geometry("950x690+150+0")
+  pop_1=Toplevel(inv_midFrame)
+  pop_1.title("Invoice")
+  pop_1.geometry("950x690+150+0")
 
 
   #select customer
@@ -1027,7 +1078,6 @@ def inv_edit_view():
     sql = "SELECT * FROM Customer"
     fbcursor.execute(sql)
     customer_details = fbcursor.fetchall()
-    print(customer_details)
 
     count=0
     for i in customer_details:
@@ -1041,12 +1091,10 @@ def inv_edit_view():
 
     def cust_tree_fetch_1():
       cust_tree_item_1 = select_cust_tree_1.item(select_cust_tree_1.focus())["values"][0]
-      print(cust_tree_item_1)
       sql = "SELECT * FROM Customer WHERE customerid=%s"
       val = (cust_tree_item_1,)
       fbcursor.execute(sql,val)
       sel_cust_str_1 = fbcursor.fetchone()
-      print(sel_cust_str_1)
       inv_combo_e1_1.delete(0, END)
       inv_combo_e1_1.insert(0,sel_cust_str_1[4])
       inv_addr_e2_1.delete('1.0',END)
@@ -1158,24 +1206,41 @@ def inv_edit_view():
     # filter customers
     
     def filter_customer_1():
+      if cust_filter_entry_1.get() == '':
+        sql = "SELECT * FROM Customer"
+        fbcursor.execute(sql)
+        customer_details = fbcursor.fetchall()
+        for record in select_cust_tree_1.get_children():
+          select_cust_tree_1.delete(record)
 
-      filter = cust_filter_entry_1.get()
-      for record in select_cust_tree_1.get_children():
-        select_cust_tree_1.delete(record)
+        count=0
+        for i in customer_details:
+          if True:
+            select_cust_tree_1.insert(parent='',index='end',iid=i,text='',values=(i[0],i[4],i[10],i[8]))
+          else:
+            pass
+        count += 1
+      else:
+        filter = cust_filter_entry_1.get()
+        for record in select_cust_tree_1.get_children():
+          select_cust_tree_1.delete(record)
 
-      sql = "SELECT * FROM Customer WHERE businessname=%s"
-      val = (filter, )
-      fbcursor.execute(sql,val)
-      customer_details = fbcursor.fetchall() 
-      print(customer_details)
+        sql = "SELECT * FROM Customer WHERE businessname=%s"
+        val = (filter, )
+        fbcursor.execute(sql,val)
+        customer_details = fbcursor.fetchall() 
 
-      count = 0
-      for i in customer_details:
-        if True:
-          select_cust_tree_1.insert(parent='',index='end',iid=i,text='',values=(i[0],i[4],i[10],i[8]))
-        else:
-          pass
-      count += 1
+        count = 0
+        for i in customer_details:
+          if True:
+            select_cust_tree_1.insert(parent='',index='end',iid=i,text='',values=(i[0],i[4],i[10],i[8]))
+          else:
+            pass
+        count += 1
+
+
+
+      
     
     cust_filter_label_1=Label(customer_selection_1, text="Enter filter text").place(x=5, y=10)
     cust_filter_entry_1=Entry(customer_selection_1, width=20)
@@ -1194,13 +1259,13 @@ def inv_edit_view():
     cust_fil_cat_tree_1.place(x=660, y=45)
 
 
-    cust_fil_cat_list_1 = Listbox(customer_selection_1,height=33,width=40,bg="white",activestyle="dotbox",fg="black",highlightbackground="white")
+    cust_fil_cat_list_1 = Listbox(customer_selection_1,height=34,width=40,bg="white",activestyle="dotbox",fg="black",highlightbackground="white")
     cust_fil_cat_list_1.insert(0,"               View all records")
     cust_fil_cat_list_1.insert(1,"               View only Client/Vendor")
     cust_fil_cat_list_1.insert(2,"               View only Client type")
     cust_fil_cat_list_1.insert(3,"               View only Vendor type")
     cust_fil_cat_list_1.insert(4,"               Default")
-    cust_fil_cat_list_1.place(x=660,y=65)
+    cust_fil_cat_list_1.place(x=660,y=63)
     cust_fil_cat_list_1.bind('<<ListboxSelect>>')
 
     scrollbar = Scrollbar(customer_selection_1)
@@ -1222,12 +1287,10 @@ def inv_edit_view():
     #fetch new line item
     def product_tree_fetch_1():
       product_tree_item_1 = product_sel_tree_1.item(product_sel_tree_1.focus())["values"][0]
-      print(product_tree_item_1)
       sql = "SELECT * FROM Productservice WHERE Productserviceid=%s"
       val = (product_tree_item_1,)
       fbcursor.execute(sql,val)
       sel_pro_str = fbcursor.fetchone()
-      print(sel_pro_str)
       add_newline_tree_1.insert(parent='',index='end',iid=sel_pro_str,text='',values=(sel_pro_str[0],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18]))
       inv_newline_sel_1.destroy()
     show_newline_1 = inv_combo_e1_1.get()
@@ -1260,7 +1323,6 @@ def inv_edit_view():
       sql = "SELECT * FROM Productservice"
       fbcursor.execute(sql)
       product_details = fbcursor.fetchall()
-      print(product_details)
 
       count = 0
       for p in product_details:
@@ -1269,6 +1331,51 @@ def inv_edit_view():
         else:
           pass
       count += 1
+
+      #filter product
+
+      def filter_product_1():
+        if product_filter_entry_1.get() == '':
+          sql = "SELECT * FROM Productservice"
+          fbcursor.execute(sql)
+          product_details = fbcursor.fetchall()
+          for record in product_sel_tree_1.get_children():
+            product_sel_tree_1.delete(record)
+
+          count = 0
+          for p in product_details:
+            if True:
+              product_sel_tree_1.insert(parent='',index='end',iid=p,text='',values=(p[0],p[4],p[7],p[12],p[13]))
+            else:
+              pass
+          count += 1
+
+        else:
+          filter = product_filter_entry_1.get()
+          for record in product_sel_tree_1.get_children():
+            product_sel_tree_1.delete(record)
+          
+          sql = "SELECT * FROM Productservice WHERE name=%s"
+          val = (filter, )
+          fbcursor.execute(sql, val)
+          records = fbcursor.fetchall()
+    
+      
+          count=0
+          for i in records:
+            if True:
+              product_sel_tree_1.insert(parent='', index='end', iid=i, text='', values=(i[0],i[4],i[10],i[8]))  
+            else:
+              pass
+          count += 1
+
+
+
+    product_filter_label_1=Label(inv_newline_sel_1, text="Enter filter text").place(x=5, y=10)
+    product_filter_entry_1=Entry(inv_newline_sel_1, width=20)
+    product_filter_entry_1.place(x=110, y=10)
+    product_filter_button_1=Button(inv_newline_sel_1, text='Click Here',command=filter_product_1)
+    product_filter_button_1.place(x=240, y=9,height=20,width=60)
 
 
     #add new product
@@ -1431,23 +1538,22 @@ def inv_edit_view():
       removeButton.place(x=400,y=450)
 
 
+    pro_fil_cat_tree_1=ttk.Treeview(inv_newline_sel_1, height=27)
+    pro_fil_cat_tree_1["columns"]=["1"]
+    pro_fil_cat_tree_1.column("#0", width=35, minwidth=20)
+    pro_fil_cat_tree_1.column("1", width=205, minwidth=25, anchor=CENTER)    
+    pro_fil_cat_tree_1.heading("#0",text="", anchor=W)
+    pro_fil_cat_tree_1.heading("1",text="View filter by category", anchor=CENTER)
+    pro_fil_cat_tree_1.place(x=660, y=45)
 
-    
-                    
-    enter=Label(inv_newline_sel_1, text="Enter filter text")
-    enter.place(x=5, y=10)
-    e1=Entry(inv_newline_sel_1, width=20).place(x=110, y=10)
-    text=Label(inv_newline_sel_1, text="Filtered column").place(x=340, y=10)
-    e2=Entry(inv_newline_sel_1, width=20).place(x=450, y=10)
 
-
-    ctegorytree=ttk.Treeview(inv_newline_sel_1, height=27)
-    ctegorytree["columns"]=["1"]
-    ctegorytree.column("#0", width=35, minwidth=20)
-    ctegorytree.column("1", width=205, minwidth=25, anchor=CENTER)    
-    ctegorytree.heading("#0",text="", anchor=W)
-    ctegorytree.heading("1",text="View filter by category", anchor=CENTER)
-    ctegorytree.place(x=660, y=45)
+    pro_fil_cat_list_1 = Listbox(inv_newline_sel_1,height=34,width=40,bg="white",activestyle="dotbox",fg="black",highlightbackground="white")
+    pro_fil_cat_list_1.insert(0,"               View all Products/Services")
+    pro_fil_cat_list_1.insert(1,"               View all Products")
+    pro_fil_cat_list_1.insert(2,"               View all Services")
+    pro_fil_cat_list_1.insert(3,"               Default")
+    pro_fil_cat_list_1.place(x=660,y=63)
+    pro_fil_cat_list_1.bind('<<ListboxSelect>>')
 
     scrollbar = Scrollbar(inv_newline_sel_1)
     scrollbar.place(x=640, y=45, height=560)
@@ -1592,12 +1698,14 @@ def inv_edit_view():
     messagebox.askyesno("F-Billing Revolution","Are you sure to avoid this invoice?\nAll products will be placed back into stock and all payemnts will be voided.")
   
   #delete line item  
-  def delete1():
-    messagebox.showerror("F-Billing Revolution","Customer is required,please select customer before deleting line item .")
+  def delete_line_item_1():
+    selected_line_item_1 = add_newline_tree_1.selection()[0]
+    add_newline_tree_1.delete(selected_line_item_1)
+    
     
     
 
-  inv_first_frame2=Frame(pop, bg="#f5f3f2", height=60)
+  inv_first_frame2=Frame(pop_1, bg="#f5f3f2", height=60)
   inv_first_frame2.pack(side="top", fill=X)
 
   w = Canvas(inv_first_frame2, width=1, height=65, bg="#b3b3b3", bd=0)
@@ -1613,8 +1721,8 @@ def inv_edit_view():
   add= Button(inv_first_frame2,compound="top", text="Add new\nline item",relief=RAISED, image=photo,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=inv_newline_1)
   add.pack(side="left", pady=3, ipadx=4)
 
-  dele= Button(inv_first_frame2,compound="top", text="Delete line\nitem",relief=RAISED, image=photo2,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=delete1)
-  dele.pack(side="left", pady=3, ipadx=4)
+  del_line_item_btn_1= Button(inv_first_frame2,compound="top", text="Delete line\nitem",relief=RAISED, image=photo2,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=delete_line_item_1)
+  del_line_item_btn_1.pack(side="left", pady=3, ipadx=4)
 
   w = Canvas(inv_first_frame2, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
@@ -1650,7 +1758,7 @@ def inv_edit_view():
   calc= Button(inv_first_frame2,compound="top", text="Open\nCalculator",relief=RAISED, image=photo9,bg="#f5f3f2", fg="black", height=55, bd=1, width=55)
   calc.pack(side="left", pady=3, ipadx=4)
 
-  inv_first_frame2_1=Frame(pop, height=180,bg="#f5f3f2")
+  inv_first_frame2_1=Frame(pop_1, height=180,bg="#f5f3f2")
   inv_first_frame2_1.pack(side="top", fill=X)
 
   labelframe1 = LabelFrame(inv_first_frame2_1,text="Customers",font=("arial",15))
@@ -1721,7 +1829,7 @@ def inv_edit_view():
   ref=Label(labelframe,text="Order ref#").place(x=5,y=118)
   e1=Entry(labelframe,width=27).place(x=100,y=118)
 
-  fir2Frame=Frame(pop, height=150,width=100,bg="#f5f3f2")
+  fir2Frame=Frame(pop_1, height=150,width=100,bg="#f5f3f2")
   fir2Frame.pack(side="top", fill=X)
   listFrame = Frame(fir2Frame, bg="white", height=140,borderwidth=5,  relief=RIDGE)
   
@@ -1751,7 +1859,7 @@ def inv_edit_view():
   add_newline_tree_1.pack(fill="both", expand=1)
   listFrame.pack(side="top", fill="both", padx=5, pady=3, expand=1)
 
-  fir3Frame=Frame(pop,height=200,width=700,bg="#f5f3f2")
+  fir3Frame=Frame(pop_1,height=200,width=700,bg="#f5f3f2")
   fir3Frame.place(x=0,y=490)
 
   tabStyle = ttk.Style()
@@ -1832,7 +1940,7 @@ def inv_edit_view():
   product_sel_tree.place(x=50, y=45)
   
 
-  fir4Frame=Frame(pop,height=190,width=210,bg="#f5f3f2")
+  fir4Frame=Frame(pop_1,height=190,width=210,bg="#f5f3f2")
   fir4Frame.place(x=740,y=520)
   summaryfrme = LabelFrame(fir4Frame,text="Summary",font=("arial",15))
   summaryfrme.place(x=0,y=0,width=200,height=170)
@@ -1851,7 +1959,7 @@ def inv_edit_view():
   balance=Label(summaryfrme, text="Balance").place(x=0 ,y=126)
   balance1=Label(summaryfrme, text="$0.00").place(x=130 ,y=126)
 
-  fir5Frame=Frame(pop,height=38,width=210)
+  fir5Frame=Frame(pop_1,height=38,width=210)
   fir5Frame.place(x=735,y=485)
   btndown=Button(fir5Frame, compound="left", text="Line Down").place(x=75, y=0)
   btnup=Button(fir5Frame, compound="left", text="Line Up").place(x=150, y=0)
@@ -2376,7 +2484,6 @@ class MyApp:
     sql = "SELECT * FROM Invoice"
     fbcursor.execute(sql)
     invoice_records = fbcursor.fetchall()
-    print(invoice_records)
 
     count = 0
     for record in invoice_records:
@@ -2389,14 +2496,12 @@ class MyApp:
     def product_picker(event):
       selected_inv = inv_tree.focus()
       selected_product = inv_tree.item(selected_inv)["values"][1]
-      print(selected_product)
       for record in inv_product_tree.get_children():
         inv_product_tree.delete(record)
       sql = "SELECT * FROM storingproduct WHERE invoice_number=%s"
       val = (selected_product,)
       fbcursor.execute(sql,val)
       product_details = fbcursor.fetchall()
-      print(product_details)
 
       count = 0
       for i in product_details:
