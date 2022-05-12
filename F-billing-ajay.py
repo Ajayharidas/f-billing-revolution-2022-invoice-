@@ -460,7 +460,7 @@ def inv_create():
 
 
     #add new product
-    def product():  
+    def new_product():  
       top = Toplevel()  
       top.title("Add a new Product/Service")
       p2 = PhotoImage(file = 'images/fbicon.png')
@@ -486,124 +486,148 @@ def inv_create():
       Customerlabelframe = LabelFrame(innerFrame,text="Product/Service",width=580,height=485)
       Customerlabelframe.pack(side="top",fill=BOTH,padx=10)
 
-      code1=Label(Customerlabelframe,text="Code or SKU:",fg="blue",pady=10,padx=10)
-      code1.place(x=20,y=0)
-      codeentry = Entry(Customerlabelframe,width=35)
-      codeentry.place(x=120,y=8)
+      add_pro_code_label=Label(Customerlabelframe,text="Code or SKU:",fg="blue",pady=10,padx=10)
+      add_pro_code_label.place(x=20,y=0)
+      add_pro_code_entry = Entry(Customerlabelframe,width=35)
+      add_pro_code_entry.place(x=120,y=8)
 
       checkvarStatus=IntVar()
-      status1=Label(Customerlabelframe,text="Status:")
-      status1.place(x=500,y=8)
-      Button1 = Checkbutton(Customerlabelframe,
+      add_pro_status=Label(Customerlabelframe,text="Status:")
+      add_pro_status.place(x=500,y=8)
+      add_pro_checkbtn_active = Checkbutton(Customerlabelframe,
                         variable = checkvarStatus,text="Active",compound="right",
                         onvalue =0 ,
                         offvalue = 1,
                        
                         width = 10)
 
-      Button1.place(x=550,y=5)
+      add_pro_checkbtn_active.place(x=550,y=5)
 
-      category1=Label(Customerlabelframe,text="Category:",pady=5,padx=10)
-      category1.place(x=20,y=40)
+      add_pro_cat=Label(Customerlabelframe,text="Category:",pady=5,padx=10)
+      add_pro_cat.place(x=20,y=40)
       n = StringVar()
-      country = ttk.Combobox(Customerlabelframe, width = 40, textvariable = n )
+      add_pro_country = ttk.Combobox(Customerlabelframe, width = 40, textvariable = n )
        
-      country['values'] = ('Default',' India',' China',' Australia',' Nigeria',' Malaysia',' Italy',' Turkey',)
+      add_pro_country['values'] = ('Default',' India',' China',' Australia',' Nigeria',' Malaysia',' Italy',' Turkey',)
       
-      country.place(x=120,y=45)
-      country.current(0)
+      add_pro_country.place(x=120,y=45)
+      add_pro_country.current(0)
 
 
-      name1=Label(Customerlabelframe,text="Name :",fg="blue",pady=5,padx=10)
-      name1.place(x=20,y=70)
-      nameentry = Entry(Customerlabelframe,width=60)
-      nameentry.place(x=120,y=75)
+      add_pro_name_label=Label(Customerlabelframe,text="Name :",fg="blue",pady=5,padx=10)
+      add_pro_name_label.place(x=20,y=70)
+      add_pro_name_entry = Entry(Customerlabelframe,width=60)
+      add_pro_name_entry.place(x=120,y=75)
 
-      des1=Label(Customerlabelframe,text="Description :",pady=5,padx=10)
-      des1.place(x=20,y=100)
-      desentry = Entry(Customerlabelframe,width=60)
-      desentry.place(x=120,y=105)
+      add_pro_des_label=Label(Customerlabelframe,text="Description :",pady=5,padx=10)
+      add_pro_des_label.place(x=20,y=100)
+      add_pro_des_entry = Entry(Customerlabelframe,width=60)
+      add_pro_des_entry.place(x=120,y=105)
 
       uval = IntVar(Customerlabelframe, value='$0.00')
-      unit1=Label(Customerlabelframe,text="Unit Price:",fg="blue",pady=5,padx=10)
-      unit1.place(x=20,y=130)
-      unitentry = Entry(Customerlabelframe,width=20,textvariable=uval)
-      unitentry.place(x=120,y=135)
+      add_pro_unit_label=Label(Customerlabelframe,text="Unit Price:",fg="blue",pady=5,padx=10)
+      add_pro_unit_label.place(x=20,y=130)
+      add_pro_unit_entry = Entry(Customerlabelframe,width=20,textvariable=uval)
+      add_pro_unit_entry.place(x=120,y=135)
 
       pcsval = IntVar(Customerlabelframe, value='$0.00')
-      pcs1=Label(Customerlabelframe,text="Pcs/Weight:",fg="blue",pady=5,padx=10)
-      pcs1.place(x=320,y=140)
-      pcsentry = Entry(Customerlabelframe,width=20,textvariable=pcsval)
-      pcsentry.place(x=410,y=140)
+      add_pro_pcs_label=Label(Customerlabelframe,text="Pcs/Weight:",fg="blue",pady=5,padx=10)
+      add_pro_pcs_label.place(x=320,y=140)
+      add_pro_pcs_entry = Entry(Customerlabelframe,width=20,textvariable=pcsval)
+      add_pro_pcs_entry.place(x=410,y=140)
 
       costval = IntVar(Customerlabelframe, value='$0.00')
-      cost1=Label(Customerlabelframe,text="Cost:",pady=5,padx=10)
-      cost1.place(x=20,y=160)
-      costentry = Entry(Customerlabelframe,width=20,textvariable=costval)
-      costentry.place(x=120,y=165)
+      add_pro_cost_label=Label(Customerlabelframe,text="Cost:",pady=5,padx=10)
+      add_pro_cost_label.place(x=20,y=160)
+      add_pro_cost_entry = Entry(Customerlabelframe,width=20,textvariable=costval)
+      add_pro_cost_entry.place(x=120,y=165)
 
       priceval = IntVar(Customerlabelframe, value='$0.00')
-      price1=Label(Customerlabelframe,text="(Price Cost):",pady=5,padx=10)
-      price1.place(x=20,y=190)
-      priceentry = Entry(Customerlabelframe,width=20,textvariable=priceval)
-      priceentry.place(x=120,y=195)
+      add_pro_price_label=Label(Customerlabelframe,text="(Price Cost):",pady=5,padx=10)
+      add_pro_price_label.place(x=20,y=190)
+      add_pro_price_entry = Entry(Customerlabelframe,width=20,textvariable=priceval)
+      add_pro_price_entry.place(x=120,y=195)
 
       checkvarStatus2=IntVar()
      
-      Button2 = Checkbutton(Customerlabelframe,variable = checkvarStatus2,
+      add_pro_checkbtn_tax = Checkbutton(Customerlabelframe,variable = checkvarStatus2,
                         text="Taxable Tax1rate",compound="right",
                         onvalue =0 ,
                         offvalue = 1,
                         height=2,
                         width = 12)
 
-      Button2.place(x=415,y=170)
+      add_pro_checkbtn_tax.place(x=415,y=170)
 
 
       checkvarStatus3=IntVar()
      
-      Button3 = Checkbutton(Customerlabelframe,variable = checkvarStatus3,
+      add_pro_checkbtn_no = Checkbutton(Customerlabelframe,variable = checkvarStatus3,
                         text="No stock Control",
                         onvalue =1 ,
                         offvalue = 0,
                         height=3,
                         width = 15)
 
-      Button3.place(x=40,y=220)
+      add_pro_checkbtn_no.place(x=40,y=220)
 
 
       stockval = IntVar(Customerlabelframe)
-      stock1=Label(Customerlabelframe,text="Stock:",pady=5,padx=10)
-      stock1.place(x=90,y=260)
-      stockentry = Entry(Customerlabelframe,width=15,textvariable=stockval)
-      stockentry.place(x=150,y=265)
+      add_pro_stock_label=Label(Customerlabelframe,text="Stock:",pady=5,padx=10)
+      add_pro_stock_label.place(x=90,y=260)
+      add_pro_stock_entry = Entry(Customerlabelframe,width=15,textvariable=stockval)
+      add_pro_stock_entry.place(x=150,y=265)
 
       lowval = IntVar(Customerlabelframe)
-      low1=Label(Customerlabelframe,text="Low Stock Warning Limit:",pady=5,padx=10)
-      low1.place(x=300,y=260)
-      lowentry = Entry(Customerlabelframe,width=10,textvariable=lowval)
-      lowentry.place(x=495,y=265)
+      add_pro_low_label=Label(Customerlabelframe,text="Low Stock Warning Limit:",pady=5,padx=10)
+      add_pro_low_label.place(x=300,y=260)
+      add_pro_low_entry = Entry(Customerlabelframe,width=10,textvariable=lowval)
+      add_pro_low_entry.place(x=495,y=265)
 
      
-      ware1=Label(Customerlabelframe,text="Warehouse:",pady=5,padx=10)
-      ware1.place(x=60,y=290)
-      wareentry = Entry(Customerlabelframe,width=50)
-      wareentry.place(x=150,y=295)
+      add_pro_ware_label=Label(Customerlabelframe,text="Warehouse:",pady=5,padx=10)
+      add_pro_ware_label.place(x=60,y=290)
+      add_pro_ware_entry = Entry(Customerlabelframe,width=50)
+      add_pro_ware_entry.place(x=150,y=295)
 
-      text1=Label(Customerlabelframe,text="Private notes(not appears on invoice):",pady=5,padx=10)
-      text1.place(x=20,y=330)
+      add_pro_pnote_label=Label(Customerlabelframe,text="Private notes(not appears on invoice):",pady=5,padx=10)
+      add_pro_pnote_label.place(x=20,y=330)
 
-      txt = scrolledtext.ScrolledText(Customerlabelframe, undo=True,width=62,height=4)
-      txt.place(x=32,y=358)
+      add_pro_pnote_scroll = scrolledtext.ScrolledText(Customerlabelframe, undo=True,width=62,height=4)
+      add_pro_pnote_scroll.place(x=32,y=358)
 
+      def add_new_product():
+        sku = add_pro_code_entry.get()
+        category = add_pro_country.get()
+        name = add_pro_name_entry.get()
+        description = add_pro_des_entry.get()
+        unitprice = add_pro_unit_entry.get()
+        peices = add_pro_pcs_entry.get()
+        cost = add_pro_cost_entry.get()
+        priceminuscost = add_pro_price_entry.get()
+        stock = add_pro_stock_entry.get()
+        stocklimit = add_pro_low_entry.get()
+        warehouse = add_pro_ware_entry.get()
+        privatenote = add_pro_pnote_scroll.get("1.0",'end-1c')
+        status = checkvarStatus.get()
+        taxable = checkvarStatus2.get()
+        serviceornot = checkvarStatus3.get()
+        sql='INSERT INTO Productservice (sku,category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,status,taxable,serviceornot) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
+        val=(sku,category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,status,taxable,serviceornot)
+        fbcursor.execute(sql,val)
+        fbilldb.commit()
+        top.destroy()
+        messagebox.showinfo("F-Billing Revolution","Product registered successfully")
 
+      # Cancel add new product
+      def cancel_add():
+        top.destroy()
 
+      add_pro_ok_btn = Button(innerFrame,compound = LEFT,image=tick , text ="Ok",width=60,command=add_new_product)
+      add_pro_ok_btn.pack(side=LEFT)
 
-      okButton = Button(innerFrame,compound = LEFT,image=tick , text ="Ok",width=60)
-      okButton.pack(side=LEFT)
-
-      cancelButton = Button(innerFrame,compound = LEFT,image=cancel ,text="Cancel",width=60)
-      cancelButton.pack(side=RIGHT)
+      add_pro_cancel_btn = Button(innerFrame,compound = LEFT,image=cancel ,text="Cancel",width=60,command=cancel_add)
+      add_pro_cancel_btn.pack(side=RIGHT)
 
       imageFrame = Frame(tab2, relief=GROOVE,height=580)
       imageFrame.pack(side="top",fill=BOTH)
@@ -642,7 +666,8 @@ def inv_create():
 
     product_ok_btn=Button(inv_newline_sel,compound = LEFT,image=tick ,text="ok", width=60,command=product_tree_fetch).place(x=15, y=610)
     product_edit_btn=Button(inv_newline_sel,compound = LEFT,image=tick , text="Edit product/Service", width=150,command=product).place(x=250, y=610)
-    product_add_btn=Button(inv_newline_sel,compound = LEFT,image=tick , text="Add product/Service", width=150,command=product).place(x=435, y=610)
+    product_add_btn=Button(inv_newline_sel,compound = LEFT,image=tick , text="Add product/Service", width=150,command=new_product)
+    product_add_btn.place(x=435, y=610)
     product_cancel_btn=Button(inv_newline_sel,compound = LEFT,image=cancel ,text="Cancel", width=60).place(x=740, y=610)
 
 
@@ -1379,7 +1404,7 @@ def inv_edit_view():
 
 
     #add new product
-    def product():  
+    def new_product_1(): 
       top = Toplevel()  
       top.title("Add a new Product/Service")
       p2 = PhotoImage(file = 'images/fbicon.png')
@@ -1406,136 +1431,166 @@ def inv_edit_view():
       Customerlabelframe = LabelFrame(innerFrame,text="Product/Service",width=580,height=485)
       Customerlabelframe.pack(side="top",fill=BOTH,padx=10)
 
-      code1=Label(Customerlabelframe,text="Code or SKU:",fg="blue",pady=10,padx=10)
-      code1.place(x=20,y=0)
-      codeentry = Entry(Customerlabelframe,width=35)
-      codeentry.place(x=120,y=8)
+      add_pro_code_label_1=Label(Customerlabelframe,text="Code or SKU:",fg="blue",pady=10,padx=10)
+      add_pro_code_label_1.place(x=20,y=0)
+      add_pro_code_entry_1 = Entry(Customerlabelframe,width=35)
+      add_pro_code_entry_1.place(x=120,y=8)
 
       checkvarStatus=IntVar()
-      status1=Label(Customerlabelframe,text="Status:")
-      status1.place(x=500,y=8)
-      Button1 = Checkbutton(Customerlabelframe,
+      add_pro_status_1=Label(Customerlabelframe,text="Status:")
+      add_pro_status_1.place(x=500,y=8)
+      add_pro_checkbtn_active_1 = Checkbutton(Customerlabelframe,
                         variable = checkvarStatus,text="Active",compound="right",
                         onvalue =0 ,
                         offvalue = 1,
                        
                         width = 10)
 
-      Button1.place(x=550,y=5)
+      add_pro_checkbtn_active_1.place(x=550,y=5)
 
-      category1=Label(Customerlabelframe,text="Category:",pady=5,padx=10)
-      category1.place(x=20,y=40)
+      add_pro_cat_1=Label(Customerlabelframe,text="Category:",pady=5,padx=10)
+      add_pro_cat_1.place(x=20,y=40)
       n = StringVar()
-      country = ttk.Combobox(Customerlabelframe, width = 40, textvariable = n )
+      add_pro_country_1 = ttk.Combobox(Customerlabelframe, width = 40, textvariable = n )
        
-      country['values'] = ('Default',' India',' China',' Australia',' Nigeria',' Malaysia',' Italy',' Turkey',)
+      add_pro_country_1['values'] = ('Default',' India',' China',' Australia',' Nigeria',' Malaysia',' Italy',' Turkey',)
       
-      country.place(x=120,y=45)
-      country.current(0)
+      add_pro_country_1.place(x=120,y=45)
+      add_pro_country_1.current(0)
 
 
-      name1=Label(Customerlabelframe,text="Name :",fg="blue",pady=5,padx=10)
-      name1.place(x=20,y=70)
-      nameentry = Entry(Customerlabelframe,width=60)
-      nameentry.place(x=120,y=75)
+      add_pro_name_label_1=Label(Customerlabelframe,text="Name :",fg="blue",pady=5,padx=10)
+      add_pro_name_label_1.place(x=20,y=70)
+      add_pro_name_entry_1 = Entry(Customerlabelframe,width=60)
+      add_pro_name_entry_1.place(x=120,y=75)
 
-      des1=Label(Customerlabelframe,text="Description :",pady=5,padx=10)
-      des1.place(x=20,y=100)
-      desentry = Entry(Customerlabelframe,width=60)
-      desentry.place(x=120,y=105)
+      add_pro_des_label_1=Label(Customerlabelframe,text="Description :",pady=5,padx=10)
+      add_pro_des_label_1.place(x=20,y=100)
+      add_pro_des_entry_1 = Entry(Customerlabelframe,width=60)
+      add_pro_des_entry_1.place(x=120,y=105)
 
       uval = IntVar(Customerlabelframe, value='$0.00')
-      unit1=Label(Customerlabelframe,text="Unit Price:",fg="blue",pady=5,padx=10)
-      unit1.place(x=20,y=130)
-      unitentry = Entry(Customerlabelframe,width=20,textvariable=uval)
-      unitentry.place(x=120,y=135)
+      add_pro_unit_label_1=Label(Customerlabelframe,text="Unit Price:",fg="blue",pady=5,padx=10)
+      add_pro_unit_label_1.place(x=20,y=130)
+      add_pro_unit_entry_1 = Entry(Customerlabelframe,width=20,textvariable=uval)
+      add_pro_unit_entry_1.place(x=120,y=135)
 
       pcsval = IntVar(Customerlabelframe, value='$0.00')
-      pcs1=Label(Customerlabelframe,text="Pcs/Weight:",fg="blue",pady=5,padx=10)
-      pcs1.place(x=320,y=140)
-      pcsentry = Entry(Customerlabelframe,width=20,textvariable=pcsval)
-      pcsentry.place(x=410,y=140)
+      add_pro_pcs_label_1=Label(Customerlabelframe,text="Pcs/Weight:",fg="blue",pady=5,padx=10)
+      add_pro_pcs_label_1.place(x=320,y=140)
+      add_pro_pcs_entry_1 = Entry(Customerlabelframe,width=20,textvariable=pcsval)
+      add_pro_pcs_entry_1.place(x=410,y=140)
 
       costval = IntVar(Customerlabelframe, value='$0.00')
-      cost1=Label(Customerlabelframe,text="Cost:",pady=5,padx=10)
-      cost1.place(x=20,y=160)
-      costentry = Entry(Customerlabelframe,width=20,textvariable=costval)
-      costentry.place(x=120,y=165)
+      add_pro_cost_label_1=Label(Customerlabelframe,text="Cost:",pady=5,padx=10)
+      add_pro_cost_label_1.place(x=20,y=160)
+      add_pro_cost_entry_1 = Entry(Customerlabelframe,width=20,textvariable=costval)
+      add_pro_cost_entry_1.place(x=120,y=165)
 
       priceval = IntVar(Customerlabelframe, value='$0.00')
-      price1=Label(Customerlabelframe,text="(Price Cost):",pady=5,padx=10)
-      price1.place(x=20,y=190)
-      priceentry = Entry(Customerlabelframe,width=20,textvariable=priceval)
-      priceentry.place(x=120,y=195)
+      add_pro_price_label_1=Label(Customerlabelframe,text="(Price Cost):",pady=5,padx=10)
+      add_pro_price_label_1.place(x=20,y=190)
+      add_pro_price_entry_1 = Entry(Customerlabelframe,width=20,textvariable=priceval)
+      add_pro_price_entry_1.place(x=120,y=195)
 
       checkvarStatus2=IntVar()
      
-      Button2 = Checkbutton(Customerlabelframe,variable = checkvarStatus2,
+      add_pro_checkbtn_tax_1 = Checkbutton(Customerlabelframe,variable = checkvarStatus2,
                         text="Taxable Tax1rate",compound="right",
                         onvalue =0 ,
                         offvalue = 1,
                         height=2,
                         width = 12)
 
-      Button2.place(x=415,y=170)
+      add_pro_checkbtn_tax_1.place(x=415,y=170)
 
 
       checkvarStatus3=IntVar()
      
-      Button3 = Checkbutton(Customerlabelframe,variable = checkvarStatus3,
+      add_pro_checkbtn_no_1 = Checkbutton(Customerlabelframe,variable = checkvarStatus3,
                         text="No stock Control",
                         onvalue =1 ,
                         offvalue = 0,
                         height=3,
                         width = 15)
 
-      Button3.place(x=40,y=220)
+      add_pro_checkbtn_no_1.place(x=40,y=220)
 
 
       stockval = IntVar(Customerlabelframe)
-      stock1=Label(Customerlabelframe,text="Stock:",pady=5,padx=10)
-      stock1.place(x=90,y=260)
-      stockentry = Entry(Customerlabelframe,width=15,textvariable=stockval)
-      stockentry.place(x=150,y=265)
+      add_pro_stock_label_1=Label(Customerlabelframe,text="Stock:",pady=5,padx=10)
+      add_pro_stock_label_1.place(x=90,y=260)
+      add_pro_stock_entry_1 = Entry(Customerlabelframe,width=15,textvariable=stockval)
+      add_pro_stock_entry_1.place(x=150,y=265)
 
       lowval = IntVar(Customerlabelframe)
-      low1=Label(Customerlabelframe,text="Low Stock Warning Limit:",pady=5,padx=10)
-      low1.place(x=300,y=260)
-      lowentry = Entry(Customerlabelframe,width=10,textvariable=lowval)
-      lowentry.place(x=495,y=265)
+      add_pro_low_label_1=Label(Customerlabelframe,text="Low Stock Warning Limit:",pady=5,padx=10)
+      add_pro_low_label_1.place(x=300,y=260)
+      add_pro_low_entry_1 = Entry(Customerlabelframe,width=10,textvariable=lowval)
+      add_pro_low_entry_1.place(x=495,y=265)
 
      
-      ware1=Label(Customerlabelframe,text="Warehouse:",pady=5,padx=10)
-      ware1.place(x=60,y=290)
-      wareentry = Entry(Customerlabelframe,width=50)
-      wareentry.place(x=150,y=295)
+      add_pro_ware_label_1=Label(Customerlabelframe,text="Warehouse:",pady=5,padx=10)
+      add_pro_ware_label_1.place(x=60,y=290)
+      add_pro_ware_entry_1 = Entry(Customerlabelframe,width=50)
+      add_pro_ware_entry_1.place(x=150,y=295)
 
-      text1=Label(Customerlabelframe,text="Private notes(not appears on invoice):",pady=5,padx=10)
-      text1.place(x=20,y=330)
+      add_pro_pnote_label_1=Label(Customerlabelframe,text="Private notes(not appears on invoice):",pady=5,padx=10)
+      add_pro_pnote_label_1.place(x=20,y=330)
 
-      txt = scrolledtext.ScrolledText(Customerlabelframe, undo=True,width=62,height=4)
-      txt.place(x=32,y=358)
-
-
+      add_pro_pnote_scroll_1 = scrolledtext.ScrolledText(Customerlabelframe, undo=True,width=62,height=4)
+      add_pro_pnote_scroll_1.place(x=32,y=358)
 
 
-      okButton = Button(innerFrame,compound = LEFT,image=tick , text ="Ok",width=60)
-      okButton.pack(side=LEFT)
+      def add_new_product_1():
+        sku_1 = add_pro_code_entry_1.get()
+        category_1 = add_pro_country_1.get()
+        name_1 = add_pro_name_entry_1.get()
+        description_1 = add_pro_des_entry_1.get()
+        unitprice_1 = add_pro_unit_entry_1.get()
+        peices_1 = add_pro_pcs_entry_1.get()
+        cost_1 = add_pro_cost_entry_1.get()
+        priceminuscost_1 = add_pro_price_entry_1.get()
+        stock_1 = add_pro_stock_entry_1.get()
+        stocklimit_1 = add_pro_low_entry_1.get()
+        warehouse_1 = add_pro_ware_entry_1.get()
+        privatenote_1 = add_pro_pnote_scroll_1.get("1.0",'end-1c')
+        status_1 = checkvarStatus.get()
+        taxable_1 = checkvarStatus2.get()
+        serviceornot_1 = checkvarStatus3.get()
+        sql='INSERT INTO Productservice (sku,category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,status,taxable,serviceornot) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
+        val=(sku_1,category_1,name_1,description_1,unitprice_1,peices_1,cost_1,priceminuscost_1,stock_1,stocklimit_1,warehouse_1,privatenote_1,status_1,taxable_1,serviceornot_1)
+        fbcursor.execute(sql,val)
+        fbilldb.commit()
+        messagebox.showinfo("F-Billing Revolution","Product registered successfully")
 
-      cancelButton = Button(innerFrame,compound = LEFT,image=cancel ,text="Cancel",width=60)
-      cancelButton.pack(side=RIGHT)
+
+      # Cancel add new product
+      def cancel_add_1():
+        top.destroy()
+
+
+
+
+      add_pro_ok_btn_1 = Button(innerFrame,compound = LEFT,image=tick , text ="Ok",width=60,command=add_new_product_1)
+      add_pro_ok_btn_1.pack(side=LEFT)
+
+      add_pro_cancel_btn_1 = Button(innerFrame,compound = LEFT,image=cancel ,text="Cancel",width=60,command=cancel_add_1)
+      add_pro_cancel_btn_1.pack(side=RIGHT)
 
       imageFrame = Frame(tab2, relief=GROOVE,height=580)
       imageFrame.pack(side="top",fill=BOTH)
 
-      browseimg=Label(imageFrame,text=" Browse for product image file(recommended image type:JPG,size 480x320 pixels) ",bg='#f5f3f2')
-      browseimg.place(x=15,y=35)
+      add_pro_browse_img_1=Label(imageFrame,text=" Browse for product image file(recommended image type:JPG,size 480x320 pixels) ",bg='#f5f3f2')
+      add_pro_browse_img_1.place(x=15,y=35)
 
-      browsebutton=Button(imageFrame,text = 'Browse')
-      browsebutton.place(x=580,y=30,height=30,width=50)
+      add_pro_browse_btn_1=Button(imageFrame,text = 'Browse')
+      add_pro_browse_btn_1.place(x=580,y=30,height=30,width=50)
       
-      removeButton = Button(imageFrame,compound = LEFT,image=cancel, text ="Remove Product Image",width=150)
-      removeButton.place(x=400,y=450)
+      add_pro_remove_img_1 = Button(imageFrame,compound = LEFT,image=cancel, text ="Remove Product Image",width=150)
+      add_pro_remove_img_1.place(x=400,y=450)
+
+
 
 
     pro_fil_cat_tree_1=ttk.Treeview(inv_newline_sel_1, height=27)
@@ -1562,9 +1617,11 @@ def inv_edit_view():
 
     product_ok_btn_1=Button(inv_newline_sel_1,compound = LEFT,image=tick ,text="ok", width=60,command=product_tree_fetch_1)
     product_ok_btn_1.place(x=15, y=610)
-    btn1=Button(inv_newline_sel_1,compound = LEFT,image=tick , text="Edit product/Service", width=150,command=product).place(x=250, y=610)
-    btn1=Button(inv_newline_sel_1,compound = LEFT,image=tick , text="Add product/Service", width=150,command=product).place(x=435, y=610)
-    btn1=Button(inv_newline_sel_1,compound = LEFT,image=cancel ,text="Cancel", width=60).place(x=740, y=610)
+    product_edit_btn_1=Button(inv_newline_sel_1,compound = LEFT,image=tick , text="Edit product/Service", width=150)
+    product_edit_btn_1.place(x=250, y=610)
+    product_add_btn_1=Button(inv_newline_sel_1,compound = LEFT,image=tick , text="Add product/Service", width=150,command=new_product_1)
+    product_add_btn_1.place(x=435, y=610)
+    product_cancel_btn_1=Button(inv_newline_sel_1,compound = LEFT,image=cancel ,text="Cancel", width=60).place(x=740, y=610)
 
 
 
@@ -1770,7 +1827,6 @@ def inv_edit_view():
     val = (inv_to_str_1,)
     fbcursor.execute(sql,val)
     inv_sel_combo_1 = fbcursor.fetchone()
-    print(inv_sel_combo_1)
     inv_addr_e2_1.delete('1.0',END)
     inv_addr_e2_1.insert('1.0',inv_sel_combo_1[5])
     inv_shipto_e3_1.delete(0, END)
