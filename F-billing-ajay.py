@@ -3,6 +3,7 @@ from email import message
 
 from itertools import count
 from msilib.schema import ListBox
+from numbers import Number
 from pydoc import describe
 from tkinter import *
 from tkinter import messagebox
@@ -70,6 +71,11 @@ mark2 = PhotoImage(file="images/mark2.png")
 photo10 = PhotoImage(file = "images/text-message.png")
 addnew = PhotoImage(file="images/plus.png")
 delete = PhotoImage(file="images/delete_E.png")
+recalc = PhotoImage(file="images/recalculate.png")
+plus_1 = PhotoImage(file="images/plus_1.png")
+minus = PhotoImage(file="images/minus.png")
+search_1 = PhotoImage(file="images/search_1.png")
+message_1 = PhotoImage(file="images/message_1.png")
 tabControl = ttk.Notebook(root)
 tab1 = ttk.Frame(tabControl)
 tab2 = ttk.Frame(tabControl)
@@ -129,6 +135,46 @@ def inv_create():
   pop=Toplevel(inv_midFrame)
   pop.title("Invoice")
   pop.geometry("950x690+150+0")
+
+  # def add_new_invoice():
+    # invoiceid = inv_id.get()
+    # invoice_number = a.get()
+    # invo_date = inv_date_entry.get_date()
+    # duedate = inv_duedate_entry.get_date()
+    # # status = 
+    # # emailon = 
+    # # printon = 
+    # # smson = 
+    # # invoicetot = 
+    # # totpaid = 
+    # # balance = 
+    # extracostname = ex_costn_combo.get()
+    # extracost = ex_cost_entry.get()
+    # template = template_entry.get()
+    # salesper = sales_per_entry.get()
+    # discourate = dis_rate_entry.get()
+    # tax1 = tax1_entry.get()
+    # category = category_entry.get()
+    # businessname = inv_combo_e1.get()
+    # businessaddress = inv_addr_e2.get()
+    # shipname = inv_shipto_e3.get()
+    # shipaddress = inv_addr_e4.get()
+    # cpemail = inv_email_e5.get()
+    # cpmobileforsms = inv_sms_e6.get()
+    # # recurring_period = 
+    # # recurring_period_month =
+    # # next_invoice =
+    # # stop_recurring =
+    # # companyid = 
+    # customerid = inv_sel_combo[0]
+    # productserviceid = sel_pro_str[0]
+    # # discount =
+    # # orderid = 
+    # # estimsateid =
+    # sql='INSERT INTO Invoice (invoiceid,invoice_number,invo_date,duedate,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,customerid,productserviceid) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
+    # val=(invoiceid,invoice_number,invo_date,duedate,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,customerid,productserviceid)
+    # fbcursor.execute(sql,val)
+    # fbilldb.commit()
 
 
   #select customer
@@ -406,6 +452,7 @@ def inv_create():
   def inv_newline():
     #fetch new line item
     def product_tree_fetch():
+      global sel_pro_str
       product_tree_item = product_sel_tree.item(product_sel_tree.focus())["values"][0]
       sql = "SELECT * FROM Productservice WHERE Productserviceid=%s"
       val = (product_tree_item,)
@@ -940,6 +987,9 @@ def inv_create():
   calc= Button(inv_first_frame,compound="top", text="Open\nCalculator",relief=RAISED, image=photo9,bg="#f5f3f2", fg="black", height=55, bd=1, width=55)
   calc.pack(side="left", pady=3, ipadx=4)
 
+  Createorder= Button(inv_first_frame,compound="top", text="Save",relief=RAISED, image=tick,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,)
+  Createorder.pack(side="right", pady=3, ipadx=4)
+
   inv_first_frame_1=Frame(pop, height=180,bg="#f5f3f2")
   inv_first_frame_1.pack(side="top", fill=X)
 
@@ -1009,15 +1059,37 @@ def inv_create():
   labelframe = LabelFrame(inv_first_frame_1,text="Invoice",font=("arial",15))
   labelframe.place(x=652,y=5,width=290,height=170)
 
+  global inv_number_data
   fbcursor.execute("SELECT * FROM Invoice ORDER BY invoiceid DESC LIMIT 1")
   inv_number_data = fbcursor.fetchone()
 
   inv_number_label=Label(labelframe,text="Invoice#").place(x=5,y=5)
   inv_number_entry=Entry(labelframe,width=25)
+  inv_number_entry.place(x=100,y=5,)
 
   inv_number_entry.delete(0,'end')
+
+  def inv_num_increment(inum):
+    result = ""
+    numberStr = ""
+    i = len(inum) - 1
+    while i > 0:
+      c = inum[i]
+      if not c.isdigit():
+        break
+      numberStr = c + numberStr
+      i -= 1
+    number = int(numberStr)
+    number += 1
+    result += inum[0 : i + 1]
+    result += "0" if number < 10 else ""
+    result += str(number)
+    return result
+  
+  global a
   if not inv_number_data == None:
-    inv_no = inv_number_data[0] + 1
+    a = inv_number_data[1]
+    inv_no = inv_num_increment(a)
   else:
     inv_no = 1
   inv_number_entry.insert(0,inv_no)
@@ -1028,7 +1100,8 @@ def inv_create():
     else:
       inv_duedate_entry['state'] = NORMAL
 
-  inv_number_entry.place(x=100,y=5,)
+  global inv_date_entry,inv_duedate_entry
+
   inv_date_label =Label(labelframe,text="Invoice date").place(x=5,y=33)
   inv_date_entry =DateEntry(labelframe,width=20)
   inv_date_entry.place(x=150,y=33)
@@ -1101,58 +1174,112 @@ def inv_create():
   myNotebook.pack(expand = 1, fill ="both")  
 
   labelframe1 = LabelFrame(invoiceFrame,text="",font=("arial",15))
-  labelframe1.place(x=1,y=1,width=800,height=170)
-  cost1=Label(labelframe1,text="Extra cost name").place(x=2,y=5)
-  e1=ttk.Combobox(labelframe1, value="",width=20).place(x=115,y=5)
-  rate=Label(labelframe1,text="Discount rate").place(x=370,y=5)
-  e2=Entry(labelframe1,width=6).place(x=460,y=5)
-  cost2=Label(labelframe1,text="Extra cost").place(x=35,y=35)
-  e3=Entry(labelframe1,width=10).place(x=115,y=35)
-  tax=Label(labelframe1,text="Tax1").place(x=420,y=35)
-  e4=Entry(labelframe1,width=7).place(x=460,y=35)
-  template=Label(labelframe1,text="Template").place(x=37,y=70)
-  e5=ttk.Combobox(labelframe1, value="",width=25).place(x=115,y=70)
-  sales=Label(labelframe1,text="Sales Person").place(x=25,y=100)
-  e6=Entry(labelframe1,width=18).place(x=115,y=100)
-  category=Label(labelframe1,text="Category").place(x=300,y=100)
-  e7=Entry(labelframe1,width=22).place(x=370,y=100)
+  labelframe1.place(x=1,y=1,width=735,height=170)
+
+  global ex_costn_combo,dis_rate_entry,ex_cost_entry,tax1_entry,template_entry,sales_per_entry,category_entry
+
+  ex_costn_label=Label(labelframe1,text="Extra cost name").place(x=2,y=5)
+  ex_costn_combo=ttk.Combobox(labelframe1, value="",width=20).place(x=115,y=5)
+  dis_rate_label=Label(labelframe1,text="Discount rate").place(x=370,y=5)
+  dis_rate_entry=Entry(labelframe1,width=6).place(x=460,y=5)
+  ex_cost_label=Label(labelframe1,text="Extra cost").place(x=35,y=35)
+  ex_cost_entry=Entry(labelframe1,width=10).place(x=115,y=35)
+  tax1_label=Label(labelframe1,text="Tax1").place(x=420,y=35)
+  tax1_entry=Entry(labelframe1,width=7).place(x=460,y=35)
+  template_label=Label(labelframe1,text="Template").place(x=37,y=70)
+  template_entry=ttk.Combobox(labelframe1, value="",width=25).place(x=115,y=70)
+  sales_per_label=Label(labelframe1,text="Sales Person").place(x=25,y=100)
+  sales_per_entry=Entry(labelframe1,width=18).place(x=115,y=100)
+  category_label=Label(labelframe1,text="Category").place(x=300,y=100)
+  category_entry=Entry(labelframe1,width=22).place(x=370,y=100)
   
   statusfrme = LabelFrame(labelframe1,text="Status",font=("arial",15))
   statusfrme.place(x=540,y=0,width=160,height=160)
-  draft=Label(statusfrme, text="Draft",font=("arial", 15, "bold"), fg="grey").place(x=50, y=3)
-  on1=Label(statusfrme, text="Emailed on:").place( y=50)
-  nev1=Label(statusfrme, text="Never").place(x=100,y=50)
-  on2=Label(statusfrme, text="Printed on:").place( y=90)
-  nev2=Label(statusfrme, text="Never").place(x=100,y=90)
+  draft_label=Label(statusfrme, text="Draft",font=("arial", 15, "bold"), fg="grey").place(x=50, y=3)
+  email_on_label=Label(statusfrme, text="Emailed on:").place( y=50)
+  never1_label=Label(statusfrme, text="Never").place(x=100,y=50)
+  print_on_label=Label(statusfrme, text="Printed on:").place( y=90)
+  never2_label=Label(statusfrme, text="Never").place(x=100,y=90)
 
-  text1=Label(headerFrame,text="Title text").place(x=50,y=5)
-  e1=ttk.Combobox(headerFrame, value="",width=60).place(x=125,y=5)
-  text2=Label(headerFrame,text="Page header text").place(x=2,y=45)
-  e1=ttk.Combobox(headerFrame, value="",width=60).place(x=125,y=45)
-  text3=Label(headerFrame,text="Footer text").place(x=35,y=85)
-  e1=ttk.Combobox(headerFrame, value="",width=60).place(x=125,y=85)
+  recur_labelframe = LabelFrame(recurFrame,text="",font=("arial",15))
+  recur_labelframe.place(x=1,y=1,width=735,height=170)
 
-  text=Label(noteFrame,text="Private notes(not shown on invoice/order/estemates)").place(x=10,y=10)
-  e1=Text(noteFrame,width=100,height=7).place(x=10,y=32)
+  checkrecStatus=IntVar()
+  recur_check_btn = Checkbutton(recur_labelframe,variable=checkrecStatus,text="Recurring",onvalue=0,offvalue=1)
+  recur_check_btn.place(x=25,y=20)
+  recur_period_label = Label(recur_labelframe,text="Recurring period (interval)").place(x=130,y=45)
+  recur_period_entry = Spinbox(recur_labelframe,width=10)
+  recur_period_entry.place(x=280,y=45)
+  recur_month_combo = ttk.Combobox(recur_labelframe,values="",width=15)
+  recur_month_combo.place(x=360,y=45)
+  recur_nxt_inv_label = Label(recur_labelframe,text="Next Invoice").place(x=280,y=70)
+  recur_nxt_inv_date = DateEntry(recur_labelframe,width=20)
+  recur_nxt_inv_date.place(x=360,y=70)
+  checkstopStatus = IntVar()
+  recur_stop_check = Checkbutton(recur_labelframe,variable=checkstopStatus,text="Stop recurring after",onvalue=0,offvalue=1)
+  recur_stop_check.place(x=225,y=95)
+  recur_stop_date = DateEntry(recur_labelframe,width=20)
+  recur_stop_date.place(x=360,y=95)
+  recur_recalc = Button(recur_labelframe,compound=LEFT,image=recalc,text="Recalculate",width=80)
+  recur_recalc.place(x=510,y=70)
 
-  e1=Text(termsFrame,width=100,height=9).place(x=10,y=10)
+  pay_labelframe_1 = LabelFrame(payementFrame,text="",font=("arial",15))
+  pay_labelframe_1.place(x=1,y=1,width=735,height=170)
 
-  e1=Text(commentFrame,width=100,height=9).place(x=10,y=10)
+  pay_tree = ttk.Treeview(payementFrame,height=6)
+  pay_tree["columns"] = ["1","2","3","4","5"]
+  pay_tree.column("#0", width=10)
+  pay_tree.column("1", width=130)
+  pay_tree.column("2", width=130)
+  pay_tree.column("3", width=130)
+  pay_tree.column("4", width=130)
+  pay_tree.column("5", width=130)
+  pay_tree.heading("#0", text="",anchor=W)
+  pay_tree.heading("1",text="Payment ID")
+  pay_tree.heading("2",text="Payment date")
+  pay_tree.heading("3",text="Paid by")
+  pay_tree.heading("4",text="Description")
+  pay_tree.heading("5",text="Amount")
+  pay_tree.place(x=45,y=20)
 
-  btn1=Button(documentFrame,height=2,width=3,text="+").place(x=5,y=10)
-  btn2=Button(documentFrame,height=2,width=3,text="-").place(x=5,y=50)
-  text=Label(documentFrame,text="Attached documents or image files.If you attach large email then email taken long time to send").place(x=50,y=10)
-  product_sel=ttk.Treeview(documentFrame, height=5)
-  product_sel["columns"]=["1","2","3"]
-  product_sel.column("#0", width=20)
-  product_sel.column("1", width=250)
-  product_sel.column("2", width=250)
-  product_sel.column("2", width=200)
-  product_sel.heading("#0",text="", anchor=W)
-  product_sel.heading("1",text="Attach to Email")
-  product_sel.heading("2",text="Filename")
-  product_sel.heading("3",text="Filesize")  
-  product_sel.place(x=50, y=45)
+  pay_plus = Button(payementFrame,compound=LEFT,image=plus_1,text="",width=20,height=25)
+  pay_plus.place(x=10,y=20)
+  pay_minus = Button(payementFrame,compound=LEFT,image=minus,text="",width=20,height=25)
+  pay_minus.place(x=10,y=55)
+  pay_srch = Button(payementFrame,compound=LEFT,image=search_1,text="",width=20,height=25)
+  pay_srch.place(x=10,y=90)
+  pay_msg = Button(payementFrame,compound=LEFT,image=message_1,text="",width=20,height=25)
+  pay_msg.place(x=10,y=125)
+
+
+  title_txt_label=Label(headerFrame,text="Title text").place(x=50,y=5)
+  title_txt_combo=ttk.Combobox(headerFrame, value="",width=60).place(x=125,y=5)
+  pageh_txt_label=Label(headerFrame,text="Page header text").place(x=2,y=45)
+  pageh_txt_combo=ttk.Combobox(headerFrame, value="",width=60).place(x=125,y=45)
+  footer_txt_label=Label(headerFrame,text="Footer text").place(x=35,y=85)
+  footer_txt_combo=ttk.Combobox(headerFrame, value="",width=60).place(x=125,y=85)
+
+  private_label=Label(noteFrame,text="Private notes(not shown on invoice/order/estemates)").place(x=10,y=10)
+  private_note_txt=Text(noteFrame,width=100,height=7).place(x=10,y=32)
+
+  term_txt=Text(termsFrame,width=100,height=9).place(x=10,y=10)
+
+  comment_txt=Text(commentFrame,width=100,height=9).place(x=10,y=10)
+
+  doc_plus_btn=Button(documentFrame,image=plus_1,text="",width=20,height=25).place(x=5,y=10)
+  doc_minus_btn=Button(documentFrame,height=25,width=20,text="",image=minus).place(x=5,y=50)
+  doc_txt_label=Label(documentFrame,text="Attached documents or image files.If you attach large email then email taken long time to send").place(x=50,y=10)
+  doc_tree=ttk.Treeview(documentFrame, height=5)
+  doc_tree["columns"]=["1","2","3"]
+  doc_tree.column("#0", width=20)
+  doc_tree.column("1", width=250)
+  doc_tree.column("2", width=250)
+  doc_tree.column("3", width=200)
+  doc_tree.heading("#0",text="", anchor=W)
+  doc_tree.heading("1",text="Attach to Email")
+  doc_tree.heading("2",text="Filename")
+  doc_tree.heading("3",text="Filesize")  
+  doc_tree.place(x=50, y=45)
   
 
   fir4Frame=Frame(pop,height=190,width=210,bg="#f5f3f2")
@@ -2085,8 +2212,27 @@ def inv_edit_view():
   inv_number_entry_1=Entry(labelframe,width=25)
 
   inv_number_entry_1.delete(0,'end')
+
+  def inv_num_increment_1(inum):
+    result = ""
+    numberStr = ""
+    i = len(inum) - 1
+    while i > 0:
+      c = inum[i]
+      if not c.isdigit():
+        break
+      numberStr = c + numberStr
+      i -= 1
+    number = int(numberStr)
+    number += 1
+    result += inum[0 : i + 1]
+    result += "0" if number < 10 else ""
+    result += str(number)
+    return result
+
   if not inv_number_data_1 == None:
-    inv_no_1 = inv_number_data_1[0] + 1
+    a = inv_number_data_1[1]
+    inv_no_1 = inv_num_increment_1(a)
   else:
     inv_no_1 = 1
   inv_number_entry_1.insert(0,inv_no_1)
@@ -2171,58 +2317,109 @@ def inv_edit_view():
   myNotebook.pack(expand = 1, fill ="both")  
 
   labelframe1 = LabelFrame(invoiceFrame,text="",font=("arial",15))
-  labelframe1.place(x=1,y=1,width=800,height=170)
-  cost1=Label(labelframe1,text="Extra cost name").place(x=2,y=5)
-  e1=ttk.Combobox(labelframe1, value="",width=20).place(x=115,y=5)
-  rate=Label(labelframe1,text="Discount rate").place(x=370,y=5)
-  e2=Entry(labelframe1,width=6).place(x=460,y=5)
-  cost2=Label(labelframe1,text="Extra cost").place(x=35,y=35)
-  e3=Entry(labelframe1,width=10).place(x=115,y=35)
-  tax=Label(labelframe1,text="Tax1").place(x=420,y=35)
-  e4=Entry(labelframe1,width=7).place(x=460,y=35)
-  template=Label(labelframe1,text="Template").place(x=37,y=70)
-  e5=ttk.Combobox(labelframe1, value="",width=25).place(x=115,y=70)
-  sales=Label(labelframe1,text="Sales Person").place(x=25,y=100)
-  e6=Entry(labelframe1,width=18).place(x=115,y=100)
-  category=Label(labelframe1,text="Category").place(x=300,y=100)
-  e7=Entry(labelframe1,width=22).place(x=370,y=100)
+  labelframe1.place(x=1,y=1,width=735,height=170)
+  ex_costn_label_1=Label(labelframe1,text="Extra cost name").place(x=2,y=5)
+  ex_costn_combo_1=ttk.Combobox(labelframe1, value="",width=20).place(x=115,y=5)
+  dis_rate_label_1=Label(labelframe1,text="Discount rate").place(x=370,y=5)
+  dis_rate_entry_1=Entry(labelframe1,width=6).place(x=460,y=5)
+  ex_cost_label_1=Label(labelframe1,text="Extra cost").place(x=35,y=35)
+  ex_cost_entry_1=Entry(labelframe1,width=10).place(x=115,y=35)
+  tax1_label_1=Label(labelframe1,text="Tax1").place(x=420,y=35)
+  tax1_entry_1=Entry(labelframe1,width=7).place(x=460,y=35)
+  template_label_1=Label(labelframe1,text="Template").place(x=37,y=70)
+  template_entry_1=ttk.Combobox(labelframe1, value="",width=25).place(x=115,y=70)
+  sales_per_label_1=Label(labelframe1,text="Sales Person").place(x=25,y=100)
+  sales_per_entry_1=Entry(labelframe1,width=18).place(x=115,y=100)
+  category_label_1=Label(labelframe1,text="Category").place(x=300,y=100)
+  category_entry_1=Entry(labelframe1,width=22).place(x=370,y=100)
   
   statusfrme = LabelFrame(labelframe1,text="Status",font=("arial",15))
   statusfrme.place(x=540,y=0,width=160,height=160)
-  draft=Label(statusfrme, text="Draft",font=("arial", 15, "bold"), fg="grey").place(x=50, y=3)
-  on1=Label(statusfrme, text="Emailed on:").place( y=50)
-  nev1=Label(statusfrme, text="Never").place(x=100,y=50)
-  on2=Label(statusfrme, text="Printed on:").place( y=90)
-  nev2=Label(statusfrme, text="Never").place(x=100,y=90)
+  draft_label_1=Label(statusfrme, text="Draft",font=("arial", 15, "bold"), fg="grey").place(x=50, y=3)
+  email_on_label_1=Label(statusfrme, text="Emailed on:").place( y=50)
+  never1_label_1=Label(statusfrme, text="Never").place(x=100,y=50)
+  print_on_label_1=Label(statusfrme, text="Printed on:").place( y=90)
+  never2_label_1=Label(statusfrme, text="Never").place(x=100,y=90)
 
-  text1=Label(headerFrame,text="Title text").place(x=50,y=5)
-  e1=ttk.Combobox(headerFrame, value="",width=60).place(x=125,y=5)
-  text2=Label(headerFrame,text="Page header text").place(x=2,y=45)
-  e1=ttk.Combobox(headerFrame, value="",width=60).place(x=125,y=45)
-  text3=Label(headerFrame,text="Footer text").place(x=35,y=85)
-  e1=ttk.Combobox(headerFrame, value="",width=60).place(x=125,y=85)
+  recur_labelframe_1 = LabelFrame(recurFrame,text="",font=("arial",15))
+  recur_labelframe_1.place(x=1,y=1,width=735,height=170)
 
-  text=Label(noteFrame,text="Private notes(not shown on invoice/order/estemates)").place(x=10,y=10)
-  e1=Text(noteFrame,width=100,height=7).place(x=10,y=32)
+  checkrecStatus_1=IntVar()
+  recur_check_btn_1 = Checkbutton(recur_labelframe_1,variable=checkrecStatus_1,text="Recurring",onvalue=0,offvalue=1)
+  recur_check_btn_1.place(x=25,y=20)
+  recur_period_label_1 = Label(recur_labelframe_1,text="Recurring period (interval)").place(x=130,y=45)
+  recur_period_entry_1 = Spinbox(recur_labelframe_1,width=10)
+  recur_period_entry_1.place(x=280,y=45)
+  recur_month_combo_1 = ttk.Combobox(recur_labelframe_1,values="",width=15)
+  recur_month_combo_1.place(x=360,y=45)
+  recur_nxt_inv_label_1 = Label(recur_labelframe_1,text="Next Invoice").place(x=280,y=70)
+  recur_nxt_inv_date_1 = DateEntry(recur_labelframe_1,width=20)
+  recur_nxt_inv_date_1.place(x=360,y=70)
+  checkstopStatus_1 = IntVar()
+  recur_stop_check_1 = Checkbutton(recur_labelframe_1,variable=checkstopStatus_1,text="Stop recurring after",onvalue=0,offvalue=1)
+  recur_stop_check_1.place(x=225,y=95)
+  recur_stop_date_1 = DateEntry(recur_labelframe_1,width=20)
+  recur_stop_date_1.place(x=360,y=95)
+  recur_recalc_1 = Button(recur_labelframe_1,compound=LEFT,image=recalc,text="Recalculate",width=80)
+  recur_recalc_1.place(x=510,y=70)
 
-  e1=Text(termsFrame,width=100,height=9).place(x=10,y=10)
+  pay_labelframe_1 = LabelFrame(payementFrame,text="",font=("arial",15))
+  pay_labelframe_1.place(x=1,y=1,width=735,height=170)
 
-  e1=Text(commentFrame,width=100,height=9).place(x=10,y=10)
+  pay_tree_1 = ttk.Treeview(payementFrame,height=6)
+  pay_tree_1["columns"] = ["1","2","3","4","5"]
+  pay_tree_1.column("#0", width=10)
+  pay_tree_1.column("1", width=130)
+  pay_tree_1.column("2", width=130)
+  pay_tree_1.column("3", width=130)
+  pay_tree_1.column("4", width=130)
+  pay_tree_1.column("5", width=130)
+  pay_tree_1.heading("#0", text="",anchor=W)
+  pay_tree_1.heading("1",text="Payment ID")
+  pay_tree_1.heading("2",text="Payment date")
+  pay_tree_1.heading("3",text="Paid by")
+  pay_tree_1.heading("4",text="Description")
+  pay_tree_1.heading("5",text="Amount")
+  pay_tree_1.place(x=45,y=20)
 
-  btn1=Button(documentFrame,height=2,width=3,text="+").place(x=5,y=10)
-  btn2=Button(documentFrame,height=2,width=3,text="-").place(x=5,y=50)
-  text=Label(documentFrame,text="Attached documents or image files.If you attach large email then email taken long time to send").place(x=50,y=10)
-  product_sel_tree=ttk.Treeview(documentFrame, height=5)
-  product_sel_tree["columns"]=["1","2","3"]
-  product_sel_tree.column("#0", width=20)
-  product_sel_tree.column("1", width=250)
-  product_sel_tree.column("2", width=250)
-  product_sel_tree.column("2", width=200)
-  product_sel_tree.heading("#0",text="", anchor=W)
-  product_sel_tree.heading("1",text="Attach to Email")
-  product_sel_tree.heading("2",text="Filename")
-  product_sel_tree.heading("3",text="Filesize")  
-  product_sel_tree.place(x=50, y=45)
+  pay_plus_1 = Button(payementFrame,image=plus_1,text="",width=20,height=25)
+  pay_plus_1.place(x=10,y=20)
+  pay_minus_1 = Button(payementFrame,image=minus,text="",width=20,height=25)
+  pay_minus_1.place(x=10,y=55)
+  pay_srch_1 = Button(payementFrame,image=search_1,text="",width=20,height=25)
+  pay_srch_1.place(x=10,y=90)
+  pay_msg_1 = Button(payementFrame,image=message_1,text="",width=20,height=25)
+  pay_msg_1.place(x=10,y=125)
+
+
+  title_txt_label_1=Label(headerFrame,text="Title text").place(x=50,y=5)
+  title_txt_combo_1=ttk.Combobox(headerFrame, value="",width=60).place(x=125,y=5)
+  pageh_txt_label_1=Label(headerFrame,text="Page header text").place(x=2,y=45)
+  pageh_txt_combo_1=ttk.Combobox(headerFrame, value="",width=60).place(x=125,y=45)
+  footer_txt_label_1=Label(headerFrame,text="Footer text").place(x=35,y=85)
+  footer_txt_combo_1=ttk.Combobox(headerFrame, value="",width=60).place(x=125,y=85)
+
+  private_label_1=Label(noteFrame,text="Private notes(not shown on invoice/order/estemates)").place(x=10,y=10)
+  private_note_txt_1=Text(noteFrame,width=100,height=7).place(x=10,y=32)
+
+  term_txt_1=Text(termsFrame,width=100,height=9).place(x=10,y=10)
+
+  comment_txt_1=Text(commentFrame,width=100,height=9).place(x=10,y=10)
+
+  doc_plus_btn_1=Button(documentFrame,image=plus_1,text="",width=20,height=25).place(x=5,y=10)
+  doc_minus_btn_1=Button(documentFrame,height=25,width=20,text="",image=minus).place(x=5,y=50)
+  doc_txt_label_1=Label(documentFrame,text="Attached documents or image files.If you attach large email then email taken long time to send").place(x=50,y=10)
+  doc_tree_1=ttk.Treeview(documentFrame, height=5)
+  doc_tree_1["columns"]=["1","2","3"]
+  doc_tree_1.column("#0", width=20)
+  doc_tree_1.column("1", width=250)
+  doc_tree_1.column("2", width=250)
+  doc_tree_1.column("2", width=200)
+  doc_tree_1.heading("#0",text="", anchor=W)
+  doc_tree_1.heading("1",text="Attach to Email")
+  doc_tree_1.heading("2",text="Filename")
+  doc_tree_1.heading("3",text="Filesize")  
+  doc_tree_1.place(x=50, y=45)
   
 
   fir4Frame=Frame(pop_1,height=190,width=210,bg="#f5f3f2")
