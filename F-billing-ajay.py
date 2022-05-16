@@ -4,6 +4,7 @@ from email import message
 from itertools import count
 from msilib.schema import ListBox
 from numbers import Number
+from operator import index
 from pydoc import describe
 from tkinter import *
 from tkinter import messagebox
@@ -12,7 +13,7 @@ from turtle import width
 from PIL import ImageTk, Image
 from numpy import insert
 import pandas as pd
-from tkinter.messagebox import showinfo
+from tkinter.messagebox import askyesno, showinfo
 import tkinter.scrolledtext as scrolledtext
 from tkinter.filedialog import askopenfilename
 import os
@@ -136,46 +137,44 @@ def inv_create():
   pop.title("Invoice")
   pop.geometry("950x690+150+0")
 
-  # def add_new_invoice():
-    # invoiceid = inv_id.get()
-    # invoice_number = a.get()
-    # invo_date = inv_date_entry.get_date()
-    # duedate = inv_duedate_entry.get_date()
-    # # status = 
-    # # emailon = 
-    # # printon = 
-    # # smson = 
-    # # invoicetot = 
-    # # totpaid = 
-    # # balance = 
-    # extracostname = ex_costn_combo.get()
-    # extracost = ex_cost_entry.get()
-    # template = template_entry.get()
-    # salesper = sales_per_entry.get()
-    # discourate = dis_rate_entry.get()
-    # tax1 = tax1_entry.get()
-    # category = category_entry.get()
-    # businessname = inv_combo_e1.get()
-    # businessaddress = inv_addr_e2.get()
-    # shipname = inv_shipto_e3.get()
-    # shipaddress = inv_addr_e4.get()
-    # cpemail = inv_email_e5.get()
-    # cpmobileforsms = inv_sms_e6.get()
-    # # recurring_period = 
-    # # recurring_period_month =
-    # # next_invoice =
-    # # stop_recurring =
-    # # companyid = 
-    # customerid = inv_sel_combo[0]
-    # productserviceid = sel_pro_str[0]
-    # # discount =
-    # # orderid = 
-    # # estimsateid =
-    # sql='INSERT INTO Invoice (invoiceid,invoice_number,invo_date,duedate,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,customerid,productserviceid) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
-    # val=(invoiceid,invoice_number,invo_date,duedate,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,customerid,productserviceid)
-    # fbcursor.execute(sql,val)
-    # fbilldb.commit()
-
+  def add_new_invoice():
+    invoice_number = inv_number_entry.get()
+    invodate = inv_date_entry.get_date()
+    duedate = inv_duedate_entry.get_date()
+    status = draft_label.cget("text")
+    emailon = never1_label.cget("text")
+    printon = never2_label.cget("text")
+    # smson = 
+    invoicetot = invoicetot1.cget("text")
+    totpaid = total1.cget("text")
+    balance = balance1.cget("text")
+    extracostname = ex_costn_combo.get()
+    extracost = ex_cost_entry.get()
+    template = template_entry.get()
+    salesper = sales_per_entry.get()
+    discourate = dis_rate_entry.get()
+    tax1 = tax1_entry.get()
+    category = category_entry.get()
+    businessname = inv_combo_e1.get()
+    businessaddress = inv_addr_e2.get("1.0",END)
+    shipname = inv_shipto_e3.get()
+    shipaddress = inv_addr_e4.get("1.0",END)
+    cpemail = inv_email_e5.get()
+    cpmobileforsms = inv_sms_e6.get()
+    recurring_period = recur_period_entry.get()
+    recurring_period_month = recur_month_combo.get()
+    next_invoice = recur_nxt_inv_date.get_date()
+    stop_recurring = recur_stop_date.get_date()
+    # companyid = 
+    # customerid = 
+    # productserviceid = 
+    # discount =
+    # orderid = 
+    # estimsateid =
+    sql='INSERT INTO Invoice (invoice_number,invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
+    val=(invoice_number,invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring)
+    fbcursor.execute(sql,val)
+    fbilldb.commit()
 
   #select customer
   def inv_sel_customer():
@@ -925,7 +924,56 @@ def inv_create():
     
   #voidinvoice
   def voidinvoice():
-    messagebox.askyesno("F-Billing Revolution","Are you sure to avoid this invoice?\nAll products will be placed back into stock and all payemnts will be voided.")
+    void_msg = messagebox.askyesno("F-Billing Revolution","Are you sure to avoid this invoice?\nAll products will be placed back into stock and all payemnts will be voided.")
+    if void_msg == YES:
+      select_customer_btn['state'] = DISABLED
+      add_newline_btn['state'] = DISABLED
+      del_line_item_btn['state'] = DISABLED
+      mark_inv_paid['state'] = DISABLED
+      void_invoice['state'] = DISABLED
+      save_invoice['state'] = DISABLED
+      inv_combo_e1['state'] = DISABLED
+      inv_addr_e2['state'] = DISABLED
+      inv_shipto_e3['state'] = DISABLED
+      inv_addr_e4['state'] = DISABLED
+      inv_email_e5['state'] = DISABLED
+      inv_sms_e6['state'] = DISABLED
+      inv_number_entry['state'] = DISABLED
+      inv_date_entry['state'] = DISABLED
+      inv_duedate_entry['state'] = DISABLED
+      inv_terms_combo['state'] = DISABLED
+      inv_ref_entry['state'] = DISABLED
+      ex_costn_combo['state'] = DISABLED
+      dis_rate_entry['state'] = DISABLED
+      ex_cost_entry['state'] = DISABLED
+      tax1_entry['state'] = DISABLED
+      template_entry['state'] = DISABLED
+      draft_label.config(text="void")
+      if checkrecStatus is not None:
+        checkrecStatus.set(0)
+      else:
+        checkrecStatus.set(0)
+      recur_check_btn['state'] = DISABLED
+      recur_period_entry['state'] = DISABLED
+      recur_month_combo['state'] = DISABLED
+      recur_nxt_inv_date['state'] = DISABLED
+      recur_stop_check['state'] = DISABLED
+      recur_stop_date['state'] = DISABLED
+      recur_recalc['state'] = DISABLED
+      pay_plus['state'] = DISABLED
+      pay_minus['state'] = DISABLED
+      title_txt_combo['state'] = DISABLED
+      pageh_txt_combo['state'] = DISABLED
+      footer_txt_combo['state'] = DISABLED
+      term_txt['state'] = DISABLED
+      comment_txt['state'] = DISABLED
+      doc_plus_btn['state'] = DISABLED
+      doc_minus_btn['state'] = DISABLED
+    else:
+      pass
+
+
+
   
   #delete line item  
   def delete_line_item():
@@ -940,15 +988,15 @@ def inv_create():
   w = Canvas(inv_first_frame, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  create = Button(inv_first_frame,compound="top", text="Select\nCustomer",relief=RAISED, image=customer,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=inv_sel_customer)
-  create.pack(side="left", pady=3, ipadx=4)
+  select_customer_btn = Button(inv_first_frame,compound="top", text="Select\nCustomer",relief=RAISED, image=customer,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=inv_sel_customer)
+  select_customer_btn.pack(side="left", pady=3, ipadx=4)
 
 
   w = Canvas(inv_first_frame, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  add= Button(inv_first_frame,compound="top", text="Add new\nline item",relief=RAISED, image=photo,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=inv_newline)
-  add.pack(side="left", pady=3, ipadx=4)
+  add_newline_btn= Button(inv_first_frame,compound="top", text="Add new\nline item",relief=RAISED, image=photo,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=inv_newline)
+  add_newline_btn.pack(side="left", pady=3, ipadx=4)
 
   del_line_item_btn= Button(inv_first_frame,compound="top", text="Delete line\nitem",relief=RAISED, image=photo2,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=delete_line_item)
   del_line_item_btn.pack(side="left", pady=3, ipadx=4)
@@ -956,29 +1004,29 @@ def inv_create():
   w = Canvas(inv_first_frame, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  prev= Button(inv_first_frame,compound="top", text="Preview\nInvoice",relief=RAISED, image=photo4,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=previewline)
-  prev.pack(side="left", pady=3, ipadx=4)
+  prev_invoice= Button(inv_first_frame,compound="top", text="Preview\nInvoice",relief=RAISED, image=photo4,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=previewline)
+  prev_invoice.pack(side="left", pady=3, ipadx=4)
 
-  prin= Button(inv_first_frame,compound="top", text="Print \nInvoice",relief=RAISED, image=photo5,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=printsele)
-  prin.pack(side="left", pady=3, ipadx=4)
-
-  w = Canvas(inv_first_frame, width=1, height=65, bg="#b3b3b3", bd=0)
-  w.pack(side="left", padx=5)
-
-  mail= Button(inv_first_frame,compound="top", text="Email\nInvoice",relief=RAISED, image=photo6,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=emailorder)
-  mail.pack(side="left", pady=3, ipadx=4)
-
-  sms1= Button(inv_first_frame,compound="top", text="Send SMS\nnotification",relief=RAISED, image=photo10,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=sms1)
-  sms1.pack(side="left", pady=3, ipadx=4)
+  print_invoice= Button(inv_first_frame,compound="top", text="Print \nInvoice",relief=RAISED, image=photo5,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=printsele)
+  print_invoice.pack(side="left", pady=3, ipadx=4)
 
   w = Canvas(inv_first_frame, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  mark= Button(inv_first_frame,compound="top", text="Mark invoice\nas 'Paid'",relief=RAISED, image=mark1,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=markinvo)
-  mark.pack(side="left", pady=3, ipadx=4)
+  mail_invoice= Button(inv_first_frame,compound="top", text="Email\nInvoice",relief=RAISED, image=photo6,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=emailorder)
+  mail_invoice.pack(side="left", pady=3, ipadx=4)
 
-  void= Button(inv_first_frame,compound="top", text="Void\ninvoice",relief=RAISED, image=mark2,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=voidinvoice)
-  void.pack(side="left", pady=3, ipadx=4)
+  sms_invoice= Button(inv_first_frame,compound="top", text="Send SMS\nnotification",relief=RAISED, image=photo10,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=sms1)
+  sms_invoice.pack(side="left", pady=3, ipadx=4)
+
+  w = Canvas(inv_first_frame, width=1, height=65, bg="#b3b3b3", bd=0)
+  w.pack(side="left", padx=5)
+
+  mark_inv_paid= Button(inv_first_frame,compound="top", text="Mark invoice\nas 'Paid'",relief=RAISED, image=mark1,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=markinvo)
+  mark_inv_paid.pack(side="left", pady=3, ipadx=4)
+
+  void_invoice = Button(inv_first_frame,compound="top", text="Void\ninvoice",relief=RAISED, image=mark2,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=voidinvoice)
+  void_invoice.pack(side="left", pady=3, ipadx=4)
 
 
   w = Canvas(inv_first_frame, width=1, height=65, bg="#b3b3b3", bd=0)
@@ -987,8 +1035,8 @@ def inv_create():
   calc= Button(inv_first_frame,compound="top", text="Open\nCalculator",relief=RAISED, image=photo9,bg="#f5f3f2", fg="black", height=55, bd=1, width=55)
   calc.pack(side="left", pady=3, ipadx=4)
 
-  Createorder= Button(inv_first_frame,compound="top", text="Save",relief=RAISED, image=tick,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,)
-  Createorder.pack(side="right", pady=3, ipadx=4)
+  save_invoice= Button(inv_first_frame,compound="top", text="Save",relief=RAISED, image=tick,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=add_new_invoice)
+  save_invoice.pack(side="right", pady=3, ipadx=4)
 
   inv_first_frame_1=Frame(pop, height=180,bg="#f5f3f2")
   inv_first_frame_1.pack(side="top", fill=X)
@@ -1025,7 +1073,7 @@ def inv_create():
   fbcursor.execute(sql,)
   pdata = fbcursor.fetchall()
 
-  global inv_combo_e1,inv_addr_e2,inv_shipto_e3,inv_addr_e4,inv_email_e5,inv_sms_e6
+  # global inv_combo_e1,inv_addr_e2,inv_shipto_e3,inv_addr_e4,inv_email_e5,inv_sms_e6,inv_number_entry,inv_date_entry,inv_duedate_entry,inv_terms_combo,inv_ref_entry
 
 
   invoice_to = Label(labelframe1, text="Invoice to").place(x=10,y=5)
@@ -1059,7 +1107,6 @@ def inv_create():
   labelframe = LabelFrame(inv_first_frame_1,text="Invoice",font=("arial",15))
   labelframe.place(x=652,y=5,width=290,height=170)
 
-  global inv_number_data
   fbcursor.execute("SELECT * FROM Invoice ORDER BY invoiceid DESC LIMIT 1")
   inv_number_data = fbcursor.fetchone()
 
@@ -1086,7 +1133,6 @@ def inv_create():
     result += str(number)
     return result
   
-  global a
   if not inv_number_data == None:
     a = inv_number_data[1]
     inv_no = inv_num_increment(a)
@@ -1100,21 +1146,19 @@ def inv_create():
     else:
       inv_duedate_entry['state'] = NORMAL
 
-  global inv_date_entry,inv_duedate_entry
-
   inv_date_label =Label(labelframe,text="Invoice date").place(x=5,y=33)
-  inv_date_entry =DateEntry(labelframe,width=20)
+  inv_date_entry =DateEntry(labelframe,width=15)
   inv_date_entry.place(x=150,y=33)
   checkvarStatus5=IntVar()
-  inv_duedate_check=Checkbutton(labelframe,variable = checkvarStatus5,text="Due date",onvalue =0 ,offvalue = 1,command=inv_due_check)
+  inv_duedate_check=Checkbutton(labelframe,variable = checkvarStatus5,text="Due date",onvalue = 1,offvalue = 0,command=inv_due_check)
   inv_duedate_check.place(x=5,y=62)
-  inv_duedate_entry=DateEntry(labelframe,width=20)
+  inv_duedate_entry=DateEntry(labelframe,width=15,state=DISABLED)
   inv_duedate_entry.place(x=150,y=62)
   inv_terms_label=Label(labelframe,text="Terms").place(x=5,y=92)
-  inv_terms_combo=ttk.Combobox(labelframe, value="",width=25)
+  inv_terms_combo=ttk.Combobox(labelframe, value="",width=23)
   inv_terms_combo.place(x=100,y=92)
   inv_ref_label=Label(labelframe,text="Invoice ref#").place(x=5,y=118)
-  inv_ref_entry=Entry(labelframe,width=27)
+  inv_ref_entry=Entry(labelframe,width=25)
   inv_ref_entry.place(x=100,y=118)
 
   fir2Frame=Frame(pop, height=150,width=100,bg="#f5f3f2")
@@ -1173,55 +1217,83 @@ def inv_create():
   myNotebook.add(documentFrame,compound="left",  text="Documents")
   myNotebook.pack(expand = 1, fill ="both")  
 
+
+  def recur_check():
+    if checkrecStatus.get() == 0:
+      recur_period_entry['state'] = DISABLED
+      recur_month_combo['state'] = DISABLED
+      recur_nxt_inv_date['state'] = DISABLED
+      recur_stop_check['state'] = DISABLED
+      recur_stop_date['state'] = DISABLED
+      recur_recalc['state'] = DISABLED
+    else:
+      recur_period_entry['state'] = NORMAL
+      recur_month_combo['state'] = NORMAL
+      recur_nxt_inv_date['state'] = NORMAL
+      recur_stop_check['state'] = NORMAL
+      recur_stop_date['state'] = NORMAL
+      recur_recalc['state'] = NORMAL
+
+
   labelframe1 = LabelFrame(invoiceFrame,text="",font=("arial",15))
   labelframe1.place(x=1,y=1,width=735,height=170)
 
-  global ex_costn_combo,dis_rate_entry,ex_cost_entry,tax1_entry,template_entry,sales_per_entry,category_entry
+  # global ex_costn_combo,dis_rate_entry,ex_cost_entry,tax1_entry,template_entry,sales_per_entry,category_entry,draft_label,never1_label,never2_label,title_txt_combo,pageh_txt_combo,footer_txt_combo,private_note_txt,term_txt,comment_txt,discount1,sub1,tax1,cost1,invoicetot1,total1,balance1
 
   ex_costn_label=Label(labelframe1,text="Extra cost name").place(x=2,y=5)
-  ex_costn_combo=ttk.Combobox(labelframe1, value="",width=20).place(x=115,y=5)
+  ex_costn_combo=ttk.Combobox(labelframe1, value="",width=20)
+  ex_costn_combo.place(x=115,y=5)
   dis_rate_label=Label(labelframe1,text="Discount rate").place(x=370,y=5)
-  dis_rate_entry=Entry(labelframe1,width=6).place(x=460,y=5)
+  dis_rate_entry=Entry(labelframe1,width=6)
+  dis_rate_entry.place(x=460,y=5)
   ex_cost_label=Label(labelframe1,text="Extra cost").place(x=35,y=35)
-  ex_cost_entry=Entry(labelframe1,width=10).place(x=115,y=35)
+  ex_cost_entry=Entry(labelframe1,width=10)
+  ex_cost_entry.place(x=115,y=35)
   tax1_label=Label(labelframe1,text="Tax1").place(x=420,y=35)
-  tax1_entry=Entry(labelframe1,width=7).place(x=460,y=35)
+  tax1_entry=Entry(labelframe1,width=7)
+  tax1_entry.place(x=460,y=35)
   template_label=Label(labelframe1,text="Template").place(x=37,y=70)
-  template_entry=ttk.Combobox(labelframe1, value="",width=25).place(x=115,y=70)
+  template_entry=ttk.Combobox(labelframe1, value="",width=25)
+  template_entry.place(x=115,y=70)
   sales_per_label=Label(labelframe1,text="Sales Person").place(x=25,y=100)
-  sales_per_entry=Entry(labelframe1,width=18).place(x=115,y=100)
+  sales_per_entry=Entry(labelframe1,width=18)
+  sales_per_entry.place(x=115,y=100)
   category_label=Label(labelframe1,text="Category").place(x=300,y=100)
-  category_entry=Entry(labelframe1,width=22).place(x=370,y=100)
+  category_entry=Entry(labelframe1,width=22)
+  category_entry.place(x=370,y=100)
   
   statusfrme = LabelFrame(labelframe1,text="Status",font=("arial",15))
   statusfrme.place(x=540,y=0,width=160,height=160)
-  draft_label=Label(statusfrme, text="Draft",font=("arial", 15, "bold"), fg="grey").place(x=50, y=3)
+  draft_label=Label(statusfrme, text="Draft",font=("arial", 15, "bold"), fg="grey")
+  draft_label.place(x=50, y=3)
   email_on_label=Label(statusfrme, text="Emailed on:").place( y=50)
-  never1_label=Label(statusfrme, text="Never").place(x=100,y=50)
+  never1_label=Label(statusfrme, text="Never")
+  never1_label.place(x=100,y=50)
   print_on_label=Label(statusfrme, text="Printed on:").place( y=90)
-  never2_label=Label(statusfrme, text="Never").place(x=100,y=90)
+  never2_label=Label(statusfrme, text="Never")
+  never2_label.place(x=100,y=90)
 
   recur_labelframe = LabelFrame(recurFrame,text="",font=("arial",15))
   recur_labelframe.place(x=1,y=1,width=735,height=170)
 
   checkrecStatus=IntVar()
-  recur_check_btn = Checkbutton(recur_labelframe,variable=checkrecStatus,text="Recurring",onvalue=0,offvalue=1)
+  recur_check_btn = Checkbutton(recur_labelframe,variable=checkrecStatus,text="Recurring",onvalue=1,offvalue=0,command=recur_check)
   recur_check_btn.place(x=25,y=20)
   recur_period_label = Label(recur_labelframe,text="Recurring period (interval)").place(x=130,y=45)
-  recur_period_entry = Spinbox(recur_labelframe,width=10)
+  recur_period_entry = Spinbox(recur_labelframe,width=10,state=DISABLED)
   recur_period_entry.place(x=280,y=45)
-  recur_month_combo = ttk.Combobox(recur_labelframe,values="",width=15)
+  recur_month_combo = ttk.Combobox(recur_labelframe,values="",width=15,state=DISABLED)
   recur_month_combo.place(x=360,y=45)
   recur_nxt_inv_label = Label(recur_labelframe,text="Next Invoice").place(x=280,y=70)
-  recur_nxt_inv_date = DateEntry(recur_labelframe,width=20)
+  recur_nxt_inv_date = DateEntry(recur_labelframe,width=20,state=DISABLED)
   recur_nxt_inv_date.place(x=360,y=70)
   checkstopStatus = IntVar()
-  recur_stop_check = Checkbutton(recur_labelframe,variable=checkstopStatus,text="Stop recurring after",onvalue=0,offvalue=1)
+  recur_stop_check = Checkbutton(recur_labelframe,variable=checkstopStatus,text="Stop recurring after",onvalue=0,offvalue=1,state=DISABLED)
   recur_stop_check.place(x=225,y=95)
-  recur_stop_date = DateEntry(recur_labelframe,width=20)
+  recur_stop_date = DateEntry(recur_labelframe,width=20,state=DISABLED)
   recur_stop_date.place(x=360,y=95)
-  recur_recalc = Button(recur_labelframe,compound=LEFT,image=recalc,text="Recalculate",width=80)
-  recur_recalc.place(x=510,y=70)
+  recur_recalc = Button(recur_labelframe,compound=LEFT,image=recalc,text="Recalculate",width=80,height=12,state=DISABLED)
+  recur_recalc.place(x=540,y=70)
 
   pay_labelframe_1 = LabelFrame(payementFrame,text="",font=("arial",15))
   pay_labelframe_1.place(x=1,y=1,width=735,height=170)
@@ -1246,35 +1318,57 @@ def inv_create():
   pay_plus.place(x=10,y=20)
   pay_minus = Button(payementFrame,compound=LEFT,image=minus,text="",width=20,height=25)
   pay_minus.place(x=10,y=55)
-  pay_srch = Button(payementFrame,compound=LEFT,image=search_1,text="",width=20,height=25)
+  pay_srch = Button(payementFrame,compound=LEFT,image=photo4,text="",width=20,height=25)
   pay_srch.place(x=10,y=90)
-  pay_msg = Button(payementFrame,compound=LEFT,image=message_1,text="",width=20,height=25)
+  pay_msg = Button(payementFrame,compound=LEFT,image=photo6,text="",width=20,height=25)
   pay_msg.place(x=10,y=125)
 
 
-  title_txt_label=Label(headerFrame,text="Title text").place(x=50,y=5)
-  title_txt_combo=ttk.Combobox(headerFrame, value="",width=60).place(x=125,y=5)
-  pageh_txt_label=Label(headerFrame,text="Page header text").place(x=2,y=45)
-  pageh_txt_combo=ttk.Combobox(headerFrame, value="",width=60).place(x=125,y=45)
-  footer_txt_label=Label(headerFrame,text="Footer text").place(x=35,y=85)
-  footer_txt_combo=ttk.Combobox(headerFrame, value="",width=60).place(x=125,y=85)
+  header_labelframe = LabelFrame(headerFrame,text="",font=("arial",15))
+  header_labelframe.place(x=1,y=1,width=735,height=170)
 
-  private_label=Label(noteFrame,text="Private notes(not shown on invoice/order/estemates)").place(x=10,y=10)
-  private_note_txt=Text(noteFrame,width=100,height=7).place(x=10,y=32)
+  title_txt_label=Label(header_labelframe,text="Title text").place(x=50,y=5)
+  title_txt_combo=ttk.Combobox(header_labelframe, value="",width=60)
+  title_txt_combo.place(x=125,y=5)
+  pageh_txt_label=Label(header_labelframe,text="Page header text").place(x=2,y=45)
+  pageh_txt_combo=ttk.Combobox(header_labelframe, value="",width=60)
+  pageh_txt_combo.place(x=125,y=45)
+  footer_txt_label=Label(header_labelframe,text="Footer text").place(x=35,y=85)
+  footer_txt_combo=ttk.Combobox(header_labelframe, value="",width=60)
+  footer_txt_combo.place(x=125,y=85)
 
-  term_txt=Text(termsFrame,width=100,height=9).place(x=10,y=10)
+  private_labelframe = LabelFrame(noteFrame,text="",font=("arial",15))
+  private_labelframe.place(x=1,y=1,width=735,height=170)
 
-  comment_txt=Text(commentFrame,width=100,height=9).place(x=10,y=10)
+  private_label=Label(private_labelframe,text="Private notes(not shown on invoice/order/estemates)").place(x=10,y=10)
+  private_note_txt=Text(private_labelframe,width=89,height=7).place(x=7,y=32)
 
-  doc_plus_btn=Button(documentFrame,image=plus_1,text="",width=20,height=25).place(x=5,y=10)
-  doc_minus_btn=Button(documentFrame,height=25,width=20,text="",image=minus).place(x=5,y=50)
-  doc_txt_label=Label(documentFrame,text="Attached documents or image files.If you attach large email then email taken long time to send").place(x=50,y=10)
-  doc_tree=ttk.Treeview(documentFrame, height=5)
+  term_labelframe = LabelFrame(termsFrame,text="",font=("arial",15))
+  term_labelframe.place(x=1,y=1,width=735,height=170)
+
+  term_txt=Text(term_labelframe,width=89,height=9)
+  term_txt.place(x=7,y=10)
+
+  comment_labelframe = LabelFrame(commentFrame,text="",font=("arial",15))
+  comment_labelframe.place(x=1,y=1,width=735,height=170)
+
+  comment_txt=Text(comment_labelframe,width=89,height=9)
+  comment_txt.place(x=7,y=10)
+
+  doc_labelframe = LabelFrame(documentFrame,text="",font=("arial",15))
+  doc_labelframe.place(x=1,y=1,width=735,height=170)
+
+  doc_plus_btn=Button(doc_labelframe,image=plus_1,text="",width=20,height=25)
+  doc_plus_btn.place(x=5,y=10)
+  doc_minus_btn=Button(doc_labelframe,height=25,width=20,text="",image=minus)
+  doc_minus_btn.place(x=5,y=50)
+  doc_txt_label=Label(doc_labelframe,text="Attached documents or image files.If you attach large email then email taken long time to send").place(x=50,y=10)
+  doc_tree=ttk.Treeview(doc_labelframe, height=5)
   doc_tree["columns"]=["1","2","3"]
   doc_tree.column("#0", width=20)
-  doc_tree.column("1", width=250)
-  doc_tree.column("2", width=250)
-  doc_tree.column("3", width=200)
+  doc_tree.column("1", width=130)
+  doc_tree.column("2", width=380)
+  doc_tree.column("3", width=130)
   doc_tree.heading("#0",text="", anchor=W)
   doc_tree.heading("1",text="Attach to Email")
   doc_tree.heading("2",text="Filename")
@@ -1287,24 +1381,32 @@ def inv_create():
   summaryfrme = LabelFrame(fir4Frame,text="Summary",font=("arial",15))
   summaryfrme.place(x=0,y=0,width=200,height=170)
   discount=Label(summaryfrme, text="Discount").place(x=0 ,y=0)
-  discount1=Label(summaryfrme, text="$0.00").place(x=130 ,y=0)
+  discount1=Label(summaryfrme, text="$0.00")
+  discount1.place(x=130 ,y=0)
   sub=Label(summaryfrme, text="Subtotal").place(x=0 ,y=21)
-  sub1=Label(summaryfrme, text="$0.00").place(x=130 ,y=21)
+  sub1=Label(summaryfrme, text="$0.00")
+  sub1.place(x=130 ,y=21)
   tax=Label(summaryfrme, text="Tax1").place(x=0 ,y=42)
-  tax1=Label(summaryfrme, text="$0.00").place(x=130 ,y=42)
+  tax1=Label(summaryfrme, text="$0.00")
+  tax1.place(x=130 ,y=42)
   cost=Label(summaryfrme, text="Extra cost").place(x=0 ,y=63)
-  cost=Label(summaryfrme, text="$0.00").place(x=130 ,y=63)
-  order=Label(summaryfrme, text="Order total").place(x=0 ,y=84)
-  order1=Label(summaryfrme, text="$0.00").place(x=130 ,y=84)
+  cost1=Label(summaryfrme, text="$0.00")
+  cost1.place(x=130 ,y=63)
+  invoicetot=Label(summaryfrme, text="Invoice total").place(x=0 ,y=84)
+  invoicetot1=Label(summaryfrme, text="$0.00")
+  invoicetot1.place(x=130 ,y=84)
   total=Label(summaryfrme, text="Total paid").place(x=0 ,y=105)
-  total1=Label(summaryfrme, text="$0.00").place(x=130 ,y=105)
+  total1=Label(summaryfrme, text="$0.00")
+  total1.place(x=130 ,y=105)
   balance=Label(summaryfrme, text="Balance").place(x=0 ,y=126)
-  balance1=Label(summaryfrme, text="$0.00").place(x=130 ,y=126)
+  balance1=Label(summaryfrme, text="$0.00")
+  balance1.place(x=130 ,y=126)
 
   fir5Frame=Frame(pop,height=38,width=210)
   fir5Frame.place(x=735,y=485)
   btndown=Button(fir5Frame, compound="left", text="Line Down").place(x=75, y=0)
   btnup=Button(fir5Frame, compound="left", text="Line Up").place(x=150, y=0)
+
 
 ###################### End create invoice ####################
 
@@ -1313,6 +1415,45 @@ def inv_edit_view():
   pop_1=Toplevel(inv_midFrame)
   pop_1.title("Invoice")
   pop_1.geometry("950x690+150+0")
+
+  def add_new_invoice_1():
+    invoice_number_1 = inv_number_entry_1.get()
+    invodate_1 = inv_date_entry_1.get_date()
+    duedate_1 = inv_duedate_entry_1.get_date()
+    status_1 = draft_label_1.cget("text")
+    emailon_1 = never1_label_1.cget("text")
+    printon_1 = never2_label_1.cget("text")
+    # smson = 
+    invoicetot_1 = invoicetot1_1.cget("text")
+    totpaid_1 = total1_1.cget("text")
+    balance_1 = balance1_1.cget("text")
+    extracostname_1 = ex_costn_combo_1.get()
+    extracost_1 = ex_cost_entry_1.get()
+    template_1 = template_entry_1.get()
+    salesper_1 = sales_per_entry_1.get()
+    discourate_1 = dis_rate_entry_1.get()
+    tax1_11 = tax1_entry_1.get()
+    category_1 = category_entry_1.get()
+    businessname_1 = inv_combo_e1_1.get()
+    businessaddress_1 = inv_addr_e2_1.get("1.0",END)
+    shipname_1 = inv_shipto_e3_1.get()
+    shipaddress_1 = inv_addr_e4_1.get("1.0",END)
+    cpemail_1 = inv_email_e5_1.get()
+    cpmobileforsms_1 = inv_sms_e6_1.get()
+    recurring_period_1 = recur_period_entry_1.get()
+    recurring_period_month_1 = recur_month_combo_1.get()
+    next_invoice_1 = recur_nxt_inv_date_1.get_date()
+    stop_recurring_1 = recur_stop_date_1.get_date()
+    # companyid = 
+    # customerid = 
+    # productserviceid = 
+    # discount =
+    # orderid = 
+    # estimsateid =
+    sql='INSERT INTO Invoice (invoice_number,invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
+    val=(invoice_number_1,invodate_1,duedate_1,status_1,emailon_1,printon_1,invoicetot_1,totpaid_1,balance_1,extracostname_1,extracost_1,template_1,salesper_1,discourate_1,tax1_11,category_1,businessname_1,businessaddress_1,shipname_1,shipaddress_1,cpemail_1,cpmobileforsms_1,recurring_period_1,recurring_period_month_1,next_invoice_1,stop_recurring_1)
+    fbcursor.execute(sql,val)
+    fbilldb.commit()
 
 
   #select customer
@@ -2074,8 +2215,54 @@ def inv_edit_view():
 
     
   #voidinvoice
-  def voidinvoice():
-    messagebox.askyesno("F-Billing Revolution","Are you sure to avoid this invoice?\nAll products will be placed back into stock and all payemnts will be voided.")
+  def voidinvoice_1():
+    void_msg_1 = messagebox.askyesno("F-Billing Revolution","Are you sure to avoid this invoice?\nAll products will be placed back into stock and all payemnts will be voided.")
+    if void_msg_1 == YES:
+      select_customer_btn_1['state'] = DISABLED
+      add_newline_btn_1['state'] = DISABLED
+      del_line_item_btn_1['state'] = DISABLED
+      mark_inv_paid_1['state'] = DISABLED
+      void_invoice_1['state'] = DISABLED
+      save_invoice_1['state'] = DISABLED
+      inv_combo_e1_1['state'] = DISABLED
+      inv_addr_e2_1['state'] = DISABLED
+      inv_shipto_e3_1['state'] = DISABLED
+      inv_addr_e4_1['state'] = DISABLED
+      inv_email_e5_1['state'] = DISABLED
+      inv_sms_e6_1['state'] = DISABLED
+      inv_number_entry_1['state'] = DISABLED
+      inv_date_entry_1['state'] = DISABLED
+      inv_duedate_entry_1['state'] = DISABLED
+      inv_terms_combo_1['state'] = DISABLED
+      inv_ref_entry_1['state'] = DISABLED
+      ex_costn_combo_1['state'] = DISABLED
+      dis_rate_entry_1['state'] = DISABLED
+      ex_cost_entry_1['state'] = DISABLED
+      tax1_entry_1['state'] = DISABLED
+      template_entry_1['state'] = DISABLED
+      draft_label_1.config(text="void")
+      if checkrecStatus_1 is not None:
+        checkrecStatus_1.set(0)
+      else:
+        checkrecStatus_1.set(0)
+      recur_check_btn_1['state'] = DISABLED
+      recur_period_entry_1['state'] = DISABLED
+      recur_month_combo_1['state'] = DISABLED
+      recur_nxt_inv_date_1['state'] = DISABLED
+      recur_stop_check_1['state'] = DISABLED
+      recur_stop_date_1['state'] = DISABLED
+      recur_recalc_1['state'] = DISABLED
+      pay_plus_1['state'] = DISABLED
+      pay_minus_1['state'] = DISABLED
+      title_txt_combo_1['state'] = DISABLED
+      pageh_txt_combo_1['state'] = DISABLED
+      footer_txt_combo_1['state'] = DISABLED
+      term_txt_1['state'] = DISABLED
+      comment_txt_1['state'] = DISABLED
+      doc_plus_btn_1['state'] = DISABLED
+      doc_minus_btn_1['state'] = DISABLED
+    else:
+      pass
   
   #delete line item  
   def delete_line_item_1():
@@ -2091,15 +2278,15 @@ def inv_edit_view():
   w = Canvas(inv_first_frame2, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  create = Button(inv_first_frame2,compound="top", text="Select\nCustomer",relief=RAISED, image=customer,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=inv_sel_customer_1)
-  create.pack(side="left", pady=3, ipadx=4)
+  select_customer_btn_1 = Button(inv_first_frame2,compound="top", text="Select\nCustomer",relief=RAISED, image=customer,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=inv_sel_customer_1)
+  select_customer_btn_1.pack(side="left", pady=3, ipadx=4)
 
 
   w = Canvas(inv_first_frame2, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  add= Button(inv_first_frame2,compound="top", text="Add new\nline item",relief=RAISED, image=photo,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=inv_newline_1)
-  add.pack(side="left", pady=3, ipadx=4)
+  add_newline_btn_1 = Button(inv_first_frame2,compound="top", text="Add new\nline item",relief=RAISED, image=photo,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=inv_newline_1)
+  add_newline_btn_1.pack(side="left", pady=3, ipadx=4)
 
   del_line_item_btn_1= Button(inv_first_frame2,compound="top", text="Delete line\nitem",relief=RAISED, image=photo2,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=delete_line_item_1)
   del_line_item_btn_1.pack(side="left", pady=3, ipadx=4)
@@ -2125,11 +2312,11 @@ def inv_edit_view():
   w = Canvas(inv_first_frame2, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  mark= Button(inv_first_frame2,compound="top", text="Mark invoice\nas 'Paid'",relief=RAISED, image=mark1,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=markinvo)
-  mark.pack(side="left", pady=3, ipadx=4)
+  mark_inv_paid_1= Button(inv_first_frame2,compound="top", text="Mark invoice\nas 'Paid'",relief=RAISED, image=mark1,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=markinvo)
+  mark_inv_paid_1.pack(side="left", pady=3, ipadx=4)
 
-  void= Button(inv_first_frame2,compound="top", text="Void\ninvoice",relief=RAISED, image=mark2,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=voidinvoice)
-  void.pack(side="left", pady=3, ipadx=4)
+  void_invoice_1= Button(inv_first_frame2,compound="top", text="Void\ninvoice",relief=RAISED, image=mark2,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=voidinvoice_1)
+  void_invoice_1.pack(side="left", pady=3, ipadx=4)
 
 
   w = Canvas(inv_first_frame2, width=1, height=65, bg="#b3b3b3", bd=0)
@@ -2137,6 +2324,9 @@ def inv_edit_view():
 
   calc= Button(inv_first_frame2,compound="top", text="Open\nCalculator",relief=RAISED, image=photo9,bg="#f5f3f2", fg="black", height=55, bd=1, width=55)
   calc.pack(side="left", pady=3, ipadx=4)
+
+  save_invoice_1 = Button(inv_first_frame2,compound="top", text="Save",relief=RAISED, image=tick,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=add_new_invoice_1)
+  save_invoice_1.pack(side="right", pady=3, ipadx=4)
 
   inv_first_frame2_1=Frame(pop_1, height=180,bg="#f5f3f2")
   inv_first_frame2_1.pack(side="top", fill=X)
@@ -2245,18 +2435,18 @@ def inv_edit_view():
 
   inv_number_entry_1.place(x=100,y=5,)
   inv_date_label_1 =Label(labelframe,text="Invoice date").place(x=5,y=33)
-  inv_date_entry_1 =DateEntry(labelframe,width=20)
+  inv_date_entry_1 =DateEntry(labelframe,width=15)
   inv_date_entry_1.place(x=150,y=33)
   checkvarStatus5=IntVar()
-  inv_duedate_check_1=Checkbutton(labelframe,variable = checkvarStatus5,text="Due date",onvalue =0 ,offvalue = 1,command=inv_due_check_1)
+  inv_duedate_check_1=Checkbutton(labelframe,variable = checkvarStatus5,text="Due date",onvalue =1 ,offvalue = 0,command=inv_due_check_1)
   inv_duedate_check_1.place(x=5,y=62)
-  inv_duedate_entry_1=DateEntry(labelframe,width=20)
+  inv_duedate_entry_1=DateEntry(labelframe,width=15,state=DISABLED)
   inv_duedate_entry_1.place(x=150,y=62)
   inv_terms_label_1=Label(labelframe,text="Terms").place(x=5,y=92)
-  inv_terms_combo_1=ttk.Combobox(labelframe, value="",width=25)
+  inv_terms_combo_1=ttk.Combobox(labelframe, value="",width=23)
   inv_terms_combo_1.place(x=100,y=92)
   inv_ref_label_1=Label(labelframe,text="Invoice ref#").place(x=5,y=118)
-  inv_ref_entry_1=Entry(labelframe,width=27)
+  inv_ref_entry_1=Entry(labelframe,width=25 )
   inv_ref_entry_1.place(x=100,y=118)
 
 
@@ -2314,54 +2504,83 @@ def inv_edit_view():
   myNotebook.add(termsFrame,compound="left", text="Terms")
   myNotebook.add(noteFrame,compound="left",  text="Private notes")
   myNotebook.add(documentFrame,compound="left",  text="Documents")
-  myNotebook.pack(expand = 1, fill ="both")  
+  myNotebook.pack(expand = 1, fill ="both") 
+
+
+  def recur_check_1():
+    if checkrecStatus_1.get() == 0:
+      recur_period_entry_1['state'] = DISABLED
+      recur_month_combo_1['state'] = DISABLED
+      recur_nxt_inv_date_1['state'] = DISABLED
+      recur_stop_check_1['state'] = DISABLED
+      recur_stop_date_1['state'] = DISABLED
+      recur_recalc_1['state'] = DISABLED
+    else:
+      recur_period_entry_1['state'] = NORMAL
+      recur_month_combo_1['state'] = NORMAL
+      recur_nxt_inv_date_1['state'] = NORMAL
+      recur_stop_check_1['state'] = NORMAL
+      recur_stop_date_1['state'] = NORMAL
+      recur_recalc_1['state'] = NORMAL 
+
+
 
   labelframe1 = LabelFrame(invoiceFrame,text="",font=("arial",15))
   labelframe1.place(x=1,y=1,width=735,height=170)
   ex_costn_label_1=Label(labelframe1,text="Extra cost name").place(x=2,y=5)
-  ex_costn_combo_1=ttk.Combobox(labelframe1, value="",width=20).place(x=115,y=5)
+  ex_costn_combo_1=ttk.Combobox(labelframe1, value="",width=20)
+  ex_costn_combo_1.place(x=115,y=5)
   dis_rate_label_1=Label(labelframe1,text="Discount rate").place(x=370,y=5)
-  dis_rate_entry_1=Entry(labelframe1,width=6).place(x=460,y=5)
+  dis_rate_entry_1=Entry(labelframe1,width=6)
+  dis_rate_entry_1.place(x=460,y=5)
   ex_cost_label_1=Label(labelframe1,text="Extra cost").place(x=35,y=35)
-  ex_cost_entry_1=Entry(labelframe1,width=10).place(x=115,y=35)
+  ex_cost_entry_1=Entry(labelframe1,width=10)
+  ex_cost_entry_1.place(x=115,y=35)
   tax1_label_1=Label(labelframe1,text="Tax1").place(x=420,y=35)
-  tax1_entry_1=Entry(labelframe1,width=7).place(x=460,y=35)
+  tax1_entry_1=Entry(labelframe1,width=7)
+  tax1_entry_1.place(x=460,y=35)
   template_label_1=Label(labelframe1,text="Template").place(x=37,y=70)
-  template_entry_1=ttk.Combobox(labelframe1, value="",width=25).place(x=115,y=70)
+  template_entry_1=ttk.Combobox(labelframe1, value="",width=25)
+  template_entry_1.place(x=115,y=70)
   sales_per_label_1=Label(labelframe1,text="Sales Person").place(x=25,y=100)
-  sales_per_entry_1=Entry(labelframe1,width=18).place(x=115,y=100)
+  sales_per_entry_1=Entry(labelframe1,width=18)
+  sales_per_entry_1.place(x=115,y=100)
   category_label_1=Label(labelframe1,text="Category").place(x=300,y=100)
-  category_entry_1=Entry(labelframe1,width=22).place(x=370,y=100)
+  category_entry_1=Entry(labelframe1,width=22)
+  category_entry_1.place(x=370,y=100)
   
   statusfrme = LabelFrame(labelframe1,text="Status",font=("arial",15))
   statusfrme.place(x=540,y=0,width=160,height=160)
-  draft_label_1=Label(statusfrme, text="Draft",font=("arial", 15, "bold"), fg="grey").place(x=50, y=3)
+  draft_label_1=Label(statusfrme, text="Draft",font=("arial", 15, "bold"), fg="grey")
+  draft_label_1.place(x=50, y=3)
   email_on_label_1=Label(statusfrme, text="Emailed on:").place( y=50)
-  never1_label_1=Label(statusfrme, text="Never").place(x=100,y=50)
+  never1_label_1=Label(statusfrme, text="Never")
+  never1_label_1.place(x=100,y=50)
   print_on_label_1=Label(statusfrme, text="Printed on:").place( y=90)
-  never2_label_1=Label(statusfrme, text="Never").place(x=100,y=90)
+  never2_label_1=Label(statusfrme, text="Never")
+  never2_label_1.place(x=100,y=90)
 
   recur_labelframe_1 = LabelFrame(recurFrame,text="",font=("arial",15))
   recur_labelframe_1.place(x=1,y=1,width=735,height=170)
 
   checkrecStatus_1=IntVar()
-  recur_check_btn_1 = Checkbutton(recur_labelframe_1,variable=checkrecStatus_1,text="Recurring",onvalue=0,offvalue=1)
+  recur_check_btn_1 = Checkbutton(recur_labelframe_1,variable=checkrecStatus_1,text="Recurring",onvalue= 1,offvalue=0,command=recur_check_1)
   recur_check_btn_1.place(x=25,y=20)
   recur_period_label_1 = Label(recur_labelframe_1,text="Recurring period (interval)").place(x=130,y=45)
-  recur_period_entry_1 = Spinbox(recur_labelframe_1,width=10)
+  recur_period_entry_1 = Spinbox(recur_labelframe_1,width=10,state=DISABLED)
   recur_period_entry_1.place(x=280,y=45)
-  recur_month_combo_1 = ttk.Combobox(recur_labelframe_1,values="",width=15)
+  recur_month_combo_1 = ttk.Combobox(recur_labelframe_1,values="",width=15,state=DISABLED)
   recur_month_combo_1.place(x=360,y=45)
   recur_nxt_inv_label_1 = Label(recur_labelframe_1,text="Next Invoice").place(x=280,y=70)
-  recur_nxt_inv_date_1 = DateEntry(recur_labelframe_1,width=20)
+  recur_nxt_inv_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED)
   recur_nxt_inv_date_1.place(x=360,y=70)
   checkstopStatus_1 = IntVar()
-  recur_stop_check_1 = Checkbutton(recur_labelframe_1,variable=checkstopStatus_1,text="Stop recurring after",onvalue=0,offvalue=1)
+  recur_stop_check_1 = Checkbutton(recur_labelframe_1,variable=checkstopStatus_1,text="Stop recurring after",onvalue=0,offvalue=1,state=DISABLED)
   recur_stop_check_1.place(x=225,y=95)
-  recur_stop_date_1 = DateEntry(recur_labelframe_1,width=20)
+  recur_stop_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED)
   recur_stop_date_1.place(x=360,y=95)
-  recur_recalc_1 = Button(recur_labelframe_1,compound=LEFT,image=recalc,text="Recalculate",width=80)
-  recur_recalc_1.place(x=510,y=70)
+  recur_recalc_1 = Button(recur_labelframe_1,compound=LEFT,image=recalc,text="Recalculate",width=80,height=12,state=DISABLED)
+  recur_recalc_1.place(x=540,y=70)
 
   pay_labelframe_1 = LabelFrame(payementFrame,text="",font=("arial",15))
   pay_labelframe_1.place(x=1,y=1,width=735,height=170)
@@ -2386,35 +2605,59 @@ def inv_edit_view():
   pay_plus_1.place(x=10,y=20)
   pay_minus_1 = Button(payementFrame,image=minus,text="",width=20,height=25)
   pay_minus_1.place(x=10,y=55)
-  pay_srch_1 = Button(payementFrame,image=search_1,text="",width=20,height=25)
+  pay_srch_1 = Button(payementFrame,image=photo4,text="",width=20,height=25)
   pay_srch_1.place(x=10,y=90)
-  pay_msg_1 = Button(payementFrame,image=message_1,text="",width=20,height=25)
+  pay_msg_1 = Button(payementFrame,image=photo6,text="",width=20,height=25)
   pay_msg_1.place(x=10,y=125)
 
 
-  title_txt_label_1=Label(headerFrame,text="Title text").place(x=50,y=5)
-  title_txt_combo_1=ttk.Combobox(headerFrame, value="",width=60).place(x=125,y=5)
-  pageh_txt_label_1=Label(headerFrame,text="Page header text").place(x=2,y=45)
-  pageh_txt_combo_1=ttk.Combobox(headerFrame, value="",width=60).place(x=125,y=45)
-  footer_txt_label_1=Label(headerFrame,text="Footer text").place(x=35,y=85)
-  footer_txt_combo_1=ttk.Combobox(headerFrame, value="",width=60).place(x=125,y=85)
+  header_labelframe_1 = LabelFrame(headerFrame,text="",font=("arial",15))
+  header_labelframe_1.place(x=1,y=1,width=735,height=170)
 
-  private_label_1=Label(noteFrame,text="Private notes(not shown on invoice/order/estemates)").place(x=10,y=10)
-  private_note_txt_1=Text(noteFrame,width=100,height=7).place(x=10,y=32)
+  title_txt_label_1=Label(header_labelframe_1,text="Title text").place(x=50,y=5)
+  title_txt_combo_1=ttk.Combobox(header_labelframe_1, value="",width=60)
+  title_txt_combo_1.place(x=125,y=5)
+  pageh_txt_label_1=Label(header_labelframe_1,text="Page header text").place(x=2,y=45)
+  pageh_txt_combo_1=ttk.Combobox(header_labelframe_1, value="",width=60)
+  pageh_txt_combo_1.place(x=125,y=45)
+  footer_txt_label_1=Label(header_labelframe_1,text="Footer text").place(x=35,y=85)
+  footer_txt_combo_1=ttk.Combobox(header_labelframe_1, value="",width=60)
+  footer_txt_combo_1.place(x=125,y=85)
 
-  term_txt_1=Text(termsFrame,width=100,height=9).place(x=10,y=10)
+  private_labelframe_1 = LabelFrame(noteFrame,text="",font=("arial",15))
+  private_labelframe_1.place(x=1,y=1,width=735,height=170)
 
-  comment_txt_1=Text(commentFrame,width=100,height=9).place(x=10,y=10)
+  private_label_1=Label(private_labelframe_1,text="Private notes(not shown on invoice/order/estemates)").place(x=10,y=10)
+  private_note_txt_1=Text(private_labelframe_1,width=89,height=7)
+  private_note_txt_1.place(x=7,y=32)
 
-  doc_plus_btn_1=Button(documentFrame,image=plus_1,text="",width=20,height=25).place(x=5,y=10)
-  doc_minus_btn_1=Button(documentFrame,height=25,width=20,text="",image=minus).place(x=5,y=50)
-  doc_txt_label_1=Label(documentFrame,text="Attached documents or image files.If you attach large email then email taken long time to send").place(x=50,y=10)
-  doc_tree_1=ttk.Treeview(documentFrame, height=5)
+  term_labelframe_1 = LabelFrame(termsFrame,text="",font=("arial",15))
+  term_labelframe_1.place(x=1,y=1,width=735,height=170)
+
+  term_txt_1=Text(term_labelframe_1,width=89,height=9)
+  term_txt_1.place(x=7,y=10)
+
+
+  comment_labelframe_1 = LabelFrame(commentFrame,text="",font=("arial",15))
+  comment_labelframe_1.place(x=1,y=1,width=735,height=170)
+
+  comment_txt_1=Text(comment_labelframe_1,width=89,height=9)
+  comment_txt_1.place(x=7,y=10)
+
+  doc_labelframe_1 = LabelFrame(documentFrame,text="",font=("arial",15))
+  doc_labelframe_1.place(x=1,y=1,width=735,height=170)
+
+  doc_plus_btn_1=Button(doc_labelframe_1,image=plus_1,text="",width=20,height=25)
+  doc_plus_btn_1.place(x=5,y=10)
+  doc_minus_btn_1=Button(doc_labelframe_1,height=25,width=20,text="",image=minus)
+  doc_minus_btn_1.place(x=5,y=50)
+  doc_txt_label_1=Label(doc_labelframe_1,text="Attached documents or image files.If you attach large email then email taken long time to send").place(x=50,y=10)
+  doc_tree_1=ttk.Treeview(doc_labelframe_1, height=5)
   doc_tree_1["columns"]=["1","2","3"]
   doc_tree_1.column("#0", width=20)
-  doc_tree_1.column("1", width=250)
-  doc_tree_1.column("2", width=250)
-  doc_tree_1.column("2", width=200)
+  doc_tree_1.column("1", width=130)
+  doc_tree_1.column("2", width=380)
+  doc_tree_1.column("3", width=130)
   doc_tree_1.heading("#0",text="", anchor=W)
   doc_tree_1.heading("1",text="Attach to Email")
   doc_tree_1.heading("2",text="Filename")
@@ -2424,27 +2667,35 @@ def inv_edit_view():
 
   fir4Frame=Frame(pop_1,height=190,width=210,bg="#f5f3f2")
   fir4Frame.place(x=740,y=520)
-  summaryfrme = LabelFrame(fir4Frame,text="Summary",font=("arial",15))
-  summaryfrme.place(x=0,y=0,width=200,height=170)
-  discount=Label(summaryfrme, text="Discount").place(x=0 ,y=0)
-  discount1=Label(summaryfrme, text="$0.00").place(x=130 ,y=0)
-  sub=Label(summaryfrme, text="Subtotal").place(x=0 ,y=21)
-  sub1=Label(summaryfrme, text="$0.00").place(x=130 ,y=21)
-  tax=Label(summaryfrme, text="Tax1").place(x=0 ,y=42)
-  tax1=Label(summaryfrme, text="$0.00").place(x=130 ,y=42)
-  cost=Label(summaryfrme, text="Extra cost").place(x=0 ,y=63)
-  cost=Label(summaryfrme, text="$0.00").place(x=130 ,y=63)
-  order=Label(summaryfrme, text="Order total").place(x=0 ,y=84)
-  order1=Label(summaryfrme, text="$0.00").place(x=130 ,y=84)
-  total=Label(summaryfrme, text="Total paid").place(x=0 ,y=105)
-  total1=Label(summaryfrme, text="$0.00").place(x=130 ,y=105)
-  balance=Label(summaryfrme, text="Balance").place(x=0 ,y=126)
-  balance1=Label(summaryfrme, text="$0.00").place(x=130 ,y=126)
+  summaryfrme_1 = LabelFrame(fir4Frame,text="Summary",font=("arial",15))
+  summaryfrme_1.place(x=0,y=0,width=200,height=170)
+  discount_1=Label(summaryfrme_1, text="Discount").place(x=0 ,y=0)
+  discount1_1=Label(summaryfrme_1, text="$0.00")
+  discount1_1.place(x=130 ,y=0)
+  sub_1=Label(summaryfrme_1, text="Subtotal").place(x=0 ,y=21)
+  sub1_1=Label(summaryfrme_1, text="$0.00")
+  sub1_1.place(x=130 ,y=21)
+  tax_1=Label(summaryfrme_1, text="Tax1").place(x=0 ,y=42)
+  tax1_1=Label(summaryfrme_1, text="$0.00")
+  tax1_1.place(x=130 ,y=42)
+  cost_1=Label(summaryfrme_1, text="Extra cost").place(x=0 ,y=63)
+  cost1_1=Label(summaryfrme_1, text="$0.00")
+  cost1_1.place(x=130 ,y=63)
+  invoicetot_1=Label(summaryfrme_1, text="Invoice total").place(x=0 ,y=84)
+  invoicetot1_1=Label(summaryfrme_1, text="$0.00")
+  invoicetot1_1.place(x=130 ,y=84)
+  total_1=Label(summaryfrme_1, text="Total paid").place(x=0 ,y=105)
+  total1_1=Label(summaryfrme_1, text="$0.00")
+  total1_1.place(x=130 ,y=105)
+  balance_1=Label(summaryfrme_1, text="Balance").place(x=0 ,y=126)
+  balance1_1=Label(summaryfrme_1, text="$0.00")
+  balance1_1.place(x=130 ,y=126)
 
   fir5Frame=Frame(pop_1,height=38,width=210)
   fir5Frame.place(x=735,y=485)
-  btndown=Button(fir5Frame, compound="left", text="Line Down").place(x=75, y=0)
-  btnup=Button(fir5Frame, compound="left", text="Line Up").place(x=150, y=0)
+  btndown_1=Button(fir5Frame, compound="left", text="Line Down").place(x=75, y=0)
+  btnup_1=Button(fir5Frame, compound="left", text="Line Up").place(x=150, y=0)
+
 
 
 
