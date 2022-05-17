@@ -948,7 +948,14 @@ def inv_create():
       ex_cost_entry['state'] = DISABLED
       tax1_entry['state'] = DISABLED
       template_entry['state'] = DISABLED
-      draft_label.config(text="void")
+      draft_label.config(text="Void")
+      if draft_label['text'] == "Void":
+        num = inv_number_entry.get()
+        sql = "UPDATE Invoice SET status='Void' WHERE invoice_number=%s"
+        val = (num,)
+        fbcursor.execute(sql,val)
+        fbilldb.commit()
+
       if checkrecStatus is not None:
         checkrecStatus.set(0)
       else:
@@ -1276,6 +1283,12 @@ def inv_create():
   recur_labelframe = LabelFrame(recurFrame,text="",font=("arial",15))
   recur_labelframe.place(x=1,y=1,width=735,height=170)
 
+  def inv_stop_check():
+    if checkstopStatus.get() == 0:
+      recur_stop_date['state'] = NORMAL
+    else:
+      recur_stop_date['state'] = DISABLED
+
   checkrecStatus=IntVar()
   recur_check_btn = Checkbutton(recur_labelframe,variable=checkrecStatus,text="Recurring",onvalue=1,offvalue=0,command=recur_check)
   recur_check_btn.place(x=25,y=20)
@@ -1288,7 +1301,7 @@ def inv_create():
   recur_nxt_inv_date = DateEntry(recur_labelframe,width=20,state=DISABLED)
   recur_nxt_inv_date.place(x=360,y=70)
   checkstopStatus = IntVar()
-  recur_stop_check = Checkbutton(recur_labelframe,variable=checkstopStatus,text="Stop recurring after",onvalue=0,offvalue=1,state=DISABLED)
+  recur_stop_check = Checkbutton(recur_labelframe,variable=checkstopStatus,text="Stop recurring after",onvalue=1,offvalue=0,state=DISABLED,command=inv_stop_check)
   recur_stop_check.place(x=225,y=95)
   recur_stop_date = DateEntry(recur_labelframe,width=20,state=DISABLED)
   recur_stop_date.place(x=360,y=95)
@@ -1415,45 +1428,19 @@ def inv_edit_view():
   pop_1=Toplevel(inv_midFrame)
   pop_1.title("Invoice")
   pop_1.geometry("950x690+150+0")
-
-  def add_new_invoice_1():
-    invoice_number_1 = inv_number_entry_1.get()
-    invodate_1 = inv_date_entry_1.get_date()
-    duedate_1 = inv_duedate_entry_1.get_date()
-    status_1 = draft_label_1.cget("text")
-    emailon_1 = never1_label_1.cget("text")
-    printon_1 = never2_label_1.cget("text")
-    # smson = 
-    invoicetot_1 = invoicetot1_1.cget("text")
-    totpaid_1 = total1_1.cget("text")
-    balance_1 = balance1_1.cget("text")
-    extracostname_1 = ex_costn_combo_1.get()
-    extracost_1 = ex_cost_entry_1.get()
-    template_1 = template_entry_1.get()
-    salesper_1 = sales_per_entry_1.get()
-    discourate_1 = dis_rate_entry_1.get()
-    tax1_11 = tax1_entry_1.get()
-    category_1 = category_entry_1.get()
-    businessname_1 = inv_combo_e1_1.get()
-    businessaddress_1 = inv_addr_e2_1.get("1.0",END)
-    shipname_1 = inv_shipto_e3_1.get()
-    shipaddress_1 = inv_addr_e4_1.get("1.0",END)
-    cpemail_1 = inv_email_e5_1.get()
-    cpmobileforsms_1 = inv_sms_e6_1.get()
-    recurring_period_1 = recur_period_entry_1.get()
-    recurring_period_month_1 = recur_month_combo_1.get()
-    next_invoice_1 = recur_nxt_inv_date_1.get_date()
-    stop_recurring_1 = recur_stop_date_1.get_date()
-    # companyid = 
-    # customerid = 
-    # productserviceid = 
-    # discount =
-    # orderid = 
-    # estimsateid =
-    sql='INSERT INTO Invoice (invoice_number,invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
-    val=(invoice_number_1,invodate_1,duedate_1,status_1,emailon_1,printon_1,invoicetot_1,totpaid_1,balance_1,extracostname_1,extracost_1,template_1,salesper_1,discourate_1,tax1_11,category_1,businessname_1,businessaddress_1,shipname_1,shipaddress_1,cpemail_1,cpmobileforsms_1,recurring_period_1,recurring_period_month_1,next_invoice_1,stop_recurring_1)
-    fbcursor.execute(sql,val)
-    fbilldb.commit()
+  edit_inv_fetch = inv_tree.item(inv_tree.focus())["values"][1]
+  sql_edit = "SELECT * FROM Invoice WHERE invoice_number=%s"
+  val_edit = (edit_inv_fetch,)
+  fbcursor.execute(sql_edit,val_edit)
+  edit_inv_data = fbcursor.fetchone()
+  
+    # num = inv_number_entry_1.get()
+    # sql = "SELECT status FROM invoice WHERE invoice_number=%s"
+    # val = (num,)
+    # fbcursor.execute(sql,val)
+    # status_data = fbcursor.fetchone()
+    # print(status_data)
+    
 
 
   #select customer
@@ -2216,7 +2203,6 @@ def inv_edit_view():
     
   #voidinvoice
   def voidinvoice_1():
-    void_msg_1 = messagebox.askyesno("F-Billing Revolution","Are you sure to avoid this invoice?\nAll products will be placed back into stock and all payemnts will be voided.")
     if void_msg_1 == YES:
       select_customer_btn_1['state'] = DISABLED
       add_newline_btn_1['state'] = DISABLED
@@ -2325,7 +2311,7 @@ def inv_edit_view():
   calc= Button(inv_first_frame2,compound="top", text="Open\nCalculator",relief=RAISED, image=photo9,bg="#f5f3f2", fg="black", height=55, bd=1, width=55)
   calc.pack(side="left", pady=3, ipadx=4)
 
-  save_invoice_1 = Button(inv_first_frame2,compound="top", text="Save",relief=RAISED, image=tick,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=add_new_invoice_1)
+  save_invoice_1 = Button(inv_first_frame2,compound="top", text="Save",relief=RAISED, image=tick,bg="#f5f3f2", fg="black", height=55, bd=1, width=55)
   save_invoice_1.pack(side="right", pady=3, ipadx=4)
 
   inv_first_frame2_1=Frame(pop_1, height=180,bg="#f5f3f2")
@@ -2353,10 +2339,25 @@ def inv_edit_view():
     inv_sms_e6_1.insert(0,inv_sel_combo_1[12])
 
   def copy_cust_details_1():
+    inv_to_str_2 = inv_to_1.get()
+    if inv_to_str_2 != "":
+      sql = "SELECT * FROM Customer WHERE businessname=%s"
+      val = (inv_to_str_2,)
+      fbcursor.execute(sql,val)
+      inv_sel_combo_2 = fbcursor.fetchone()
       inv_shipto_e3_1.delete(0, END)
-      inv_shipto_e3_1.insert(0, inv_sel_combo_1[4])
+      inv_shipto_e3_1.insert(0, inv_sel_combo_2[4])
       inv_addr_e4_1.delete('1.0',END)
-      inv_addr_e4_1.insert('1.0',inv_sel_combo_1[5])
+      inv_addr_e4_1.insert('1.0',inv_sel_combo_2[5])
+    else:
+      inv_shipto_e3_1.delete(0, END)
+      inv_shipto_e3_1.insert(0, edit_inv_data[18])
+      inv_addr_e4_1.delete('1.0',END)
+      inv_addr_e4_1.insert('1.0',edit_inv_data[19])
+
+
+      
+      
 
   sql = "select businessname from Customer"
   fbcursor.execute(sql,)
@@ -2391,6 +2392,20 @@ def inv_edit_view():
   inv_sms_1=Label(labelframe2,text="SMS Number").place(x=328,y=5)
   inv_sms_e6_1=Entry(labelframe2,width=30)
   inv_sms_e6_1.place(x=402,y=5)
+  
+
+  inv_combo_e1_1.delete(0,END)
+  inv_combo_e1_1.insert(0,edit_inv_data[18])
+  inv_addr_e2_1.delete('1.0',END)
+  inv_addr_e2_1.insert('1.0',edit_inv_data[19])
+  inv_shipto_e3_1.delete(0, END)
+  inv_shipto_e3_1.insert(0, edit_inv_data[20])
+  inv_addr_e4_1.delete('1.0',END)
+  inv_addr_e4_1.insert('1.0',edit_inv_data[21])
+  inv_email_e5_1.delete(0,END)
+  inv_email_e5_1.insert(0,edit_inv_data[22])
+  inv_sms_e6_1.delete(0,END)
+  inv_sms_e6_1.insert(0,edit_inv_data[23])
     
   labelframe = LabelFrame(inv_first_frame2_1,text="Invoice",font=("arial",15))
   labelframe.place(x=652,y=5,width=290,height=170)
@@ -2400,40 +2415,21 @@ def inv_edit_view():
 
   inv_number_label_1=Label(labelframe,text="Invoice#").place(x=5,y=5)
   inv_number_entry_1=Entry(labelframe,width=25)
+  inv_number_entry_1.place(x=100,y=5,)
 
   inv_number_entry_1.delete(0,'end')
-
-  def inv_num_increment_1(inum):
-    result = ""
-    numberStr = ""
-    i = len(inum) - 1
-    while i > 0:
-      c = inum[i]
-      if not c.isdigit():
-        break
-      numberStr = c + numberStr
-      i -= 1
-    number = int(numberStr)
-    number += 1
-    result += inum[0 : i + 1]
-    result += "0" if number < 10 else ""
-    result += str(number)
-    return result
-
-  if not inv_number_data_1 == None:
-    a = inv_number_data_1[1]
-    inv_no_1 = inv_num_increment_1(a)
-  else:
-    inv_no_1 = 1
-  inv_number_entry_1.insert(0,inv_no_1)
+  inv_number_entry_1.insert(0, edit_inv_data[1])
 
   def inv_due_check_1():
     if checkvarStatus5.get() == 0:
       inv_duedate_entry_1['state'] = DISABLED
     else:
       inv_duedate_entry_1['state'] = NORMAL
+ 
+  sql_term = 'SELECT terms_of_payment FROM terms_of_payment'
+  fbcursor.execute(sql_term,)
+  term_data = fbcursor.fetchall()
 
-  inv_number_entry_1.place(x=100,y=5,)
   inv_date_label_1 =Label(labelframe,text="Invoice date").place(x=5,y=33)
   inv_date_entry_1 =DateEntry(labelframe,width=15)
   inv_date_entry_1.place(x=150,y=33)
@@ -2443,12 +2439,30 @@ def inv_edit_view():
   inv_duedate_entry_1=DateEntry(labelframe,width=15,state=DISABLED)
   inv_duedate_entry_1.place(x=150,y=62)
   inv_terms_label_1=Label(labelframe,text="Terms").place(x=5,y=92)
-  inv_terms_combo_1=ttk.Combobox(labelframe, value="",width=23)
+  term = StringVar()
+  inv_terms_combo_1=ttk.Combobox(labelframe,textvariable=term,width=23)
   inv_terms_combo_1.place(x=100,y=92)
+  inv_terms_combo_1['values'] = term_data
+  inv_terms_combo_1.bind("<<ComboboxSelected>>")
   inv_ref_label_1=Label(labelframe,text="Invoice ref#").place(x=5,y=118)
   inv_ref_entry_1=Entry(labelframe,width=25 )
   inv_ref_entry_1.place(x=100,y=118)
 
+  inv_date_entry_1.delete(0, END)
+  inv_date_entry_1.insert(0, edit_inv_data[2])
+  if checkvarStatus5 is not None:
+    checkvarStatus5.set(1)
+  else:
+    checkvarStatus5.set(1)
+  inv_duedate_entry_1['state'] = NORMAL
+  inv_duedate_entry_1.delete(0, END)
+  inv_duedate_entry_1.insert(0, edit_inv_data[3])
+  # inv_terms_combo_1.delete(0, END)
+  # inv_terms_combo_1.insert(0, )
+  # inv_ref_entry_1.delete(0, END)
+  # inv_ref_entry_1.insert(0,)
+  
+  
 
   fir2Frame=Frame(pop_1, height=150,width=100,bg="#f5f3f2")
   fir2Frame.pack(side="top", fill=X)
@@ -2479,6 +2493,16 @@ def inv_edit_view():
   
   add_newline_tree_1.pack(fill="both", expand=1)
   listFrame.pack(side="top", fill="both", padx=5, pady=3, expand=1)
+
+  corresp_pro = inv_number_entry_1.get()
+  sql = "SELECT * FROM storingproduct WHERE invoice_number=%s"
+  val = (corresp_pro,)
+  fbcursor.execute(sql,val)
+  product_details = fbcursor.fetchall()
+  count = 0
+  for i in product_details:
+    add_newline_tree_1.insert(parent='',index='end',iid=i,text='',values=(i[4], i[6], i[7],i[9],i[22],i[10],'',i[11]))
+  count += 1
 
   fir3Frame=Frame(pop_1,height=200,width=700,bg="#f5f3f2")
   fir3Frame.place(x=0,y=490)
@@ -2523,13 +2547,17 @@ def inv_edit_view():
       recur_stop_date_1['state'] = NORMAL
       recur_recalc_1['state'] = NORMAL 
 
-
+  sql_exn = "SELECT extra_cost_name FROM extra_cost_name"
+  fbcursor.execute(sql_exn)
+  ex_data = fbcursor.fetchall()
 
   labelframe1 = LabelFrame(invoiceFrame,text="",font=("arial",15))
   labelframe1.place(x=1,y=1,width=735,height=170)
   ex_costn_label_1=Label(labelframe1,text="Extra cost name").place(x=2,y=5)
   ex_costn_combo_1=ttk.Combobox(labelframe1, value="",width=20)
   ex_costn_combo_1.place(x=115,y=5)
+  ex_costn_combo_1['values'] = ex_data
+  ex_costn_combo_1.bind("<<ComboboxSelected>>")
   dis_rate_label_1=Label(labelframe1,text="Discount rate").place(x=370,y=5)
   dis_rate_entry_1=Entry(labelframe1,width=6)
   dis_rate_entry_1.place(x=460,y=5)
@@ -2563,6 +2591,12 @@ def inv_edit_view():
   recur_labelframe_1 = LabelFrame(recurFrame,text="",font=("arial",15))
   recur_labelframe_1.place(x=1,y=1,width=735,height=170)
 
+  def inv_stop_check_1():
+    if checkstopStatus_1.get() == 0:
+      recur_stop_date_1['state'] = NORMAL
+    else:
+      recur_stop_date_1['state'] = DISABLED
+
   checkrecStatus_1=IntVar()
   recur_check_btn_1 = Checkbutton(recur_labelframe_1,variable=checkrecStatus_1,text="Recurring",onvalue= 1,offvalue=0,command=recur_check_1)
   recur_check_btn_1.place(x=25,y=20)
@@ -2575,7 +2609,7 @@ def inv_edit_view():
   recur_nxt_inv_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED)
   recur_nxt_inv_date_1.place(x=360,y=70)
   checkstopStatus_1 = IntVar()
-  recur_stop_check_1 = Checkbutton(recur_labelframe_1,variable=checkstopStatus_1,text="Stop recurring after",onvalue=0,offvalue=1,state=DISABLED)
+  recur_stop_check_1 = Checkbutton(recur_labelframe_1,variable=checkstopStatus_1,text="Stop recurring after",onvalue=1,offvalue=0,state=DISABLED,command=inv_stop_check_1)
   recur_stop_check_1.place(x=225,y=95)
   recur_stop_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED)
   recur_stop_date_1.place(x=360,y=95)
@@ -2614,9 +2648,15 @@ def inv_edit_view():
   header_labelframe_1 = LabelFrame(headerFrame,text="",font=("arial",15))
   header_labelframe_1.place(x=1,y=1,width=735,height=170)
 
+  header_sql = "SELECT headerandfooter FROM header_and_footer"
+  fbcursor.execute(header_sql,)
+  hdata = fbcursor.fetchall()
+
   title_txt_label_1=Label(header_labelframe_1,text="Title text").place(x=50,y=5)
   title_txt_combo_1=ttk.Combobox(header_labelframe_1, value="",width=60)
   title_txt_combo_1.place(x=125,y=5)
+  title_txt_combo_1['values'] = hdata
+  title_txt_combo_1.bind("<<ComboboxSelected>>")
   pageh_txt_label_1=Label(header_labelframe_1,text="Page header text").place(x=2,y=45)
   pageh_txt_combo_1=ttk.Combobox(header_labelframe_1, value="",width=60)
   pageh_txt_combo_1.place(x=125,y=45)
@@ -2696,9 +2736,93 @@ def inv_edit_view():
   btndown_1=Button(fir5Frame, compound="left", text="Line Down").place(x=75, y=0)
   btnup_1=Button(fir5Frame, compound="left", text="Line Up").place(x=150, y=0)
 
+  ex_costn_combo_1.delete(0, END)
+  ex_costn_combo_1.insert(0, edit_inv_data[11])
+  dis_rate_entry_1.delete(0, END)
+  dis_rate_entry_1.insert(0, edit_inv_data[15])
+  ex_cost_entry_1.delete(0, END)
+  ex_cost_entry_1.insert(0, edit_inv_data[12])
+  tax1_entry_1.delete(0, END)
+  tax1_entry_1.insert(0, edit_inv_data[16])
+  template_entry_1.delete(0, END)
+  template_entry_1.insert(0, edit_inv_data[13])
+  sales_per_entry_1.delete(0, END)
+  sales_per_entry_1.insert(0, edit_inv_data[14])
+  category_entry_1.delete(0, END)
+  category_entry_1.insert(0, edit_inv_data[17])
+  draft_label_1.config(text=edit_inv_data[4])
+  if draft_label_1['text'] == "Void":
+    select_customer_btn_1['state'] = DISABLED
+    add_newline_btn_1['state'] = DISABLED
+    del_line_item_btn_1['state'] = DISABLED
+    mark_inv_paid_1['state'] = DISABLED
+    void_invoice_1['state'] = DISABLED
+    save_invoice_1['state'] = DISABLED
+    inv_combo_e1_1['state'] = DISABLED
+    inv_addr_e2_1['state'] = DISABLED
+    inv_shipto_e3_1['state'] = DISABLED
+    inv_addr_e4_1['state'] = DISABLED
+    inv_email_e5_1['state'] = DISABLED
+    inv_sms_e6_1['state'] = DISABLED
+    inv_number_entry_1['state'] = DISABLED
+    inv_date_entry_1['state'] = DISABLED
+    inv_duedate_entry_1['state'] = DISABLED
+    inv_terms_combo_1['state'] = DISABLED
+    inv_ref_entry_1['state'] = DISABLED
+    ex_costn_combo_1['state'] = DISABLED
+    dis_rate_entry_1['state'] = DISABLED
+    ex_cost_entry_1['state'] = DISABLED
+    tax1_entry_1['state'] = DISABLED
+    template_entry_1['state'] = DISABLED
+    recur_check_btn_1['state'] = DISABLED
+    recur_period_entry_1['state'] = DISABLED
+    recur_month_combo_1['state'] = DISABLED
+    recur_nxt_inv_date_1['state'] = DISABLED
+    recur_stop_check_1['state'] = DISABLED
+    recur_stop_date_1['state'] = DISABLED
+    recur_recalc_1['state'] = DISABLED
+    pay_plus_1['state'] = DISABLED
+    pay_minus_1['state'] = DISABLED
+    title_txt_combo_1['state'] = DISABLED
+    pageh_txt_combo_1['state'] = DISABLED
+    footer_txt_combo_1['state'] = DISABLED
+    term_txt_1['state'] = DISABLED
+    comment_txt_1['state'] = DISABLED
+    doc_plus_btn_1['state'] = DISABLED
+    doc_minus_btn_1['state'] = DISABLED
+  else:
+    pass
+  never1_label_1.config(text=edit_inv_data[5])
+  never2_label_1.config(text=edit_inv_data[6])
+  if draft_label_1['text'] == "Void":
+    recur_check_btn_1['state'] = DISABLED
+    recur_period_entry_1['state'] = DISABLED
+    recur_month_combo_1['state'] = DISABLED
+    recur_nxt_inv_date_1['state'] = DISABLED
+    recur_stop_check_1['state'] = DISABLED
+    recur_stop_date_1['state'] = DISABLED
+    recur_recalc_1['state'] = DISABLED
+  else:
+    checkrecStatus_1.set(1)
+    recur_period_entry_1['state'] = NORMAL
+    recur_month_combo_1['state'] = NORMAL
+    recur_nxt_inv_date_1['state'] = NORMAL
+    recur_stop_check_1['state'] = NORMAL
+    recur_stop_date_1['state'] = NORMAL
+    recur_recalc_1['state'] = NORMAL
+  recur_period_entry_1.delete(0, END)
+  recur_period_entry_1.insert(0, edit_inv_data[24])
+  recur_month_combo_1.delete(0,END)
+  recur_month_combo_1.insert(0,edit_inv_data[25])
+  recur_nxt_inv_date_1.delete(0,END)
+  recur_nxt_inv_date_1.insert(0,edit_inv_data[26])
+  recur_stop_date_1.delete(0,END)
+  recur_stop_date_1.insert(0,edit_inv_data[27])
 
-
-
+  # count = 0
+  # for i in edit_inv_data:
+  #   pay_tree_1.insert(parent='',index='end',iid=i,text='',values=())
+  # count += 1
 
 ####################### End edit/view invoice ##################
 
@@ -3276,6 +3400,7 @@ class MyApp:
     tabControl.add(tab4,image=photo11,compound = LEFT, text ='SMS Log')
     tabControl.add(tab5,image=photo11,compound = LEFT, text ='Documents')
     tabControl.pack(expand = 1, fill ="both")
+    
     
     inv_product_tree = ttk.Treeview(tab1, columns = (1,2,3,4,5,6,7,8), height = 15, show = "headings")
     inv_product_tree.pack(side = 'top')
