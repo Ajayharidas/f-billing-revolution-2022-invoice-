@@ -20,7 +20,7 @@ import os
 import webbrowser
 from tkcalendar import Calendar
 from tkcalendar import DateEntry
-from datetime import date
+from datetime import date, datetime
 from tkinter import filedialog
 import subprocess
 import io
@@ -141,6 +141,8 @@ def inv_create():
     invoice_number = inv_number_entry.get()
     invodate = inv_date_entry.get_date()
     duedate = inv_duedate_entry.get_date()
+    term_of_payment = inv_terms_combo.get()
+    ref = inv_ref_entry.get()
     status = draft_label.cget("text")
     emailon = never1_label.cget("text")
     printon = never2_label.cget("text")
@@ -165,15 +167,24 @@ def inv_create():
     recurring_period_month = recur_month_combo.get()
     next_invoice = recur_nxt_inv_date.get_date()
     stop_recurring = recur_stop_date.get_date()
-    # companyid = 
-    # customerid = 
-    # productserviceid = 
-    # discount =
-    # orderid = 
-    # estimsateid =
-    sql='INSERT INTO Invoice (invoice_number,invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
-    val=(invoice_number,invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring)
-    fbcursor.execute(sql,val)
+
+    # cust_sql = "SELECT customerid FROM customer WHERE businessname=%s"
+    # cust_val = (businessname,)
+    # fbcursor.execute(cust_sql,cust_val)
+    # cust_data = fbcursor.fetchone()
+    # customerid = cust_data
+
+    # pro_sql = "SELECT Productserviceid FROM storingproduct WHERE invoice_number=%s"
+    # pro_val = (invoice_number,)
+    # fbcursor.execute(pro_sql,pro_val)
+    # pro_data = fbcursor.fetchone()
+    # productserviceid = pro_data
+
+    discount = dis_rate_entry.get()
+
+    inv_sql='INSERT INTO Invoice (invoice_number,invodate,duedate,term_of_payment,ref,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
+    inv_val=(invoice_number,invodate,duedate,term_of_payment,ref,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount)
+    fbcursor.execute(inv_sql,inv_val)
     fbilldb.commit()
 
   #select customer
@@ -1283,25 +1294,29 @@ def inv_create():
   recur_labelframe = LabelFrame(recurFrame,text="",font=("arial",15))
   recur_labelframe.place(x=1,y=1,width=735,height=170)
 
-  def inv_stop_check():
-    if checkstopStatus.get() == 0:
-      recur_stop_date['state'] = NORMAL
-    else:
-      recur_stop_date['state'] = DISABLED
+  # def inv_stop_check():
+  #   if checkstopStatus.get() == 0:
+  #     recur_stop_date['state'] = NORMAL
+  #   else:
+  #     recur_stop_date['state'] = DISABLED
+
+  mdata = ["Month(s)","Day(s)"]
 
   checkrecStatus=IntVar()
   recur_check_btn = Checkbutton(recur_labelframe,variable=checkrecStatus,text="Recurring",onvalue=1,offvalue=0,command=recur_check)
   recur_check_btn.place(x=25,y=20)
   recur_period_label = Label(recur_labelframe,text="Recurring period (interval)").place(x=130,y=45)
-  recur_period_entry = Spinbox(recur_labelframe,width=10,state=DISABLED)
+  recur_period_entry = Spinbox(recur_labelframe,width=10,state=DISABLED,from_=1,to=10)
   recur_period_entry.place(x=280,y=45)
   recur_month_combo = ttk.Combobox(recur_labelframe,values="",width=15,state=DISABLED)
   recur_month_combo.place(x=360,y=45)
+  recur_month_combo['values'] = mdata
+  recur_month_combo.set(mdata[0])
   recur_nxt_inv_label = Label(recur_labelframe,text="Next Invoice").place(x=280,y=70)
   recur_nxt_inv_date = DateEntry(recur_labelframe,width=20,state=DISABLED)
   recur_nxt_inv_date.place(x=360,y=70)
   checkstopStatus = IntVar()
-  recur_stop_check = Checkbutton(recur_labelframe,variable=checkstopStatus,text="Stop recurring after",onvalue=1,offvalue=0,state=DISABLED,command=inv_stop_check)
+  recur_stop_check = Checkbutton(recur_labelframe,variable=checkstopStatus,text="Stop recurring after",onvalue=1,offvalue=0,state=DISABLED)
   recur_stop_check.place(x=225,y=95)
   recur_stop_date = DateEntry(recur_labelframe,width=20,state=DISABLED)
   recur_stop_date.place(x=360,y=95)
@@ -1340,15 +1355,25 @@ def inv_create():
   header_labelframe = LabelFrame(headerFrame,text="",font=("arial",15))
   header_labelframe.place(x=1,y=1,width=735,height=170)
 
+  header_sql = "SELECT headerandfooter FROM header_and_footer"
+  fbcursor.execute(header_sql,)
+  header_data = fbcursor.fetchall()
+  hdata = []
+  for i in header_data:
+    hdata.append(i[0])
+
   title_txt_label=Label(header_labelframe,text="Title text").place(x=50,y=5)
-  title_txt_combo=ttk.Combobox(header_labelframe, value="",width=60)
+  title_txt_combo=ttk.Combobox(header_labelframe, value=hdata,width=60)
   title_txt_combo.place(x=125,y=5)
+  title_txt_combo.bind("<<ComboboxSelected>>")
   pageh_txt_label=Label(header_labelframe,text="Page header text").place(x=2,y=45)
-  pageh_txt_combo=ttk.Combobox(header_labelframe, value="",width=60)
+  pageh_txt_combo=ttk.Combobox(header_labelframe, value=hdata,width=60)
   pageh_txt_combo.place(x=125,y=45)
+  pageh_txt_combo.bind("<<ComboboxSelected>>")
   footer_txt_label=Label(header_labelframe,text="Footer text").place(x=35,y=85)
-  footer_txt_combo=ttk.Combobox(header_labelframe, value="",width=60)
+  footer_txt_combo=ttk.Combobox(header_labelframe, value=hdata,width=60)
   footer_txt_combo.place(x=125,y=85)
+  footer_txt_combo.bind("<<ComboboxSelected>>")
 
   private_labelframe = LabelFrame(noteFrame,text="",font=("arial",15))
   private_labelframe.place(x=1,y=1,width=735,height=170)
@@ -2160,10 +2185,12 @@ def inv_edit_view():
     chkbtn1=Checkbutton(tiplbf,text="I have read and agree to the terms of service above",variable=checkvar1,onvalue=1,offvalue=0).place(x=70, y=200) 
 
   #mark invoice
-  def markinvo():
+  def markinvo_1():
     mark_inv=Toplevel()
     mark_inv.geometry("700x480+240+150")
     mark_inv.title("Record Payement for Invoice")
+    # def new_payment():
+
     checkvar=IntVar()
     checkvar1=IntVar()
     checkvar2=IntVar()
@@ -2176,29 +2203,29 @@ def inv_edit_view():
     mark_Notebook.add(Mark_Invoice, text="Mark Invoice")
     mark_Notebook.place(x=0, y=0)
 
-    involbel=Label(Mark_Invoice, text="Invoice Balance")
-    involbel.place(x=10, y=10)
-    numentry=Entry(Mark_Invoice, width=45).place(x=130, y=10)
+    inv_bal_label_1=Label(Mark_Invoice, text="Invoice Balance").place(x=10, y=10)
+    inv_bal_entry_1=Entry(Mark_Invoice, width=45).place(x=130, y=10)
 
     labelframe5 = LabelFrame(Mark_Invoice,text="Payement Record Details",bg="#f5f3f2")
     labelframe5.place(x=10,y=60,width=670,height=250)
-    e1 = Entry(labelframe5,width=28).place(x=30,y=45)
-    pdate = Label(labelframe5, text="Payement Date:",bg="#f5f3f2").place(x=250,y=20)
-    e2 = Entry(labelframe5,width=28).place(x=220,y=45)
-    payd = Label(labelframe5, text="Paid By:",bg="#f5f3f2").place(x=450,y=20)
-    drop = ttk.Combobox(labelframe5, value="Hello")
-    drop.place(x=450,y=45)
-    involbel=Label(labelframe5, text="Description")
-    involbel.place(x=30, y=80)
-    numentry=Entry(labelframe5, width=100).place(x=30, y=120)
-    Checkbutton(labelframe5,text="Paid in full and close invoice",variable=checkvar,onvalue=1,offvalue=0,bg="#f5f3f2").place(x=30 ,y=150)
-    pl = Label(labelframe5,text="Payement Reciepts",bg="#f5f3f2")
-    pl.place(x=300,y=145)
-    Checkbutton(labelframe5,text="Send Payement Reciept",variable=checkvar1,onvalue=1,offvalue=0,bg="#f5f3f2").place(x=320 ,y=170)
-    Checkbutton(labelframe5,text="Attach updated invoice",variable=checkvar2,onvalue=1,offvalue=0,bg="#f5f3f2").place(x=320 ,y=200)
+    inv_amnt_entry_1 = Entry(labelframe5,width=28)
+    inv_amnt_entry_1.place(x=30,y=45)
+    inv_pdate_label_1 = Label(labelframe5, text="Payement Date:",bg="#f5f3f2").place(x=250,y=20)
+    inv_pdate_entry_1 = Entry(labelframe5,width=28)
+    inv_pdate_entry_1.place(x=220,y=45)
+    inv_pby_label_1 = Label(labelframe5, text="Paid By:",bg="#f5f3f2").place(x=450,y=20)
+    inv_pby_combo_1 = ttk.Combobox(labelframe5, value="Hello")
+    inv_pby_combo_1.place(x=450,y=45)
+    inv_des_label_1=Label(labelframe5, text="Description").place(x=30, y=80)
+    inv_des_entry_1=Entry(labelframe5, width=100).place(x=30, y=120)
+    inv_pfull_check_1 = Checkbutton(labelframe5,text="Paid in full and close invoice",variable=checkvar,onvalue=1,offvalue=0,bg="#f5f3f2")
+    inv_pfull_check_1.place(x=30 ,y=150)
+    inv_precp_label_1 = Label(labelframe5,text="Payement Reciepts",bg="#f5f3f2").place(x=300,y=145)
+    inv_send_precp_1 = Checkbutton(labelframe5,text="Send Payement Reciept",variable=checkvar1,onvalue=1,offvalue=0,bg="#f5f3f2").place(x=320 ,y=170)
+    inv_att_upinv_1 = Checkbutton(labelframe5,text="Attach updated invoice",variable=checkvar2,onvalue=1,offvalue=0,bg="#f5f3f2").place(x=320 ,y=200)
 
-    okbtn=Button(Mark_Invoice,compound = LEFT,image=tick , text="Save payement", width=100).place(x=10, y=350)
-    canbtn=Button(Mark_Invoice,compound = LEFT,image=cancel, text="Cancel", width=100).place(x=500, y=350)
+    inv_pok_btn_1 =Button(Mark_Invoice,compound = LEFT,image=tick , text="Save payement", width=100).place(x=10, y=350)
+    inv_pcan_btn_1 =Button(Mark_Invoice,compound = LEFT,image=cancel, text="Cancel", width=100).place(x=500, y=350)
 
     
   #voidinvoice
@@ -2298,7 +2325,7 @@ def inv_edit_view():
   w = Canvas(inv_first_frame2, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  mark_inv_paid_1= Button(inv_first_frame2,compound="top", text="Mark invoice\nas 'Paid'",relief=RAISED, image=mark1,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=markinvo)
+  mark_inv_paid_1= Button(inv_first_frame2,compound="top", text="Mark invoice\nas 'Paid'",relief=RAISED, image=mark1,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=markinvo_1)
   mark_inv_paid_1.pack(side="left", pady=3, ipadx=4)
 
   void_invoice_1= Button(inv_first_frame2,compound="top", text="Void\ninvoice",relief=RAISED, image=mark2,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=voidinvoice_1)
@@ -2591,25 +2618,28 @@ def inv_edit_view():
   recur_labelframe_1 = LabelFrame(recurFrame,text="",font=("arial",15))
   recur_labelframe_1.place(x=1,y=1,width=735,height=170)
 
-  def inv_stop_check_1():
-    if checkstopStatus_1.get() == 0:
-      recur_stop_date_1['state'] = NORMAL
-    else:
-      recur_stop_date_1['state'] = DISABLED
+  # def inv_stop_check_1():
+  #   if checkstopStatus_1.get() == 0:
+  #     recur_stop_date_1['state'] = NORMAL
+  #   else:
+  #     recur_stop_date_1['state'] = DISABLED
+
+  mdata_1 = ["Month(s)","Day(s)"]
 
   checkrecStatus_1=IntVar()
   recur_check_btn_1 = Checkbutton(recur_labelframe_1,variable=checkrecStatus_1,text="Recurring",onvalue= 1,offvalue=0,command=recur_check_1)
   recur_check_btn_1.place(x=25,y=20)
   recur_period_label_1 = Label(recur_labelframe_1,text="Recurring period (interval)").place(x=130,y=45)
-  recur_period_entry_1 = Spinbox(recur_labelframe_1,width=10,state=DISABLED)
+  recur_period_entry_1 = Spinbox(recur_labelframe_1,width=10,state=DISABLED,from_=1,to=10)
   recur_period_entry_1.place(x=280,y=45)
   recur_month_combo_1 = ttk.Combobox(recur_labelframe_1,values="",width=15,state=DISABLED)
   recur_month_combo_1.place(x=360,y=45)
+  recur_month_combo_1['values'] = mdata_1
   recur_nxt_inv_label_1 = Label(recur_labelframe_1,text="Next Invoice").place(x=280,y=70)
   recur_nxt_inv_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED)
   recur_nxt_inv_date_1.place(x=360,y=70)
   checkstopStatus_1 = IntVar()
-  recur_stop_check_1 = Checkbutton(recur_labelframe_1,variable=checkstopStatus_1,text="Stop recurring after",onvalue=1,offvalue=0,state=DISABLED,command=inv_stop_check_1)
+  recur_stop_check_1 = Checkbutton(recur_labelframe_1,variable=checkstopStatus_1,text="Stop recurring after",onvalue=1,offvalue=0,state=DISABLED)
   recur_stop_check_1.place(x=225,y=95)
   recur_stop_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED)
   recur_stop_date_1.place(x=360,y=95)
@@ -2635,7 +2665,7 @@ def inv_edit_view():
   pay_tree_1.heading("5",text="Amount")
   pay_tree_1.place(x=45,y=20)
 
-  pay_plus_1 = Button(payementFrame,image=plus_1,text="",width=20,height=25)
+  pay_plus_1 = Button(payementFrame,image=plus_1,text="",width=20,height=25,command=markinvo_1)
   pay_plus_1.place(x=10,y=20)
   pay_minus_1 = Button(payementFrame,image=minus,text="",width=20,height=25)
   pay_minus_1.place(x=10,y=55)
@@ -2648,21 +2678,27 @@ def inv_edit_view():
   header_labelframe_1 = LabelFrame(headerFrame,text="",font=("arial",15))
   header_labelframe_1.place(x=1,y=1,width=735,height=170)
 
-  header_sql = "SELECT headerandfooter FROM header_and_footer"
-  fbcursor.execute(header_sql,)
-  hdata = fbcursor.fetchall()
+  header_sql_1 = "SELECT headerandfooter FROM header_and_footer"
+  fbcursor.execute(header_sql_1,)
+  header_data_1 = fbcursor.fetchall()
+  hdata_1 = []
+  for i in header_data_1:
+    hdata_1.append(i[0])
+  
 
   title_txt_label_1=Label(header_labelframe_1,text="Title text").place(x=50,y=5)
   title_txt_combo_1=ttk.Combobox(header_labelframe_1, value="",width=60)
   title_txt_combo_1.place(x=125,y=5)
-  title_txt_combo_1['values'] = hdata
+  title_txt_combo_1['values'] = hdata_1
   title_txt_combo_1.bind("<<ComboboxSelected>>")
   pageh_txt_label_1=Label(header_labelframe_1,text="Page header text").place(x=2,y=45)
-  pageh_txt_combo_1=ttk.Combobox(header_labelframe_1, value="",width=60)
+  pageh_txt_combo_1=ttk.Combobox(header_labelframe_1, value=hdata_1,width=60)
   pageh_txt_combo_1.place(x=125,y=45)
+  pageh_txt_combo_1.bind("<<ComboboxSelected>>")
   footer_txt_label_1=Label(header_labelframe_1,text="Footer text").place(x=35,y=85)
-  footer_txt_combo_1=ttk.Combobox(header_labelframe_1, value="",width=60)
+  footer_txt_combo_1=ttk.Combobox(header_labelframe_1, value=hdata_1,width=60)
   footer_txt_combo_1.place(x=125,y=85)
+  footer_txt_combo_1.bind("<<ComboboxSelected>>")
 
   private_labelframe_1 = LabelFrame(noteFrame,text="",font=("arial",15))
   private_labelframe_1.place(x=1,y=1,width=735,height=170)
@@ -2819,10 +2855,11 @@ def inv_edit_view():
   recur_stop_date_1.delete(0,END)
   recur_stop_date_1.insert(0,edit_inv_data[27])
 
-  # count = 0
-  # for i in edit_inv_data:
-  #   pay_tree_1.insert(parent='',index='end',iid=i,text='',values=())
-  # count += 1
+  pay_sql = "SELECT * FROM markinvoice WHERE companyid=%s"
+  pay_val = (edit_inv_data[28],)
+  fbcursor.execute(pay_sql,pay_val)
+  pay_data = fbcursor.fetchone()
+  pay_tree_1.insert(parent='',index='end',iid=i,text='',values=(pay_data[0],pay_data[3],pay_data[4],pay_data[5],pay_data[6]))
 
 ####################### End edit/view invoice ##################
 
