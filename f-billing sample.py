@@ -2,6 +2,7 @@
 from calendar import c
 from cgitb import enable, text
 from distutils import command
+import enum
 from itertools import count
 from pydoc import describe
 from secrets import choice
@@ -35,7 +36,7 @@ from openpyxl import load_workbook
 import shutil
 import csv
 import json
-
+from pathlib import Path
 
 fbilldb = mysql.connector.connect(
     host="localhost", user="root", password="", database="fbillingsintgrtd", port="3306"
@@ -216,6 +217,16 @@ def mainpage():
     pop.geometry("950x690+150+0")
 
     def add_new_invoice():
+      # newline_rec = add_newline_tree.get_children()
+      # c = []
+      # for record in newline_rec:
+      #   print(record)
+      #   a = record.split()
+      #   print(a)
+      # c += record
+      # print(c)
+      # p =newline_rec[0]
+      # print(p.split())
       invoice_number = inv_number_entry.get()
       invodate = inv_date_entry.get_date()
       duedate = inv_duedate_entry.get_date()
@@ -250,29 +261,37 @@ def mainpage():
       header_text = pageh_txt_combo.get()
       footer_text = footer_txt_combo.get()
       tax2 = tax2_entry.get()
-      comments = comment_txt.get()
+      comments = comment_txt.get("1.0",END)
+      private_notes = private_note_txt.get("1.0",END)
+      terms = term_txt.get("1.0",END)
 
-      comment_sql = "INSERT INTO comments (comment) VALUES(%s)"
-      comment_val = (comments)
+      comment_sql = "INSERT INTO comments(comment) VALUES(%s)"
+      comment_val = (comments,)
       fbcursor.execute(comment_sql,comment_val)
       fbilldb.commit()
 
       comment_get_sql = "SELECT commentid FROM comments WHERE comment=%s"
-      comment_get_val = (comments)
+      comment_get_val = (comments,)
       fbcursor.execute(comment_get_sql,comment_get_val)
-      commentid = fbcursor.fetchone()
-
-      private_notes = private_note_txt.get()
+      comment_data = fbcursor.fetchone()
+      commentid = 0
+      for c in comment_data:
+        pass
+      commentid += c
 
       private_sql = "INSERT INTO invoice_private_notes(private_notes) VALUES(%s)"
-      private_val = (private_notes)
+      private_val = (private_notes,)
       fbcursor.execute(private_sql,private_val)
       fbilldb.commit()
 
-      private_get_sql = "SELECT privatenoteid FROM invoice_private_notes WHERE private_notes=%s"
-      private_get_val = (private_notes)
+      private_get_sql = "SELECT invoicepvtnoteid FROM invoice_private_notes WHERE private_notes=%s"
+      private_get_val = (private_notes,)
       fbcursor.execute(private_get_sql,private_get_val)
-      privatenoteid = fbcursor.fetchone()
+      private_data = fbcursor.fetchone()
+      privatenoteid = 0
+      for p in private_data:
+        pass
+      privatenoteid += p
 
       # cust_sql = "SELECT customerid FROM customer WHERE businessname=%s"
       # cust_val = (businessname,)
@@ -287,11 +306,16 @@ def mainpage():
       # productserviceid = pro_data
 
       
+      # storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,taxable) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
+      # storepro_val = (invoice_number,sku,name,description,unitprice,quantity,peices,taxable)
+      # fbcursor.execute(storepro_sql,storepro_val)
+      # fbilldb.commit()
 
-      inv_sql='INSERT INTO Invoice (invoice_number,invodate,duedate,term_of_payment,ref,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,title_text,header_text,footer_text,tax2,commentid,privatenoteid) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
-      inv_val=(invoice_number,invodate,duedate,term_of_payment,ref,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,title_text,header_text,footer_text,tax2,commentid,privatenoteid)
+      inv_sql='INSERT INTO Invoice (invoice_number,invodate,duedate,term_of_payment,ref,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,title_text,header_text,footer_text,tax2,commentid,privatenoteid,terms) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
+      inv_val=(invoice_number,invodate,duedate,term_of_payment,ref,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,title_text,header_text,footer_text,tax2,commentid,privatenoteid,terms)
       fbcursor.execute(inv_sql,inv_val)
       fbilldb.commit()
+      messagebox.showinfo("F-Billing Revolution","Invoice saved")
 
     #select customer
     def inv_sel_customer():
@@ -1538,18 +1562,43 @@ def mainpage():
 
     doc_labelframe = LabelFrame(documentFrame,text="",font=("arial",15))
     doc_labelframe.place(x=1,y=1,width=735,height=170)
+    ################### attatch file ###########################
+    def attach_file():
+      global file
+      file_type = [('png files','*.png'),('jpg files','*.jpg'),('all files','*.*')]
+      file = filedialog.askopenfilename(initialdir="/",filetypes=file_type)
+      shutil.copyfile(file, os.getcwd()+'/images/'+file.split('/')[-1])
+      file_size = convertion(os.path.getsize(file))
+      doc_tree.insert(parent='',index='end',iid=file.split('/')[-1],text='',values=('',file.split('/')[-1],file_size))
 
-    doc_plus_btn=Button(doc_labelframe,image=plus_1,text="",width=20,height=25)
+    #################### size convertion of files############################
+    def convertion(B):
+      BYTE = float(B)
+      KB = float(1024)
+      MB = float(KB**2)
+
+      if BYTE < KB:
+        return '{0} {1}'.format(BYTE,'Bytes' if 0 == B > 1 else 'Byte')
+      elif KB <= BYTE < MB:
+        return '{0:.2f} KB'.format(BYTE / KB)
+      elif MB <= BYTE:
+        return '{0:.2f} MB'.format(BYTE / MB)
+    ############### delete file #################
+    def delete_file():
+      selected_doc_item = doc_tree.selection()[0]
+      doc_tree.delete(selected_doc_item)
+
+    doc_plus_btn=Button(doc_labelframe,image=plus_1,text="",width=20,height=25,command=attach_file)
     doc_plus_btn.place(x=5,y=10)
-    doc_minus_btn=Button(doc_labelframe,height=25,width=20,text="",image=minus)
+    doc_minus_btn=Button(doc_labelframe,height=25,width=20,text="",image=minus,command=delete_file)
     doc_minus_btn.place(x=5,y=50)
     doc_txt_label=Label(doc_labelframe,text="Attached documents or image files.If you attach large email then email taken long time to send").place(x=50,y=10)
     doc_tree=ttk.Treeview(doc_labelframe, height=5)
     doc_tree["columns"]=["1","2","3"]
-    doc_tree.column("#0", width=20)
-    doc_tree.column("1", width=130)
-    doc_tree.column("2", width=380)
-    doc_tree.column("3", width=130)
+    doc_tree.column("#0", width=20,anchor=CENTER)
+    doc_tree.column("1", width=130,anchor=CENTER)
+    doc_tree.column("2", width=380,anchor=CENTER)
+    doc_tree.column("3", width=130,anchor=CENTER)
     doc_tree.heading("#0",text="", anchor=W)
     doc_tree.heading("1",text="Attach to Email")
     doc_tree.heading("2",text="Filename")
@@ -2633,10 +2682,10 @@ def mainpage():
     inv_duedate_entry_1['state'] = NORMAL
     inv_duedate_entry_1.delete(0, END)
     inv_duedate_entry_1.insert(0, edit_inv_data[3])
-    # inv_terms_combo_1.delete(0, END)
-    # inv_terms_combo_1.insert(0, )
-    # inv_ref_entry_1.delete(0, END)
-    # inv_ref_entry_1.insert(0,)
+    inv_terms_combo_1.delete(0, END)
+    inv_terms_combo_1.insert(0, edit_inv_data[4])
+    inv_ref_entry_1.delete(0, END)
+    inv_ref_entry_1.insert(0, edit_inv_data[5])
     
     
 
