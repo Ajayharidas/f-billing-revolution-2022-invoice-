@@ -217,16 +217,6 @@ def mainpage():
     pop.geometry("950x690+150+0")
 
     def add_new_invoice():
-      # newline_rec = add_newline_tree.get_children()
-      # c = []
-      # for record in newline_rec:
-      #   print(record)
-      #   a = record.split()
-      #   print(a)
-      # c += record
-      # print(c)
-      # p =newline_rec[0]
-      # print(p.split())
       invoice_number = inv_number_entry.get()
       invodate = inv_date_entry.get_date()
       duedate = inv_duedate_entry.get_date()
@@ -264,6 +254,20 @@ def mainpage():
       comments = comment_txt.get("1.0",END)
       private_notes = private_note_txt.get("1.0",END)
       terms = term_txt.get("1.0",END)
+      doc_get = doc_tree.get_children()
+      for record in add_newline_tree.get_children():
+        storingproduct = add_newline_tree.item(record)["values"]
+        storepro_sql = "INSERT INTO storingproduct(invoice_number,productserviceid,name,description,unitprice,quantity) VALUES(%s,%s,%s,%s,%s,%s)"
+        storepro_val = (invoice_number,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4])
+        fbcursor.execute(storepro_sql,storepro_val)
+        fbilldb.commit()
+      for files in doc_get:
+        file_sql = "INSERT INTO documents(add_document,invoice_number) VALUES(%s,%s)"
+        file_val = (files,invoice_number)
+        fbcursor.execute(file_sql,file_val)
+        fbilldb.commit()
+      
+      
 
       comment_sql = "INSERT INTO comments(comment) VALUES(%s)"
       comment_val = (comments,)
@@ -292,24 +296,6 @@ def mainpage():
       for p in private_data:
         pass
       privatenoteid += p
-
-      # cust_sql = "SELECT customerid FROM customer WHERE businessname=%s"
-      # cust_val = (businessname,)
-      # fbcursor.execute(cust_sql,cust_val)
-      # cust_data = fbcursor.fetchone()
-      # customerid = cust_data
-
-      # pro_sql = "SELECT Productserviceid FROM storingproduct WHERE invoice_number=%s"
-      # pro_val = (invoice_number,)
-      # fbcursor.execute(pro_sql,pro_val)
-      # pro_data = fbcursor.fetchone()
-      # productserviceid = pro_data
-
-      
-      # storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,taxable) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
-      # storepro_val = (invoice_number,sku,name,description,unitprice,quantity,peices,taxable)
-      # fbcursor.execute(storepro_sql,storepro_val)
-      # fbilldb.commit()
 
       inv_sql='INSERT INTO Invoice (invoice_number,invodate,duedate,term_of_payment,ref,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,title_text,header_text,footer_text,tax2,commentid,privatenoteid,terms) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
       inv_val=(invoice_number,invodate,duedate,term_of_payment,ref,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,title_text,header_text,footer_text,tax2,commentid,privatenoteid,terms)
@@ -1508,6 +1494,7 @@ def mainpage():
     pay_tree.heading("5",text="Amount")
     pay_tree.place(x=45,y=20)
 
+
     pay_plus = Button(payementFrame,compound=LEFT,image=plus_1,text="",width=20,height=25,command=markinvo)
     pay_plus.place(x=10,y=20)
     pay_minus = Button(payementFrame,compound=LEFT,image=minus,text="",width=20,height=25)
@@ -1564,12 +1551,13 @@ def mainpage():
     doc_labelframe.place(x=1,y=1,width=735,height=170)
     ################### attatch file ###########################
     def attach_file():
-      global file
+      global file,file_type
       file_type = [('png files','*.png'),('jpg files','*.jpg'),('all files','*.*')]
       file = filedialog.askopenfilename(initialdir="/",filetypes=file_type)
       shutil.copyfile(file, os.getcwd()+'/images/'+file.split('/')[-1])
       file_size = convertion(os.path.getsize(file))
       doc_tree.insert(parent='',index='end',iid=file.split('/')[-1],text='',values=('',file.split('/')[-1],file_size))
+      
 
     #################### size convertion of files############################
     def convertion(B):
@@ -1587,6 +1575,28 @@ def mainpage():
     def delete_file():
       selected_doc_item = doc_tree.selection()[0]
       doc_tree.delete(selected_doc_item)
+
+
+    ############## show file ###############
+
+    def show_sel_file(event):
+      selected_file = doc_tree.item(doc_tree.focus())["values"][1]
+      # showfile_sql = "SELECT add_document FROM documents WHERE add_document=%s"
+      # showfile_val = (selected_file,)
+      # fbcursor.execute(showfile_sql,showfile_val)
+      # file_details = fbcursor.fetchone()
+      # print(file_details)
+      show = Toplevel()
+      show.geometry("700x500")
+      show.title("View Files")
+      open_image = Image.open("images/"+file.split('/')[-1])
+      resize_img = open_image.resize((700,500))
+      img = ImageTk.PhotoImage(resize_img)
+      image = Label(show,image=img)
+      image.photo = img
+      image.pack()
+    pay_tree.bind('<Double-Button-1>',show_sel_file)
+
 
     doc_plus_btn=Button(doc_labelframe,image=plus_1,text="",width=20,height=25,command=attach_file)
     doc_plus_btn.place(x=5,y=10)
