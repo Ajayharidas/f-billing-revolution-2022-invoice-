@@ -1,8 +1,10 @@
 #from ast import pattern
+from asyncio.windows_events import NULL
 from calendar import c
 from cgitb import enable, text
 from distutils import command
 import enum
+from glob import glob
 from itertools import count
 from pydoc import describe
 from secrets import choice
@@ -41,7 +43,7 @@ from pathlib import Path
 fbilldb = mysql.connector.connect(
     host="localhost", user="root", password="", database="fbillingsintgrtd", port="3306"
 )
-fbcursor = fbilldb.cursor()
+fbcursor = fbilldb.cursor(buffered = True)
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -219,7 +221,10 @@ def mainpage():
     def add_new_invoice():
       invoice_number = inv_number_entry.get()
       invodate = inv_date_entry.get_date()
-      duedate = inv_duedate_entry.get_date()
+      if checkvarStatus5.get() == 0:
+        pass
+      else:
+        duedate = inv_duedate_entry.get_date()
       term_of_payment = inv_terms_combo.get()
       ref = inv_ref_entry.get()
       status = draft_label.cget("text")
@@ -242,10 +247,16 @@ def mainpage():
       shipaddress = inv_addr_e4.get("1.0",END)
       cpemail = inv_email_e5.get()
       cpmobileforsms = inv_sms_e6.get()
-      recurring_period = recur_period_entry.get()
-      recurring_period_month = recur_month_combo.get()
-      next_invoice = recur_nxt_inv_date.get_date()
-      stop_recurring = recur_stop_date.get_date()
+      if checkrecStatus.get() == 0 :
+        next_invoice = NULL
+        stop_recurring = NULL
+        recurring_period = NULL
+        recurring_period_month = NULL
+      else:
+        next_invoice = recur_nxt_inv_date.get_date()
+        stop_recurring = recur_stop_date.get_date()
+        recurring_period = recur_period_entry.get()
+        recurring_period_month = recur_month_combo.get()
       discount = dis_rate_entry.get()
       title_text = title_txt_combo.get()
       header_text = pageh_txt_combo.get()
@@ -296,6 +307,7 @@ def mainpage():
       for p in private_data:
         pass
       privatenoteid += p
+
 
       inv_sql='INSERT INTO Invoice (invoice_number,invodate,duedate,term_of_payment,ref,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,title_text,header_text,footer_text,tax2,commentid,privatenoteid,terms) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
       inv_val=(invoice_number,invodate,duedate,term_of_payment,ref,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,title_text,header_text,footer_text,tax2,commentid,privatenoteid,terms)
@@ -584,7 +596,22 @@ def mainpage():
         val = (product_tree_item,)
         fbcursor.execute(sql,val)
         sel_pro_str = fbcursor.fetchone()
-        add_newline_tree.insert(parent='',index='end',iid=sel_pro_str,text='',values=(sel_pro_str[0],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18]))
+        if tax_radio == 1:
+          add_newline_tree.insert(parent='',index='end',iid=sel_pro_str,text='',values=(sel_pro_str[0],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'',sel_pro_str[7]))
+        elif tax_radio == 2:
+          if sel_pro_str[10] == "1":
+            add_newline_tree.insert(parent='',index='end',iid=sel_pro_str,text='',values=(sel_pro_str[0],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','yes',sel_pro_str[7]))
+          else:
+            add_newline_tree.insert(parent='',index='end',iid=sel_pro_str,text='',values=(sel_pro_str[0],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','no',sel_pro_str[7]))
+        elif tax_radio == 3:
+          if sel_pro_str[10] == "1" and sel_pro_str[19] == "1":
+            add_newline_tree.insert(parent='',index='end',iid=sel_pro_str,text='',values=(sel_pro_str[0],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','yes','yes',sel_pro_str[7]))
+          elif sel_pro_str[10] == "1" and sel_pro_str[19] == "0":
+            add_newline_tree.insert(parent='',index='end',iid=sel_pro_str,text='',values=(sel_pro_str[0],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','yes','no',sel_pro_str[7]))
+          elif sel_pro_str[10] == "0" and sel_pro_str[19] == "1":
+            add_newline_tree.insert(parent='',index='end',iid=sel_pro_str,text='',values=(sel_pro_str[0],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','no','yes',sel_pro_str[7]))
+          else:
+            add_newline_tree.insert(parent='',index='end',iid=sel_pro_str,text='',values=(sel_pro_str[0],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','no','no',sel_pro_str[7]))
         inv_newline_sel.destroy()
       show_newline = inv_combo_e1.get()
       if show_newline == '':
@@ -1017,11 +1044,244 @@ def mainpage():
       else:
         mark_inv=Toplevel()
         mark_inv.geometry("700x480+240+150")
-        mark_inv.title("Record Payement for Invoice")
-        checkvar=IntVar()
-        checkvar1=IntVar()
-        checkvar2=IntVar()
+        mark_inv.title("Record Payement for Invoice")        
         
+        if tax_radio == 1:
+          if sel_pro_str[10] == "0" and sel_pro_str[19] == "0":
+            for i in add_newline_tree.get_children():
+              price = float(add_newline_tree.item(i,'values')[3])
+            total_cost = 0.0
+            t = 0.0
+            dis_rate = float(dis_rate_entry.get())
+            if dis_rate == "0":
+              t = price
+            else:
+              discount_rate = (price*dis_rate)/100
+              t = price-discount_rate
+            total_cost += t
+        elif tax_radio == 2:
+          if sel_pro_str[10] == "1":
+            for i in add_newline_tree.get_children():
+              price = float(add_newline_tree.item(i,'values')[3])
+            tax1 = float(sectab[16])
+            tax1_rate = (price*tax1)/100
+            total_cost = 0.0
+            t = 0.0
+            dis_rate = float(dis_rate_entry.get())
+            if dis_rate == "0":
+              t = (price + tax1_rate)
+            else:
+              discount_rate = ((price + tax1_rate)*dis_rate)/100
+              t = (price + tax1_rate)-discount_rate
+            total_cost += t
+          else:
+            for i in add_newline_tree.get_children():
+              price = float(add_newline_tree.item(i,'values')[3])
+            total_cost = 0.0
+            t = 0.0
+            dis_rate = float(dis_rate_entry.get())
+            if dis_rate == "0":
+              t = price
+            else:
+              discount_rate = (price*dis_rate)/100
+              t = price-discount_rate
+            total_cost += t
+        elif tax_radio == 3:
+          if sel_pro_str[10] == "1" and sel_pro_str[19] == "1":
+            for i in add_newline_tree.get_children():
+              price = float(add_newline_tree.item(i,'values')[3])
+            tax1 = float(sectab[16])
+            tax2 = float(sectab[19])
+            tax1_rate = (price*tax1)/100
+            tax2_rate = ((price + tax1_rate)*tax2)/100
+            total_cost = 0.0
+            t = 0.0
+            dis_rate = float(dis_rate_entry.get())
+            if dis_rate == "0":
+              t = (price + tax1_rate + tax2_rate)
+            else:
+              discount_rate = ((price + tax1_rate + tax2_rate)*dis_rate)/100
+              t = (price + tax1_rate + tax2_rate)-discount_rate
+            total_cost += t
+          elif sel_pro_str[10] == "1" and sel_pro_str[19] == "0":
+            for i in add_newline_tree.get_children():
+              price = float(add_newline_tree.item(i,'values')[3])
+            tax1 = float(sectab[16])
+            tax1_rate = (price*tax1)/100
+            total_cost = 0.0
+            t = 0.0
+            dis_rate = float(dis_rate_entry.get())
+            if dis_rate == "0":
+              t = (price + tax1_rate)
+            else:
+              discount_rate = ((price + tax1_rate)*dis_rate)/100
+              t = (price + tax1_rate)-discount_rate
+            total_cost += t
+          elif sel_pro_str[10] == "0" and sel_pro_str[19] == "1":
+            for i in add_newline_tree.get_children():
+              price = float(add_newline_tree.item(i,'values')[3])
+            tax2 = float(sectab[19])
+            tax2_rate = (price *tax2)/100
+            total_cost = 0.0
+            t = 0.0
+            dis_rate = float(dis_rate_entry.get())
+            if dis_rate == "0":
+              t = (price + tax2_rate)
+            else:
+              discount_rate = ((price + tax2_rate)*dis_rate)/100
+              t = (price + tax1_rate)-discount_rate
+            total_cost += t
+          else:
+            for i in add_newline_tree.get_children():
+              price = float(add_newline_tree.item(i,'values')[3])
+            total_cost = 0.0
+            t = 0.0
+            dis_rate = float(dis_rate_entry.get())
+            if dis_rate == "0":
+              t = price
+            else:
+              discount_rate = (price*dis_rate)/100
+              t = price-discount_rate
+            total_cost += t
+
+        def add_newline_pay():
+          pay_amnt = inv_amnt_entry.get()
+          pay_date = inv_pdate_entry.get_date()
+          pay_by = inv_pby_combo.get()
+          pay_desc = inv_des_entry.get()
+          pay_inv_number = inv_number_entry.get()
+          pay_sql = "INSERT INTO payments(payment_date,paid_by,description,amount,invoice_number) VALUES(%s,%s,%s,%s,%s)"
+          pay_val = (pay_date,pay_by,pay_desc,pay_amnt,pay_inv_number,)
+          fbcursor.execute(pay_sql,pay_val)
+          fbilldb.commit()
+
+
+          pay_get_sql = "SELECT * FROM payments WHERE invoice_number=%s"
+          payy_get_val = (pay_inv_number,)
+          fbcursor.execute(pay_get_sql,payy_get_val)
+          pay_data = fbcursor.fetchone()
+          pay_tree.insert(parent='',index='end',iid=pay_data[0],text='',values=(pay_data[0],pay_data[1],pay_data[2],pay_data[3],pay_data[4]))
+          mark_inv.destroy()
+
+          if checkvar1.get() == 1:
+            send_precp = Toplevel()
+            p2 = PhotoImage(file = "images/fbicon.png")
+            send_precp.iconphoto(False, p2)
+            send_precp.geometry("1030x490+150+120")
+            send_precp.title("Payment reciept E-mail")
+
+            style = ttk.Style()
+            style.theme_use('default')
+            style.configure('TNotebook.Tab', background="#999999", padding=5)
+            email_Notebook = ttk.Notebook(send_precp)
+            email_Frame = Frame(email_Notebook, height=500, width=1080)
+            account_Frame = Frame(email_Notebook, height=550, width=1080)
+            email_Notebook.add(email_Frame, text="E-mail")
+            email_Notebook.add(account_Frame, text="Account")
+            email_Notebook.place(x=0, y=0)
+            messagelbframe=LabelFrame(email_Frame,text="Message", height=450, width=730)
+            messagelbframe.place(x=5, y=5)
+            email_to_addr_label=Label(messagelbframe, text="Email to address").place(x=5, y=5)
+            email_to_addr_entry=Entry(messagelbframe, width=50)
+            email_to_addr_entry.place(x=120, y=5)
+            email_addr = inv_email_e5.get()
+            email_to_addr_entry.delete(0,END)
+            email_to_addr_entry.insert(0,email_addr)
+            send_email_btn=Button(messagelbframe, text="Send Email", width=10, height=1).place(x=600, y=10)
+            carbon_label=Label(messagelbframe, text="Carbon copy to").place(x=5, y=32)
+            carbon_entry=Entry(messagelbframe, width=50).place(x=120, y=32)
+            stop_email_btn=Button(messagelbframe, text="Stop sending", width=10, height=1,state=DISABLED)
+            stop_email_btn.place(x=600, y=40)
+            subject_label=Label(messagelbframe, text="Subject").place(x=5, y=59)
+            subject_entry=Entry(messagelbframe, width=50)
+            subject_entry.place(x=120, y=59)
+            subject = inv_number_entry.get()
+            subject_entry.delete(0,END)
+            subject_entry.insert(0,"Payment reciept for Invoice" + " " + "(" + subject + ")")
+
+            style = ttk.Style()
+            style.theme_use('default')
+            style.configure('TNotebook.Tab', background="#999999", width=20, padding=5)
+            mess_Notebook = ttk.Notebook(messagelbframe)
+            emailmessage_Frame = Frame(mess_Notebook,height=305, width=710)
+            htmlsourse_Frame = Frame(mess_Notebook, height=305, width=710)
+            mess_Notebook.add(emailmessage_Frame, text="E-mail message")
+            mess_Notebook.add(htmlsourse_Frame, text="Html sourse code")
+            mess_Notebook.place(x=5, y=90)
+
+            btn1=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=selectall).place(x=0, y=1)  
+            btn2=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=cut).place(x=36, y=1)
+            btn3=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=copy).place(x=73, y=1)
+            btn4=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=paste).place(x=105, y=1)
+            btn5=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=undo).place(x=140, y=1)
+            btn6=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=redo).place(x=175, y=1)
+            btn7=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=bold).place(x=210, y=1)
+            btn8=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=italics).place(x=245, y=1)
+            btn9=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=underline).place(x=280, y=1)
+            btn10=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=left).place(x=315, y=1)
+            btn11=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=right).place(x=350, y=1)
+            btn12=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=center).place(x=385, y=1)
+            btn13=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=hyperlink).place(x=420, y=1)
+            btn14=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=remove).place(x=455, y=1)
+
+            dropcomp = ttk.Combobox(emailmessage_Frame, width=12, height=3).place(x=500, y=5)
+            dropcompo = ttk.Combobox(emailmessage_Frame, width=6, height=3).place(x=600, y=5)
+            mframe=scrolledtext.ScrolledText(emailmessage_Frame, height=17, width=86, bg="white")
+            mframe.place(x=0, y=28)
+            btn1=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=selectall).place(x=0, y=1)
+            btn2=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=cut).place(x=36, y=1)
+            btn3=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=copy).place(x=73, y=1)
+            btn4=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=paste).place(x=105, y=1)
+            mframe=Frame(htmlsourse_Frame, height=350, width=710, bg="white")
+            mframe.place(x=0, y=28)
+            attachlbframe=LabelFrame(email_Frame,text="Attachment(s)", height=350, width=280)
+            attachlbframe.place(x=740, y=5)
+            htcodeframe=Frame(attachlbframe, height=220, width=265, bg="white").place(x=5, y=5)
+            lbl_btn_info=Label(attachlbframe, text="Double click on attachment to view").place(x=30, y=230)
+            btn17=Button(attachlbframe, width=20, text="Add attacment file...").place(x=60, y=260)
+            btn18=Button(attachlbframe, width=20, text="Remove attacment").place(x=60, y=295)
+            lbl_tt_info=Label(email_Frame, text="You can create predefined invoice, order, estimate\nand payment receipt email templates under Main\nmenu/Settings/E-Mail templates tab")
+            lbl_tt_info.place(x=740, y=370)
+
+            ready_frame=Frame(send_precp, height=20, width=1080, bg="#b3b3b3").place(x=0,y=530)
+            
+            sendatalbframe = LabelFrame(account_Frame,text="E-Mail(Sender data)",height=270, width=600)
+            sendatalbframe.place(x=5, y=5)
+            your_cemail_label = Label(sendatalbframe, text="Your company email address").place(x=5, y=30)
+            your_cemail_entry = Entry(sendatalbframe, width=40)
+            your_cemail_entry.place(x=195, y=30)
+            your_cemail_entry.delete(0,END)
+            your_cemail_entry.insert(0,email_addr)
+
+            your_cname_label = Label(sendatalbframe, text="Your name or company name").place(x=5, y=60)
+            your_cname_entry = Entry(sendatalbframe, width=40)
+            your_cname_entry.place(x=195, y=60)
+            company_name = inv_combo_e1.get()
+            your_cname_entry.delete(0,END)
+            your_cname_entry.insert(0,company_name)
+            replay_email_label = Label(sendatalbframe, text="Reply to email address").place(x=5, y=90)
+            replay_email_entry = Entry(sendatalbframe, width=40)
+            replay_email_entry.place(x=195, y=90)
+            replay_email_entry.delete(0,END)
+            replay_email_entry.insert(0,email_addr)
+            lbl_sign=Label(sendatalbframe, text="Signature").place(x=5, y=120)
+            signent=Entry(sendatalbframe,width=50).place(x=100, y=120,height=75)
+            confirm_chkvar=IntVar()
+            confirm_chkbtn=Checkbutton(sendatalbframe, variable=confirm_chkvar, text="Confirmation reading", onvalue=1, offvalue=0)
+            confirm_chkbtn.place(x=200, y=215)
+            btn18=Button(account_Frame, width=15, text="Save settings").place(x=25, y=285)
+
+            sendatalbframe=LabelFrame(account_Frame,text="SMTP Server",height=100, width=380)
+            sendatalbframe.place(x=610, y=5)
+            servar=IntVar()
+            SMTP_rbtn=Radiobutton(sendatalbframe, text="Use the Built-In SMTP Server Settings", variable=servar, value=1)
+            SMTP_rbtn.place(x=10, y=10)
+            MySMTP_rbtn=Radiobutton(sendatalbframe, text="Use My Own SMTP Server Settings(Recommended)", variable=servar, value=2, command=my_SMTP)
+            MySMTP_rbtn.place(x=10, y=40)
+            em_ser_conbtn=Button(account_Frame, text="Test E-mail Server Connection")
+            em_ser_conbtn.place(x=710, y=110)
+          else:
+            pass
 
 
 
@@ -1033,33 +1293,49 @@ def mainpage():
         mark_Notebook.add(Mark_Invoice, text="Mark Invoice")
         mark_Notebook.place(x=0, y=0)
 
+
         inv_bal_label=Label(Mark_Invoice, text="Invoice Balance").place(x=10, y=10)
-        inv_bal_entry=Entry(Mark_Invoice, width=45,fg="red",)
+        inv_bal_entry=Label(Mark_Invoice, width=25,fg="red",text=total_cost,bg="white",font=("Arial",10,"bold"))
         inv_bal_entry.place(x=130, y=10)
-        inv_bal_entry.configure(state='readonly')
         labelframe5 = LabelFrame(Mark_Invoice,text="Payement Record Details",bg="#f5f3f2")
         labelframe5.place(x=10,y=60,width=670,height=250)
         inv_amnt_entry = Entry(labelframe5,width=28)
         inv_amnt_entry.place(x=30,y=45)
+        inv_amnt_entry.delete(0, END)
+        inv_amnt_entry.insert(0, total_cost)
         inv_pdate_label = Label(labelframe5, text="Payement Date:",bg="#f5f3f2").place(x=250,y=20)
-        inv_pdate_entry = Entry(labelframe5,width=28)
+        inv_pdate_entry = DateEntry(labelframe5,width=28)
         inv_pdate_entry.place(x=220,y=45)
         inv_pby_label = Label(labelframe5, text="Paid By:",bg="#f5f3f2").place(x=450,y=20)
-        inv_pby_combo = ttk.Combobox(labelframe5, value="Hello")
+        inv_pby_combo = ttk.Combobox(labelframe5, value=tdata)
         inv_pby_combo.place(x=450,y=45)
+        inv_pby_combo.bind("<<ComboboxSelected>>")
         inv_des_label=Label(labelframe5, text="Description").place(x=30, y=80)
         inv_des_entry =Entry(labelframe5, width=100)
         inv_des_entry.place(x=30, y=120)
+        checkvar=IntVar()
         inv_pfull_check = Checkbutton(labelframe5,text="Paid in full and close invoice",variable=checkvar,onvalue=1,offvalue=0,bg="#f5f3f2")
         inv_pfull_check.place(x=30 ,y=150)
         inv_precp_label = Label(labelframe5,text="Payement Reciepts",bg="#f5f3f2").place(x=300,y=145)
+        checkvar1=IntVar()
         inv_send_precp = Checkbutton(labelframe5,text="Send Payement Reciept",variable=checkvar1,onvalue=1,offvalue=0,bg="#f5f3f2")
         inv_send_precp.place(x=320 ,y=170)
+        checkvar2=IntVar()
         inv_att_upinv = Checkbutton(labelframe5,text="Attach updated invoice",variable=checkvar2,onvalue=1,offvalue=0,bg="#f5f3f2")
         inv_att_upinv.place(x=320 ,y=200)
 
-        inv_pok_btn =Button(Mark_Invoice,compound = LEFT,image=tick , text="Save payement", width=100).place(x=10, y=350)
-        inv_pcan_btn =Button(Mark_Invoice,compound = LEFT,image=cancel, text="Cancel", width=100).place(x=500, y=350)
+        inv_pok_btn =Button(Mark_Invoice,compound = LEFT,image=tick , text="Save payement", width=100,command=add_newline_pay)
+        inv_pok_btn.place(x=10, y=350)
+        inv_pcan_btn =Button(Mark_Invoice,compound = LEFT,image=cancel, text="Cancel", width=100)
+        inv_pcan_btn.place(x=500, y=350)
+    
+    def delete_newline_pay():
+      selected_pay_item = pay_tree.item(pay_tree.focus())["values"][1]
+      del_pay_sql = "DELETE * FROM payments WHERE payment_id=%s"
+      del_pay_val = (selected_pay_item,)
+      fbcursor.execute(del_pay_sql,del_pay_val)
+      fbilldb.commit()
+      pay_tree.delete(selected_pay_item)
 
       
     #voidinvoice
@@ -1289,11 +1565,12 @@ def mainpage():
     inv_number_entry.insert(0,inv_no)
 
     def inv_due_check():
-      if checkvarStatus5.get() == 0:
-        inv_duedate_entry['state'] = DISABLED
-      else:
+      if checkvarStatus5.get() == 1:
         inv_duedate_entry['state'] = NORMAL
+      else:
+        inv_duedate_entry['state'] = DISABLED
 
+    global tdata
     term_sql = "SELECT terms_of_payment FROM terms_of_payment"
     fbcursor.execute(term_sql,)
     term_data = fbcursor.fetchall()
@@ -1305,9 +1582,10 @@ def mainpage():
     inv_date_entry =DateEntry(labelframe,width=15)
     inv_date_entry.place(x=150,y=33)
     checkvarStatus5=IntVar()
+    checkvarStatus5.set(1)
     inv_duedate_check=Checkbutton(labelframe,variable = checkvarStatus5,text="Due date",onvalue = 1,offvalue = 0,command=inv_due_check)
     inv_duedate_check.place(x=5,y=62)
-    inv_duedate_entry=DateEntry(labelframe,width=15,state=DISABLED)
+    inv_duedate_entry=DateEntry(labelframe,width=15)
     inv_duedate_entry.place(x=150,y=62)
     inv_terms_label=Label(labelframe,text="Terms").place(x=5,y=92)
     inv_terms_combo=ttk.Combobox(labelframe, value="",width=23)
@@ -1321,32 +1599,87 @@ def mainpage():
     fir2Frame=Frame(pop, height=150,width=100,bg="#f5f3f2")
     fir2Frame.pack(side="top", fill=X)
     listFrame = Frame(fir2Frame, bg="white", height=140,borderwidth=5,  relief=RIDGE)
-    
-    add_newline_tree=ttk.Treeview(listFrame)
-    add_newline_tree["columns"]=["1","2","3","4","5","6","7","8"]
 
-    add_newline_tree.column("#0", width=40)
-    add_newline_tree.column("1", width=80)
-    add_newline_tree.column("2", width=190)
-    add_newline_tree.column("3", width=190)
-    add_newline_tree.column("4", width=80)
-    add_newline_tree.column("5", width=60)
-    add_newline_tree.column("6", width=60)
-    add_newline_tree.column("7", width=60)
-    add_newline_tree.column("8", width=80)
-    
-    add_newline_tree.heading("#0")
-    add_newline_tree.heading("1",text="ID/SKU")
-    add_newline_tree.heading("2",text="Product/Service")
-    add_newline_tree.heading("3",text="Description")
-    add_newline_tree.heading("4",text="Unit Price")
-    add_newline_tree.heading("5",text="Quality")
-    add_newline_tree.heading("6",text="Pcs/Weight")
-    add_newline_tree.heading("7",text="Tax1")
-    add_newline_tree.heading("8",text="Price")
-    
-    add_newline_tree.pack(fill="both", expand=1)
-    listFrame.pack(side="top", fill="both", padx=5, pady=3, expand=1)
+    global tax_radio
+    tax_radio = radtax.get()
+    if tax_radio == 1:
+      add_newline_tree=ttk.Treeview(listFrame)
+      add_newline_tree["columns"]=["1","2","3","4","5","6","7"]
+
+      add_newline_tree.column("#0", width=20)
+      add_newline_tree.column("1", width=80)
+      add_newline_tree.column("2", width=190)
+      add_newline_tree.column("3", width=220)
+      add_newline_tree.column("4", width=95)
+      add_newline_tree.column("5", width=60)
+      add_newline_tree.column("6", width=60)
+      add_newline_tree.column("7", width=95)
+      
+      add_newline_tree.heading("#0")
+      add_newline_tree.heading("1",text="ID/SKU")
+      add_newline_tree.heading("2",text="Product/Service")
+      add_newline_tree.heading("3",text="Description")
+      add_newline_tree.heading("4",text="Unit Price")
+      add_newline_tree.heading("5",text="Quality")
+      add_newline_tree.heading("6",text="Pcs/Weight")
+      add_newline_tree.heading("7",text="Price")
+      
+      add_newline_tree.pack(fill="both", expand=1)
+      listFrame.pack(side="top", fill="both", padx=5, pady=3, expand=1)
+    elif tax_radio == 2:
+      add_newline_tree=ttk.Treeview(listFrame)
+      add_newline_tree["columns"]=["1","2","3","4","5","6","7","8"]
+
+      add_newline_tree.column("#0", width=20)
+      add_newline_tree.column("1", width=80)
+      add_newline_tree.column("2", width=190)
+      add_newline_tree.column("3", width=190)
+      add_newline_tree.column("4", width=80)
+      add_newline_tree.column("5", width=60)
+      add_newline_tree.column("6", width=60)
+      add_newline_tree.column("7", width=60)
+      add_newline_tree.column("8", width=80)
+      
+      add_newline_tree.heading("#0")
+      add_newline_tree.heading("1",text="ID/SKU")
+      add_newline_tree.heading("2",text="Product/Service")
+      add_newline_tree.heading("3",text="Description")
+      add_newline_tree.heading("4",text="Unit Price")
+      add_newline_tree.heading("5",text="Quality")
+      add_newline_tree.heading("6",text="Pcs/Weight")
+      add_newline_tree.heading("7",text="Tax1")
+      add_newline_tree.heading("8",text="Price")
+      
+      add_newline_tree.pack(fill="both", expand=1)
+      listFrame.pack(side="top", fill="both", padx=5, pady=3, expand=1)
+    else:
+      add_newline_tree=ttk.Treeview(listFrame)
+      add_newline_tree["columns"]=["1","2","3","4","5","6","7","8","9"]
+
+      add_newline_tree.column("#0", width=20)
+      add_newline_tree.column("1", width=80)
+      add_newline_tree.column("2", width=170)
+      add_newline_tree.column("3", width=170)
+      add_newline_tree.column("4", width=80)
+      add_newline_tree.column("5", width=60)
+      add_newline_tree.column("6", width=60)
+      add_newline_tree.column("7", width=60)
+      add_newline_tree.column("8", width=60)
+      add_newline_tree.column("9", width=80)
+      
+      add_newline_tree.heading("#0")
+      add_newline_tree.heading("1",text="ID/SKU")
+      add_newline_tree.heading("2",text="Product/Service")
+      add_newline_tree.heading("3",text="Description")
+      add_newline_tree.heading("4",text="Unit Price")
+      add_newline_tree.heading("5",text="Quality")
+      add_newline_tree.heading("6",text="Pcs/Weight")
+      add_newline_tree.heading("7",text="Tax1")
+      add_newline_tree.heading("8",text="Tax2")
+      add_newline_tree.heading("9",text="Price")
+      
+      add_newline_tree.pack(fill="both", expand=1)
+      listFrame.pack(side="top", fill="both", padx=5, pady=3, expand=1)
 
     fir3Frame=Frame(pop,height=200,width=700,bg="#f5f3f2")
     fir3Frame.place(x=0,y=490)
@@ -1407,21 +1740,30 @@ def mainpage():
     ex_costn_combo['values'] = ex_data
     ex_costn_combo.bind("<<ComboboxSelected>>")
     dis_rate_label=Label(labelframe1,text="Discount rate").place(x=370,y=5)
-    dis_rate_entry=Spinbox(labelframe1,width=6,from_=0,to=10,justify=RIGHT)
+    dis_rate_entry=Spinbox(labelframe1,width=6,from_=0,to=100,justify=RIGHT)
     dis_rate_entry.place(x=460,y=5)
     ex_cost_label=Label(labelframe1,text="Extra cost").place(x=35,y=35)
     ex_cost_entry=Entry(labelframe1,width=10,justify=RIGHT)
     ex_cost_entry.place(x=115,y=35)
-    tax1_label=Label(labelframe1,text="Tax1").place(x=420,y=35)
-    tax1_entry=Entry(labelframe1,width=7,justify=RIGHT)
-    tax1_entry.place(x=460,y=35)
-    def1_val = 0
-    tax1_entry.insert(0, def1_val)
-    tax2_label=Label(labelframe1,text="Tax2").place(x=420,y=65)
-    tax2_entry=Entry(labelframe1,width=7,justify=RIGHT)
-    tax2_entry.place(x=460,y=65)
-    def2_val = 0
-    tax2_entry.insert(0, def2_val)
+    if tax_radio == 1:
+      pass
+    elif tax_radio ==2:
+      tax1_label=Label(labelframe1,text="Tax1").place(x=420,y=35)
+      tax1_entry=Entry(labelframe1,width=7,justify=RIGHT)
+      tax1_entry.place(x=460,y=35)
+      def1_val = tax1ratee.get()
+      tax1_entry.insert(0, def1_val)
+    else:
+      tax1_label=Label(labelframe1,text="Tax1").place(x=420,y=35)
+      tax1_entry=Entry(labelframe1,width=7,justify=RIGHT)
+      tax1_entry.place(x=460,y=35)
+      def1_val = tax1ratee.get()
+      tax1_entry.insert(0, def1_val)
+      tax2_label=Label(labelframe1,text="Tax2").place(x=420,y=65)
+      tax2_entry=Entry(labelframe1,width=7,justify=RIGHT)
+      tax2_entry.place(x=460,y=65)
+      def2_val = tax2ratee.get()
+      tax2_entry.insert(0, def2_val)
     template_label=Label(labelframe1,text="Template").place(x=37,y=70)
     template_entry=ttk.Combobox(labelframe1, value="",width=25)
     template_entry.place(x=115,y=70)
@@ -1481,11 +1823,11 @@ def mainpage():
     pay_tree = ttk.Treeview(payementFrame,height=6)
     pay_tree["columns"] = ["1","2","3","4","5"]
     pay_tree.column("#0", width=10)
-    pay_tree.column("1", width=130)
-    pay_tree.column("2", width=130)
-    pay_tree.column("3", width=130)
-    pay_tree.column("4", width=130)
-    pay_tree.column("5", width=130)
+    pay_tree.column("1", width=130,anchor=CENTER)
+    pay_tree.column("2", width=130,anchor=CENTER)
+    pay_tree.column("3", width=130,anchor=CENTER)
+    pay_tree.column("4", width=130,anchor=CENTER)
+    pay_tree.column("5", width=130,anchor=CENTER)
     pay_tree.heading("#0", text="",anchor=W)
     pay_tree.heading("1",text="Payment ID")
     pay_tree.heading("2",text="Payment date")
@@ -1497,7 +1839,7 @@ def mainpage():
 
     pay_plus = Button(payementFrame,compound=LEFT,image=plus_1,text="",width=20,height=25,command=markinvo)
     pay_plus.place(x=10,y=20)
-    pay_minus = Button(payementFrame,compound=LEFT,image=minus,text="",width=20,height=25)
+    pay_minus = Button(payementFrame,compound=LEFT,image=minus,text="",width=20,height=25,command=delete_newline_pay)
     pay_minus.place(x=10,y=55)
     pay_srch = Button(payementFrame,compound=LEFT,image=photo4,text="",width=20,height=25)
     pay_srch.place(x=10,y=90)
@@ -1581,21 +1923,22 @@ def mainpage():
 
     def show_sel_file(event):
       selected_file = doc_tree.item(doc_tree.focus())["values"][1]
-      # showfile_sql = "SELECT add_document FROM documents WHERE add_document=%s"
-      # showfile_val = (selected_file,)
-      # fbcursor.execute(showfile_sql,showfile_val)
-      # file_details = fbcursor.fetchone()
-      # print(file_details)
       show = Toplevel()
       show.geometry("700x500")
       show.title("View Files")
-      open_image = Image.open("images/"+file.split('/')[-1])
-      resize_img = open_image.resize((700,500))
-      img = ImageTk.PhotoImage(resize_img)
-      image = Label(show,image=img)
-      image.photo = img
-      image.pack()
-    pay_tree.bind('<Double-Button-1>',show_sel_file)
+      if selected_file.lower().endswith(('.png','.jpg')):
+        open_image = Image.open("images/"+selected_file)
+        resize_img = open_image.resize((700,500))
+        img = ImageTk.PhotoImage(resize_img)
+        image = Label(show,image=img)
+        image.photo = img
+        image.pack()
+      else:
+        with open("images/"+selected_file,mode='r',encoding="utf-8",errors="ignore") as none_img:
+          data = none_img.read()
+          image = Label(show,text=data)
+          image.pack()
+    
 
 
     doc_plus_btn=Button(doc_labelframe,image=plus_1,text="",width=20,height=25,command=attach_file)
@@ -1614,6 +1957,7 @@ def mainpage():
     doc_tree.heading("2",text="Filename")
     doc_tree.heading("3",text="Filesize")  
     doc_tree.place(x=50, y=45)
+    doc_tree.bind('<Double-Button-1>',show_sel_file)
     
 
     fir4Frame=Frame(pop,height=190,width=210,bg="#f5f3f2")
@@ -2390,7 +2734,7 @@ def mainpage():
     def markinvo_1():
       mark_inv=Toplevel()
       mark_inv.geometry("700x480+240+150")
-      mark_inv.title("Record Payement for Invoice")
+      mark_inv.title("Record Payment for Invoice")
       # def new_payment():
 
       checkvar=IntVar()
