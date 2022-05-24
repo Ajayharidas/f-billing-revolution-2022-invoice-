@@ -3,16 +3,24 @@ from asyncio.windows_events import NULL
 from calendar import c
 from cgitb import enable, text
 from distutils import command
+import email
+from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 import enum
 from glob import glob
 from itertools import count
 from pydoc import describe
 from secrets import choice
+import smtplib
 from sqlite3 import enable_callback_tracebacks
 import string
 from tkinter import *
 from tkinter import messagebox
 from tkinter import ttk
+from tkinter import font
 from tkinter.font import BOLD
 from urllib.parse import parse_qs
 from xml.dom.minidom import Entity
@@ -28,7 +36,8 @@ import webbrowser
 from pip import main
 from tkcalendar import Calendar
 from tkcalendar import DateEntry
-from datetime import date
+from datetime import date,datetime
+import datetime as dt
 from tkinter import filedialog
 import subprocess
 import mysql.connector
@@ -308,7 +317,7 @@ def mainpage():
         pass
       privatenoteid += p
 
-
+      
       inv_sql='INSERT INTO Invoice (invoice_number,invodate,duedate,term_of_payment,ref,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,title_text,header_text,footer_text,tax2,commentid,privatenoteid,terms) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
       inv_val=(invoice_number,invodate,duedate,term_of_payment,ref,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,title_text,header_text,footer_text,tax2,commentid,privatenoteid,terms)
       fbcursor.execute(inv_sql,inv_val)
@@ -592,26 +601,26 @@ def mainpage():
       def product_tree_fetch():
         global sel_pro_str
         product_tree_item = product_sel_tree.item(product_sel_tree.focus())["values"][0]
-        sql = "SELECT * FROM Productservice WHERE Productserviceid=%s"
+        sql = "SELECT * FROM Productservice WHERE sku=%s"
         val = (product_tree_item,)
         fbcursor.execute(sql,val)
         sel_pro_str = fbcursor.fetchone()
         if tax_radio == 1:
-          add_newline_tree.insert(parent='',index='end',iid=sel_pro_str,text='',values=(sel_pro_str[0],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'',sel_pro_str[7]))
+          add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'',sel_pro_str[7]))
         elif tax_radio == 2:
           if sel_pro_str[10] == "1":
-            add_newline_tree.insert(parent='',index='end',iid=sel_pro_str,text='',values=(sel_pro_str[0],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','yes',sel_pro_str[7]))
+            add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','yes',sel_pro_str[7]))
           else:
-            add_newline_tree.insert(parent='',index='end',iid=sel_pro_str,text='',values=(sel_pro_str[0],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','no',sel_pro_str[7]))
+            add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','no',sel_pro_str[7]))
         elif tax_radio == 3:
           if sel_pro_str[10] == "1" and sel_pro_str[19] == "1":
-            add_newline_tree.insert(parent='',index='end',iid=sel_pro_str,text='',values=(sel_pro_str[0],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','yes','yes',sel_pro_str[7]))
+            add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','yes','yes',sel_pro_str[7]))
           elif sel_pro_str[10] == "1" and sel_pro_str[19] == "0":
-            add_newline_tree.insert(parent='',index='end',iid=sel_pro_str,text='',values=(sel_pro_str[0],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','yes','no',sel_pro_str[7]))
+            add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','yes','no',sel_pro_str[7]))
           elif sel_pro_str[10] == "0" and sel_pro_str[19] == "1":
-            add_newline_tree.insert(parent='',index='end',iid=sel_pro_str,text='',values=(sel_pro_str[0],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','no','yes',sel_pro_str[7]))
+            add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','no','yes',sel_pro_str[7]))
           else:
-            add_newline_tree.insert(parent='',index='end',iid=sel_pro_str,text='',values=(sel_pro_str[0],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','no','no',sel_pro_str[7]))
+            add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','no','no',sel_pro_str[7]))
         inv_newline_sel.destroy()
       show_newline = inv_combo_e1.get()
       if show_newline == '':
@@ -647,7 +656,7 @@ def mainpage():
         count = 0
         for p in product_details:
           if True:
-            product_sel_tree.insert(parent='',index='end',iid=p,text='',values=(p[0],p[4],p[7],p[12],p[13]))
+            product_sel_tree.insert(parent='',index='end',iid=p,text='',values=(p[2],p[4],p[7],p[12],p[13]))
           else:
             pass
         count += 1
@@ -1046,19 +1055,19 @@ def mainpage():
         mark_inv.geometry("700x480+240+150")
         mark_inv.title("Record Payement for Invoice")        
         
+        
         if tax_radio == 1:
-          if sel_pro_str[10] == "0" and sel_pro_str[19] == "0":
-            for i in add_newline_tree.get_children():
-              price = float(add_newline_tree.item(i,'values')[3])
-            total_cost = 0.0
-            t = 0.0
-            dis_rate = float(dis_rate_entry.get())
-            if dis_rate == "0":
-              t = price
-            else:
-              discount_rate = (price*dis_rate)/100
-              t = price-discount_rate
-            total_cost += t
+          for i in add_newline_tree.get_children():
+            price = float(add_newline_tree.item(i,'values')[3])
+          total_cost = 0.0
+          t = 0.0
+          dis_rate = float(dis_rate_entry.get())
+          if dis_rate == "0":
+            t = price
+          else:
+            discount_rate = (price*dis_rate)/100
+            t = price-discount_rate
+          total_cost += t
         elif tax_radio == 2:
           if sel_pro_str[10] == "1":
             for i in add_newline_tree.get_children():
@@ -1156,12 +1165,78 @@ def mainpage():
           fbilldb.commit()
 
 
-          pay_get_sql = "SELECT * FROM payments WHERE invoice_number=%s"
-          payy_get_val = (pay_inv_number,)
-          fbcursor.execute(pay_get_sql,payy_get_val)
+          pay_get_sql = "SELECT * FROM payments ORDER BY payment_id DESC LIMIT 1"
+          fbcursor.execute(pay_get_sql)
           pay_data = fbcursor.fetchone()
           pay_tree.insert(parent='',index='end',iid=pay_data[0],text='',values=(pay_data[0],pay_data[1],pay_data[2],pay_data[3],pay_data[4]))
           mark_inv.destroy()
+
+
+          def inv_send_mail(file=None):
+            sender_mail = email_from.get()
+            sender_password = email_passw.get()
+
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            print("login successfull")
+            server.starttls()
+            print("login successfull2")
+            server.login(sender_mail,sender_password)
+            print("login successfull3")
+
+            carbon_info = email_carbon.get()
+            print(carbon_info)
+            msg = MIMEMultipart()
+            msg['Subject'] = email_subject.get()
+            mail_content = email_ltr_scroll.get("1.0",'end-1c')
+            msg['From'] = email_from.get()
+            msg['To'] = email_to.get()
+
+            gettingimg = lstfrm.get()
+            lst_data = gettingimg[1:-1].split(',')
+            print(lst_data,"happy")
+            
+            msg.attach(MIMEText(mail_content, 'plain'))
+            
+            for i in lst_data:
+              if len(i.strip()[1:-1])>1:
+                with open('images/'+ i.strip()[1:-1], "rb") as attachment:
+                    # MIME attachment is a binary file for that content type "application/octet-stream" is used
+                  part = MIMEBase("application", "octet-stream")
+                  part.set_payload(attachment.read())
+                # encode into base64 
+                  encoders.encode_base64(part) 
+            
+                  part.add_header('Content-Disposition', "attachment; filename= %s" % 'images/'+ i.strip()[1:-1]) 
+
+                # attach the instance 'part' to instance 'message' 
+                  msg.attach(part)
+              # message_body = email_body.get()
+
+            server.sendmail(email_from.get(),email_to.get(),msg.as_string())
+            server.sendmail(email_from.get(), carbon_info,msg.as_string())
+
+            date = dt.datetime.now()
+            emitemid = inv_tree.item(inv_tree.focus())["values"][1]
+            for record in inv_tree.get_children():
+              inv_tree.delete(record)
+            sqlq = "UPDATE Orders SET emailed_on=%s WHERE orderid = %s"
+            valq = (date,emitemid,)
+            fbcursor.execute(sqlq, valq,)
+            fbilldb.commit()
+            fbcursor.execute('SELECT * FROM Orders;')
+            ordertotalinput=0
+            j = 0
+            for i in fbcursor:
+              inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[20], i[6], i[7], i[8], i[9], i[10], i[11], i[12]))
+              for line in inv_tree.get_children():
+                idsave1=inv_tree.item(line)['values'][9]
+              ordertotalinput += idsave1
+            j += 1
+            invtot_rowcol.config(text=ordertotalinput)
+
+            print("message sent")
+
+
 
           if checkvar1.get() == 1:
             send_precp = Toplevel()
@@ -1169,6 +1244,26 @@ def mainpage():
             send_precp.iconphoto(False, p2)
             send_precp.geometry("1030x490+150+120")
             send_precp.title("Payment reciept E-mail")
+
+            def my_SMTP():
+                if True:
+                    em_ser_conbtn.destroy()
+                    mysmtpservercon=LabelFrame(account_Frame,text="SMTP server connection(ask your ISP for your SMTP settings)", height=165, width=380)
+                    mysmtpservercon.place(x=610, y=110)
+                    lbl_hostn=Label(mysmtpservercon, text="Hostname").place(x=5, y=10)
+                    hostnent=Entry(mysmtpservercon, width=30).place(x=80, y=10)
+                    lbl_portn=Label(mysmtpservercon, text="Port").place(x=5, y=35)
+                    portent=Entry(mysmtpservercon, width=30).place(x=80, y=35)
+                    lbl_usn=Label(mysmtpservercon, text="Username").place(x=5, y=60)
+                    unament=Entry(mysmtpservercon, width=30).place(x=80, y=60)
+                    lbl_pasn=Label(mysmtpservercon, text="Password").place(x=5, y=85)
+                    pwdent=Entry(mysmtpservercon, width=30).place(x=80, y=85)
+                    ssl_chkvar=IntVar()
+                    ssl_chkbtn=Checkbutton(mysmtpservercon, variable=ssl_chkvar, text="This server requires a secure connection(SSL)", onvalue=1, offvalue=0)
+                    ssl_chkbtn.place(x=50, y=110)
+                    em_ser_conbtn1=Button(account_Frame, text="Test E-mail Server Connection").place(x=610, y=285)
+                else:
+                    pass
 
             style = ttk.Style()
             style.theme_use('default')
@@ -1181,19 +1276,27 @@ def mainpage():
             email_Notebook.place(x=0, y=0)
             messagelbframe=LabelFrame(email_Frame,text="Message", height=450, width=730)
             messagelbframe.place(x=5, y=5)
+            global email_to,email_subject,email_from,email_paasw,email_carbon,email_ltr_scroll,email_html_scroll,attach_list,lstfrm
+            email_to = StringVar()
+            email_subject = StringVar()
+            email_from = StringVar()
+            email_passw = StringVar()
+            email_carbon = StringVar()
             email_to_addr_label=Label(messagelbframe, text="Email to address").place(x=5, y=5)
-            email_to_addr_entry=Entry(messagelbframe, width=50)
+            email_to_addr_entry=Entry(messagelbframe, width=50,textvariable=email_to)
             email_to_addr_entry.place(x=120, y=5)
             email_addr = inv_email_e5.get()
             email_to_addr_entry.delete(0,END)
             email_to_addr_entry.insert(0,email_addr)
-            send_email_btn=Button(messagelbframe, text="Send Email", width=10, height=1).place(x=600, y=10)
+            send_email_btn=Button(messagelbframe, text="Send Email", width=10, height=1,command=inv_send_mail)
+            send_email_btn.place(x=600, y=10)
             carbon_label=Label(messagelbframe, text="Carbon copy to").place(x=5, y=32)
-            carbon_entry=Entry(messagelbframe, width=50).place(x=120, y=32)
+            carbon_entry=Entry(messagelbframe, width=50,textvariable=email_carbon)
+            carbon_entry.place(x=120, y=32)
             stop_email_btn=Button(messagelbframe, text="Stop sending", width=10, height=1,state=DISABLED)
             stop_email_btn.place(x=600, y=40)
             subject_label=Label(messagelbframe, text="Subject").place(x=5, y=59)
-            subject_entry=Entry(messagelbframe, width=50)
+            subject_entry=Entry(messagelbframe, width=50,textvariable=email_subject)
             subject_entry.place(x=120, y=59)
             subject = inv_number_entry.get()
             subject_entry.delete(0,END)
@@ -1226,17 +1329,23 @@ def mainpage():
 
             dropcomp = ttk.Combobox(emailmessage_Frame, width=12, height=3).place(x=500, y=5)
             dropcompo = ttk.Combobox(emailmessage_Frame, width=6, height=3).place(x=600, y=5)
-            mframe=scrolledtext.ScrolledText(emailmessage_Frame, height=17, width=86, bg="white")
-            mframe.place(x=0, y=28)
+            email_ltr_scroll=scrolledtext.ScrolledText(emailmessage_Frame, height=17, width=86, bg="white",undo=True)
+            email_ltr_scroll.place(x=0, y=28)
+            pay_name = inv_combo_e1.get()
+            email_ltr_scroll.delete("1.0",END)
+            email_ltr_scroll.insert("1.0","\n\n  Dear" + " " + pay_name + "," + "\n\n  This message is to inform you that your payment of" + " " + str(pay_amnt) + " " + "for Invoice#" + " " + pay_inv_number + " " + "has \n  been received \n\n  Payment ID: RCPT" + "" + str(pay_data[0]) + "" + "\n  Invoice ID: " + "" + pay_inv_number + "" + "\n  Payment Date: " + "" + str(pay_date) + "" + "\n  Amount: " + "" + str(pay_amnt) + "" + "\n  Paid by: " + "" + pay_by + "" + "\n  Description: " + "" + pay_desc + "" + "\n\n  Thank you for your business.\n  Your Company Name")
             btn1=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=selectall).place(x=0, y=1)
             btn2=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=cut).place(x=36, y=1)
             btn3=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=copy).place(x=73, y=1)
             btn4=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=paste).place(x=105, y=1)
-            mframe=Frame(htmlsourse_Frame, height=350, width=710, bg="white")
-            mframe.place(x=0, y=28)
+            email_html_scroll=scrolledtext.ScrolledText(htmlsourse_Frame,undo=True, height=350, width=710, bg="white")
+            email_html_scroll.place(x=0, y=28)
             attachlbframe=LabelFrame(email_Frame,text="Attachment(s)", height=350, width=280)
             attachlbframe.place(x=740, y=5)
-            htcodeframe=Frame(attachlbframe, height=220, width=265, bg="white").place(x=5, y=5)
+            lstfrm = StringVar()
+            attach_list=Listbox(attachlbframe, height=220, width=265,listvariable=lstfrm, bg="white")
+            attach_list.place(x=5, y=5)
+            attach_list.bind('<Double-Button-1>',)
             lbl_btn_info=Label(attachlbframe, text="Double click on attachment to view").place(x=30, y=230)
             btn17=Button(attachlbframe, width=20, text="Add attacment file...").place(x=60, y=260)
             btn18=Button(attachlbframe, width=20, text="Remove attacment").place(x=60, y=295)
@@ -1248,17 +1357,17 @@ def mainpage():
             sendatalbframe = LabelFrame(account_Frame,text="E-Mail(Sender data)",height=270, width=600)
             sendatalbframe.place(x=5, y=5)
             your_cemail_label = Label(sendatalbframe, text="Your company email address").place(x=5, y=30)
-            your_cemail_entry = Entry(sendatalbframe, width=40)
+            your_cemail_entry = Entry(sendatalbframe, width=40,textvariable=email_from)
             your_cemail_entry.place(x=195, y=30)
             your_cemail_entry.delete(0,END)
             your_cemail_entry.insert(0,email_addr)
 
-            your_cname_label = Label(sendatalbframe, text="Your name or company name").place(x=5, y=60)
-            your_cname_entry = Entry(sendatalbframe, width=40)
-            your_cname_entry.place(x=195, y=60)
+            your_cpass_label = Label(sendatalbframe, text="Your name or company name").place(x=5, y=60)
+            your_cpass_entry = Entry(sendatalbframe, width=40,textvariable=email_passw)
+            your_cpass_entry.place(x=195, y=60)
             company_name = inv_combo_e1.get()
-            your_cname_entry.delete(0,END)
-            your_cname_entry.insert(0,company_name)
+            your_cpass_entry.delete(0,END)
+            your_cpass_entry.insert(0,company_name)
             replay_email_label = Label(sendatalbframe, text="Reply to email address").place(x=5, y=90)
             replay_email_entry = Entry(sendatalbframe, width=40)
             replay_email_entry.place(x=195, y=90)
@@ -1283,6 +1392,9 @@ def mainpage():
           else:
             pass
 
+        def cancel_newline_pay():
+          mark_inv.destroy()
+
 
 
         style = ttk.Style()
@@ -1292,7 +1404,6 @@ def mainpage():
         Mark_Invoice = Frame(mark_Notebook, height=470, width=750)
         mark_Notebook.add(Mark_Invoice, text="Mark Invoice")
         mark_Notebook.place(x=0, y=0)
-
 
         inv_bal_label=Label(Mark_Invoice, text="Invoice Balance").place(x=10, y=10)
         inv_bal_entry=Label(Mark_Invoice, width=25,fg="red",text=total_cost,bg="white",font=("Arial",10,"bold"))
@@ -1326,16 +1437,17 @@ def mainpage():
 
         inv_pok_btn =Button(Mark_Invoice,compound = LEFT,image=tick , text="Save payement", width=100,command=add_newline_pay)
         inv_pok_btn.place(x=10, y=350)
-        inv_pcan_btn =Button(Mark_Invoice,compound = LEFT,image=cancel, text="Cancel", width=100)
+        inv_pcan_btn =Button(Mark_Invoice,compound = LEFT,image=cancel, text="Cancel", width=100,command=cancel_newline_pay)
         inv_pcan_btn.place(x=500, y=350)
     
+    ################## delete newline payment ###################
     def delete_newline_pay():
-      selected_pay_item = pay_tree.item(pay_tree.focus())["values"][1]
-      del_pay_sql = "DELETE * FROM payments WHERE payment_id=%s"
+      selected_pay_item = pay_tree.selection()[0]
+      pay_tree.delete(selected_pay_item)
+      del_pay_sql = "DELETE FROM payments WHERE payment_id=%s"
       del_pay_val = (selected_pay_item,)
       fbcursor.execute(del_pay_sql,del_pay_val)
       fbilldb.commit()
-      pay_tree.delete(selected_pay_item)
 
       
     #voidinvoice
@@ -3046,36 +3158,89 @@ def mainpage():
     fir2Frame=Frame(pop_1, height=150,width=100,bg="#f5f3f2")
     fir2Frame.pack(side="top", fill=X)
     listFrame = Frame(fir2Frame, bg="white", height=140,borderwidth=5,  relief=RIDGE)
-    
-    add_newline_tree_1=ttk.Treeview(listFrame)
-    add_newline_tree_1["columns"]=["1","2","3","4","5","6","7","8"]
 
-    add_newline_tree_1.column("#0", width=40)
-    add_newline_tree_1.column("1", width=80)
-    add_newline_tree_1.column("2", width=190)
-    add_newline_tree_1.column("3", width=190)
-    add_newline_tree_1.column("4", width=80)
-    add_newline_tree_1.column("5", width=60)
-    add_newline_tree_1.column("6", width=60)
-    add_newline_tree_1.column("7", width=60)
-    add_newline_tree_1.column("8", width=80)
-    
-    add_newline_tree_1.heading("#0")
-    add_newline_tree_1.heading("1",text="ID/SKU")
-    add_newline_tree_1.heading("2",text="Product/Service")
-    add_newline_tree_1.heading("3",text="Description")
-    add_newline_tree_1.heading("4",text="Unit Price")
-    add_newline_tree_1.heading("5",text="Quality")
-    add_newline_tree_1.heading("6",text="Pcs/Weight")
-    add_newline_tree_1.heading("7",text="Tax1")
-    add_newline_tree_1.heading("8",text="Price")
-    
-    add_newline_tree_1.pack(fill="both", expand=1)
-    listFrame.pack(side="top", fill="both", padx=5, pady=3, expand=1)
+    tax_radio_1 = radtax.get()
+    if tax_radio_1 == 1:
+      add_newline_tree_1=ttk.Treeview(listFrame)
+      add_newline_tree_1["columns"]=["1","2","3","4","5","6","7"]
 
-    corresp_pro = inv_number_entry_1.get()
+      add_newline_tree_1.column("#0", width=20)
+      add_newline_tree_1.column("1", width=80)
+      add_newline_tree_1.column("2", width=190)
+      add_newline_tree_1.column("3", width=220)
+      add_newline_tree_1.column("4", width=95)
+      add_newline_tree_1.column("5", width=60)
+      add_newline_tree_1.column("6", width=60)
+      add_newline_tree_1.column("7", width=95)
+      
+      add_newline_tree_1.heading("#0")
+      add_newline_tree_1.heading("1",text="ID/SKU")
+      add_newline_tree_1.heading("2",text="Product/Service")
+      add_newline_tree_1.heading("3",text="Description")
+      add_newline_tree_1.heading("4",text="Unit Price")
+      add_newline_tree_1.heading("5",text="Quality")
+      add_newline_tree_1.heading("6",text="Pcs/Weight")
+      add_newline_tree_1.heading("7",text="Price")
+    
+      add_newline_tree_1.pack(fill="both", expand=1)
+      listFrame.pack(side="top", fill="both", padx=5, pady=3, expand=1)
+    elif tax_radio_1 == 2:
+      add_newline_tree_1=ttk.Treeview(listFrame)
+      add_newline_tree_1["columns"]=["1","2","3","4","5","6","7","8"]
+
+      add_newline_tree_1.column("#0", width=20)
+      add_newline_tree_1.column("1", width=80)
+      add_newline_tree_1.column("2", width=190)
+      add_newline_tree_1.column("3", width=190)
+      add_newline_tree_1.column("4", width=80)
+      add_newline_tree_1.column("5", width=60)
+      add_newline_tree_1.column("6", width=60)
+      add_newline_tree_1.column("7", width=60)
+      add_newline_tree_1.column("8", width=80)
+      
+      add_newline_tree_1.heading("#0")
+      add_newline_tree_1.heading("1",text="ID/SKU")
+      add_newline_tree_1.heading("2",text="Product/Service")
+      add_newline_tree_1.heading("3",text="Description")
+      add_newline_tree_1.heading("4",text="Unit Price")
+      add_newline_tree_1.heading("5",text="Quality")
+      add_newline_tree_1.heading("6",text="Pcs/Weight")
+      add_newline_tree_1.heading("7",text="Tax1")
+      add_newline_tree_1.heading("8",text="Price")
+    
+      add_newline_tree_1.pack(fill="both", expand=1)
+      listFrame.pack(side="top", fill="both", padx=5, pady=3, expand=1)
+    else:
+      add_newline_tree_1=ttk.Treeview(listFrame)
+      add_newline_tree_1["columns"]=["1","2","3","4","5","6","7","8","9"]
+
+      add_newline_tree_1.column("#0", width=20)
+      add_newline_tree_1.column("1", width=80)
+      add_newline_tree_1.column("2", width=170)
+      add_newline_tree_1.column("3", width=170)
+      add_newline_tree_1.column("4", width=80)
+      add_newline_tree_1.column("5", width=60)
+      add_newline_tree_1.column("6", width=60)
+      add_newline_tree_1.column("7", width=60)
+      add_newline_tree_1.column("8", width=60)
+      add_newline_tree_1.column("9", width=80)
+      
+      add_newline_tree_1.heading("#0")
+      add_newline_tree_1.heading("1",text="ID/SKU")
+      add_newline_tree_1.heading("2",text="Product/Service")
+      add_newline_tree_1.heading("3",text="Description")
+      add_newline_tree_1.heading("4",text="Unit Price")
+      add_newline_tree_1.heading("5",text="Quality")
+      add_newline_tree_1.heading("6",text="Pcs/Weight")
+      add_newline_tree_1.heading("7",text="Tax1")
+      add_newline_tree_1.heading("8",text="Tax2")
+      add_newline_tree_1.heading("9",text="Price")
+    
+      add_newline_tree_1.pack(fill="both", expand=1)
+      listFrame.pack(side="top", fill="both", padx=5, pady=3, expand=1)
+
     newline_sql = "SELECT * FROM storingproduct WHERE invoice_number=%s"
-    newline_val = (corresp_pro,)
+    newline_val = (edit_inv_data[1],)
     fbcursor.execute(newline_sql,newline_val)
     product_details = fbcursor.fetchall()
     count = 0
@@ -3914,7 +4079,7 @@ def mainpage():
         )
 
       #Invoice all tree
-      global inv_tree
+      global inv_tree,invtot_rowcol
       inv_tree = ttk.Treeview(self.left_frame, columns = (1,2,3,4,5,6,7,8,9,10,11,12), height = 15, show = "headings")
       inv_tree.pack(side = 'top')
       inv_tree.heading(1)
@@ -3941,6 +4106,8 @@ def mainpage():
       inv_tree.column(10, width = 110)
       inv_tree.column(11, width = 110)
       inv_tree.column(12, width = 100)
+      invtot_rowcol = Label(self.left_frame,bg="#f5f3f2")
+      invtot_rowcol.place(x=1260,y=400,width=80,height=18)
 
 
       sql = "SELECT * FROM Invoice"
