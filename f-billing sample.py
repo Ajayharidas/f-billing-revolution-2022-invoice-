@@ -1,5 +1,6 @@
 #from ast import pattern
 from asyncio.windows_events import NULL
+from asyncore import poll3
 from calendar import c
 from cgitb import enable, text
 from distutils import command
@@ -608,20 +609,62 @@ def mainpage():
         sel_pro_str = fbcursor.fetchone()
         if tax_radio == 1:
           add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'',sel_pro_str[7]))
+          price = 0.0
+          for i in add_newline_tree.get_children():
+            price += float(add_newline_tree.item(i,'values')[3])
+          sub1.config(text="$" + "" + str(price))
+          invoicetot1.config(text="$" + "" + str(price))
+          balance1.config(text="$" + "" + str(price))
         elif tax_radio == 2:
           if sel_pro_str[10] == "1":
-            add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','yes',sel_pro_str[7]))
+            add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','🗹',sel_pro_str[7]))
+            price = 0.0
+            for i in add_newline_tree.get_children():
+              price += float(add_newline_tree.item(i,'values')[3])
+            sub1.config(text="$" + "" + str(price))
+            invoicetot1.config(text="$" + "" + str(price))
+            balance1.config(text="$" + "" + str(price))
           else:
-            add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','no',sel_pro_str[7]))
+            add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','',sel_pro_str[7]))
+            price = 0.0
+            for i in add_newline_tree.get_children():
+              price += float(add_newline_tree.item(i,'values')[3])
+            sub1.config(text="$" + "" + str(price))
+            invoicetot1.config(text="$" + "" + str(price))
+            balance1.config(text="$" + "" + str(price))
         elif tax_radio == 3:
           if sel_pro_str[10] == "1" and sel_pro_str[19] == "1":
-            add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','yes','yes',sel_pro_str[7]))
+            add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','🗹','🗹',sel_pro_str[7]))
+            price = 0.0
+            for i in add_newline_tree.get_children():
+              price += float(add_newline_tree.item(i,'values')[3])
+            sub1.config(text="$" + "" + str(price))
+            invoicetot1.config(text="$" + "" + str(price))
+            balance1.config(text="$" + "" + str(price))
           elif sel_pro_str[10] == "1" and sel_pro_str[19] == "0":
-            add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','yes','no',sel_pro_str[7]))
+            add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','🗹','',sel_pro_str[7]))
+            price = 0.0
+            for i in add_newline_tree.get_children():
+              price += float(add_newline_tree.item(i,'values')[3])
+            sub1.config(text="$" + "" + str(price))
+            invoicetot1.config(text="$" + "" + str(price))
+            balance1.config(text="$" + "" + str(price))
           elif sel_pro_str[10] == "0" and sel_pro_str[19] == "1":
-            add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','no','yes',sel_pro_str[7]))
+            add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','','🗹',sel_pro_str[7]))
+            price = 0.0
+            for i in add_newline_tree.get_children():
+              price += float(add_newline_tree.item(i,'values')[3])
+            sub1.config(text="$" + "" + str(price))
+            invoicetot1.config(text="$" + "" + str(price))
+            balance1.config(text="$" + "" + str(price))
           else:
-            add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','no','no',sel_pro_str[7]))
+            add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],'','','',sel_pro_str[7]))
+            price = 0.0
+            for i in add_newline_tree.get_children():
+              price += float(add_newline_tree.item(i,'values')[3])
+            sub1.config(text="$" + "" + str(price))
+            invoicetot1.config(text="$" + "" + str(price))
+            balance1.config(text="$" + "" + str(price))
         inv_newline_sel.destroy()
       show_newline = inv_combo_e1.get()
       if show_newline == '':
@@ -664,40 +707,40 @@ def mainpage():
       
       #filter product
 
-      def filter_product():
-        if product_filter_entry.get() == '':
-          sql = "SELECT * FROM Productservice"
-          fbcursor.execute(sql)
-          product_details = fbcursor.fetchall()
-          for record in product_sel_tree.get_children():
-            product_sel_tree.delete(record)
+        def filter_product():
+          if product_filter_entry.get() == '':
+            sql = "SELECT * FROM Productservice"
+            fbcursor.execute(sql)
+            product_details = fbcursor.fetchall()
+            for record in product_sel_tree.get_children():
+              product_sel_tree.delete(record)
 
-          count = 0
-          for p in product_details:
-            if True:
-              product_sel_tree.insert(parent='',index='end',iid=p,text='',values=(p[0],p[4],p[7],p[12],p[13]))
-            else:
-              pass
-          count += 1
+            count = 0
+            for p in product_details:
+              if True:
+                product_sel_tree.insert(parent='',index='end',iid=p,text='',values=(p[0],p[4],p[7],p[12],p[13]))
+              else:
+                pass
+            count += 1
 
-        else:
-          filter = product_filter_entry.get()
-          for record in product_sel_tree.get_children():
-            product_sel_tree.delete(record)
-          
-          sql = "SELECT * FROM Productservice WHERE name=%s"
-          val = (filter, )
-          fbcursor.execute(sql, val)
-          records = fbcursor.fetchall()
-    
+          else:
+            filter = product_filter_entry.get()
+            for record in product_sel_tree.get_children():
+              product_sel_tree.delete(record)
+            
+            sql = "SELECT * FROM Productservice WHERE name=%s"
+            val = (filter, )
+            fbcursor.execute(sql, val)
+            records = fbcursor.fetchall()
       
-          count=0
-          for i in records:
-            if True:
-              product_sel_tree.insert(parent='', index='end', iid=i, text='', values=(i[0],i[4],i[10],i[8]))  
-            else:
-              pass
-          count += 1
+        
+            count=0
+            for i in records:
+              if True:
+                product_sel_tree.insert(parent='', index='end', iid=i, text='', values=(i[0],i[4],i[10],i[8]))  
+              else:
+                pass
+            count += 1
 
 
 
@@ -1042,7 +1085,241 @@ def mainpage():
       tiplabl3=Label(tiplbf,justify=LEFT,fg="red",  text="Please note that you access and use the SMS notification tool your own risk.F-Billing software is not\nresponsible for any type of loss or damage or undelivered SMS massage which you may as a result\nof accessing and using the SMS notification service.")
       tiplabl3.place(x=0, y=140)
       checkvar1=IntVar()
-      chkbtn1=Checkbutton(tiplbf,text="I have read and agree to the terms of service above",variable=checkvar1,onvalue=1,offvalue=0).place(x=70, y=200) 
+      chkbtn1=Checkbutton(tiplbf,text="I have read and agree to the terms of service above",variable=checkvar1,onvalue=1,offvalue=0).place(x=70, y=200)
+
+    def recalc_dis(event):
+      check_newline = add_newline_tree.get_children()
+      if tax_radio == 1:
+          price = 0.0
+          t = 0.0
+          total_cost = 0.0
+          exc = float(ex_cost_entry.get())
+          dis_rate = float(dis_rate_entry.get())
+          for i in add_newline_tree.get_children():
+            price += float(add_newline_tree.item(i,'values')[3])
+          discount_rate = (price*dis_rate)/100
+          total_cost += (price - discount_rate) + exc
+      elif tax_radio == 2:
+        price = 0.0
+        p = 0.0
+        t = 0.0
+        total_cost = 0.0
+        exc = float(ex_cost_entry.get())
+        dis_rate = float(dis_rate_entry.get())
+        tx1 = float(tax1_entry.get())
+        for i in add_newline_tree.get_children():
+          if add_newline_tree.item(i,'values')[6] == "":
+            p += float(add_newline_tree.item(i,'values')[3])
+          else:
+            price += float(add_newline_tree.item(i,'values')[3])
+        discount_rate = ((price + p) * dis_rate)/100
+        dis_price = (price * dis_rate)/100
+        dis_p = (p * dis_rate)/100
+        tax1_rate = ((price - dis_price)*tx1)/100
+        tx_calc = (price - dis_price) + tax1_rate
+        tx_calc1 = p - dis_p
+        total_cost += (tx_calc + tx_calc1) + exc 
+      elif tax_radio == 3:
+        price = 0.0
+        p1 = 0.0
+        p2 = 0.0
+        p3 = 0.0
+        total_cost = 0.0
+        tx1 = float(tax1_entry.get())
+        tx2 = float(tax2_entry.get())
+        exc = float(ex_cost_entry.get())
+        dis_rate = float(dis_rate_entry.get())
+        for i in add_newline_tree.get_children():
+          if add_newline_tree.item(i,'values')[6] == "" and add_newline_tree.item(i,'values')[7] == "":
+            p1 += float(add_newline_tree.item(i,'values')[3])
+          elif add_newline_tree.item(i,'values')[6] == "🗹" and add_newline_tree.item(i,'values')[7] == "":
+            p2 += float(add_newline_tree.item(i,'values')[3])
+          elif add_newline_tree.item(i,'values')[6] == "" and add_newline_tree.item(i,'values')[7] == "🗹":
+            p3 += float(add_newline_tree.item(i,'values')[3])
+          else:
+            price += float(add_newline_tree.item(i,'values')[3])
+        discount_rate = ((p1 + p2 + p3 + price) * dis_rate)/100
+        dis_p2 = (p2 * dis_rate)/100
+        tax1_rate = ((p2 - dis_p2) * tx1)/100
+        dis_price = (price * dis_rate)/100
+        tax2_rate = ((price - dis_price) * tx1)/100
+        tax3_rate = ((price - dis_price) * tx2)/100
+        dis_p3= (p3 * dis_rate)/100
+        tax4_rate = ((p3 - dis_p3) * tx2)/100
+        dis_p4 = (p1 * dis_rate)/100
+        tx_calc1 = (p2 - dis_p2) + tax1_rate
+        tx_calc2 = (price - dis_price) + tax2_rate + tax3_rate
+        tx_calc3 = (p3 - dis_p3) + tax4_rate
+        tx_calc4 = (p1 - dis_p4)
+        total_cost += (tx_calc1 + tx_calc2 + tx_calc3 + tx_calc4) + exc
+    
+################ Show summary ###################
+  
+      if tax_radio == 1:
+        if len(check_newline) == 0:
+          pass
+        else:
+          discount.config(text= str(dis_rate) + "" +"% Discount")
+          discount1.config(text="-" + "" + str(discount_rate))
+          sub_tot = price - discount_rate
+          sub1.config(text="$" + "" + str(sub_tot))
+          cost1.config(text="$" + "" + str(exc))
+          invoicetot1.config(text="$" + "" + str(total_cost))
+          tot_paid = 0.0
+          for tp in pay_tree.get_children():
+            tot_paid += float(pay_tree.item(tp,'values')[4]) 
+          bal = total_cost - tot_paid
+          balance1.config(text="$" + "" + str(bal))
+      elif tax_radio == 2:
+        if len(check_newline) == 0:
+          pass
+        else:
+          discount.config(text= str(dis_rate) + "" +"% Discount")
+          discount1.config(text="-" + "" + str(discount_rate))
+          sub_tot = (price + p) - discount_rate
+          sub1.config(text="$" + "" + str(sub_tot))
+          tax_1.config(text="$" + "" + str(tax1_rate))
+          cost1.config(text="$" + "" + str(exc))
+          invoicetot1.config(text="$" + "" + str(total_cost))
+          tot_paid = 0.0
+          for tp in pay_tree.get_children():
+            tot_paid += float(pay_tree.item(tp,'values')[4]) 
+          bal = total_cost - tot_paid
+          balance1.config(text="$" + "" + str(bal))
+      elif tax_radio == 3:
+        if len(check_newline) == 0:
+          pass
+        else:
+          discount.config(text= str(dis_rate) + "" +"% Discount")
+          discount1.config(text="-" + "" + str(discount_rate))
+          sub_tot = (price + p1 + p2 + p3) - discount_rate
+          sub1.config(text="$" + "" + str(sub_tot))
+          tax_1.config(text="$" + "" + str(tax1_rate + tax2_rate))
+          tax_2.config(text="$" + "" + str(tax3_rate + tax4_rate))
+          cost1.config(text="$" + "" + str(exc))
+          invoicetot1.config(text="$" + "" + str(total_cost))
+          tot_paid = 0.0
+          for tp in pay_tree.get_children():
+            tot_paid += float(pay_tree.item(tp,'values')[4]) 
+          bal = total_cost - tot_paid
+          balance1.config(text="$" + "" + str(bal))
+
+    def recalc_exc(event):
+      check_newline = add_newline_tree.get_children()
+      if tax_radio == 1:
+          price = 0.0
+          t = 0.0
+          total_cost = 0.0
+          exc = float(ex_cost_entry.get())
+          dis_rate = float(dis_rate_entry.get())
+          for i in add_newline_tree.get_children():
+            price += float(add_newline_tree.item(i,'values')[3])
+          discount_rate = (price*dis_rate)/100
+          total_cost += (price - discount_rate) + exc
+      elif tax_radio == 2:
+        price = 0.0
+        p = 0.0
+        t = 0.0
+        total_cost = 0.0
+        exc = float(ex_cost_entry.get())
+        dis_rate = float(dis_rate_entry.get())
+        tx1 = float(tax1_entry.get())
+        for i in add_newline_tree.get_children():
+          if add_newline_tree.item(i,'values')[6] == "":
+            p += float(add_newline_tree.item(i,'values')[3])
+          else:
+            price += float(add_newline_tree.item(i,'values')[3])
+        discount_rate = ((price + p) * dis_rate)/100
+        dis_price = (price * dis_rate)/100
+        dis_p = (p * dis_rate)/100
+        tax1_rate = ((price - dis_price)*tx1)/100
+        tx_calc = (price - dis_price) + tax1_rate
+        tx_calc1 = p - dis_p
+        total_cost += (tx_calc + tx_calc1) + exc 
+      elif tax_radio == 3:
+        price = 0.0
+        p1 = 0.0
+        p2 = 0.0
+        p3 = 0.0
+        total_cost = 0.0
+        tx1 = float(tax1_entry.get())
+        tx2 = float(tax2_entry.get())
+        exc = float(ex_cost_entry.get())
+        dis_rate = float(dis_rate_entry.get())
+        for i in add_newline_tree.get_children():
+          if add_newline_tree.item(i,'values')[6] == "" and add_newline_tree.item(i,'values')[7] == "":
+            p1 += float(add_newline_tree.item(i,'values')[3])
+          elif add_newline_tree.item(i,'values')[6] == "🗹" and add_newline_tree.item(i,'values')[7] == "":
+            p2 += float(add_newline_tree.item(i,'values')[3])
+          elif add_newline_tree.item(i,'values')[6] == "" and add_newline_tree.item(i,'values')[7] == "🗹":
+            p3 += float(add_newline_tree.item(i,'values')[3])
+          else:
+            price += float(add_newline_tree.item(i,'values')[3])
+        discount_rate = ((p1 + p2 + p3 + price) * dis_rate)/100
+        dis_p2 = (p2 * dis_rate)/100
+        tax1_rate = ((p2 - dis_p2) * tx1)/100
+        dis_price = (price * dis_rate)/100
+        tax2_rate = ((price - dis_price) * tx1)/100
+        tax3_rate = ((price - dis_price) * tx2)/100
+        dis_p3= (p3 * dis_rate)/100
+        tax4_rate = ((p3 - dis_p3) * tx2)/100
+        dis_p4 = (p1 * dis_rate)/100
+        tx_calc1 = (p2 - dis_p2) + tax1_rate
+        tx_calc2 = (price - dis_price) + tax2_rate + tax3_rate
+        tx_calc3 = (p3 - dis_p3) + tax4_rate
+        tx_calc4 = (p1 - dis_p4)
+        total_cost += (tx_calc1 + tx_calc2 + tx_calc3 + tx_calc4) + exc
+    
+################ Show summary ###################
+  
+      if tax_radio == 1:
+        if len(check_newline) == 0:
+          pass
+        else:
+          discount.config(text= str(dis_rate) + "" +"% Discount")
+          discount1.config(text="-" + "" + str(discount_rate))
+          sub_tot = price - discount_rate
+          sub1.config(text="$" + "" + str(sub_tot))
+          cost1.config(text="$" + "" + str(exc))
+          invoicetot1.config(text="$" + "" + str(total_cost))
+          tot_paid = 0.0
+          for tp in pay_tree.get_children():
+            tot_paid += float(pay_tree.item(tp,'values')[4]) 
+          bal = total_cost - tot_paid
+          balance1.config(text="$" + "" + str(bal))
+      elif tax_radio == 2:
+        if len(check_newline) == 0:
+          pass
+        else:
+          discount.config(text= str(dis_rate) + "" +"% Discount")
+          discount1.config(text="-" + "" + str(discount_rate))
+          sub_tot = (price + p) - discount_rate
+          sub1.config(text="$" + "" + str(sub_tot))
+          tax_1.config(text="$" + "" + str(tax1_rate))
+          cost1.config(text="$" + "" + str(exc))
+          invoicetot1.config(text="$" + "" + str(total_cost))
+          tot_paid = 0.0
+          for tp in pay_tree.get_children():
+            tot_paid += float(pay_tree.item(tp,'values')[4]) 
+          bal = total_cost - tot_paid
+          balance1.config(text="$" + "" + str(bal))
+      elif tax_radio == 3:
+        if len(check_newline) == 0:
+          pass
+        else:
+          discount.config(text= str(dis_rate) + "" +"% Discount")
+          discount1.config(text="-" + "" + str(discount_rate))
+          sub_tot = (price + p1 + p2 + p3) - discount_rate
+          sub1.config(text="$" + "" + str(sub_tot))
+          tax_1.config(text="$" + "" + str(tax1_rate + tax2_rate))
+          tax_2.config(text="$" + "" + str(tax3_rate + tax4_rate))
+          cost1.config(text="$" + "" + str(exc))
+          invoicetot1.config(text="$" + "" + str(total_cost))
+          tot_paid = 0.0
+          for tp in pay_tree.get_children():
+            tot_paid += float(pay_tree.item(tp,'values')[4]) 
+          bal = total_cost - tot_paid
+          balance1.config(text="$" + "" + str(bal))
 
     #mark invoice
     def markinvo():
@@ -1057,227 +1334,71 @@ def mainpage():
         mark_inv.title("Record Payement for Invoice") 
 
         global get_pay_data,discount_rate,total_cost,dis_rate,exc,tax1_rate
-        # inv_num = inv_number_entry.get()
-        # get_pay_sql = "SELECT * FROM payments WHERE invoice_number=%s"
-        # get_pay_val = (inv_num,)
-        # fbcursor.execute(get_pay_sql,get_pay_val)
-        # get_pay_data = fbcursor.fetchall()
-
-        # tax2 = float(tax2_entry.get())
-        
 
         if tax_radio == 1:
           price = 0.0
-          for i in add_newline_tree.get_children():
-            price += float(add_newline_tree.item(i,'values')[3])
-          total_cost = 0.0
           t = 0.0
+          total_cost = 0.0
           exc = float(ex_cost_entry.get())
           dis_rate = float(dis_rate_entry.get())
-          if dis_rate == "0":
-            if exc == "0":
-              t = price
-            else:
-              t = price + exc
-          else:
-            if exc == "0":
-              discount_rate = (price*dis_rate)/100
-              t = price - discount_rate
-            else:
-              discount_rate = (price*dis_rate)/100
-              t = (price - discount_rate) + exc
-          total_cost += t
+          for i in add_newline_tree.get_children():
+            price += float(add_newline_tree.item(i,'values')[3])
+          discount_rate = (price*dis_rate)/100
+          total_cost += (price - discount_rate) + exc
         elif tax_radio == 2:
           price = 0.0
           p = 0.0
+          t = 0.0
           total_cost = 0.0
+          exc = float(ex_cost_entry.get())
+          dis_rate = float(dis_rate_entry.get())
+          tx1 = float(tax1_entry.get())
           for i in add_newline_tree.get_children():
-            if add_newline_tree.item(i,'values')[6] == "no":
+            if add_newline_tree.item(i,'values')[6] == "":
               p += float(add_newline_tree.item(i,'values')[3])
-              print(p)
             else:
               price += float(add_newline_tree.item(i,'values')[3])
-              print(price)
-            t = 0.0
-            exc = float(ex_cost_entry.get())
-            dis_rate = float(dis_rate_entry.get())
-            tx1 = float(tax1_entry.get())
-            if dis_rate == "0":
-              if exc == "0":
-                tax1_rate = (price*tx1)/100
-                tx_calc = price + tax1_rate
-                t = tx_calc + p
-              else:
-                tax1_rate = (price*tx1)/100
-                tx_calc = price + tax1_rate 
-                t = (tx_calc + p) + exc
-            else:
-              if exc == "0":
-                discount_rate = (price*dis_rate)/100
-                tax1_rate = ((price - discount_rate)*tx1)/100
-                tx_calc = (price - discount_rate) + tax1_rate
-                t = tx_calc + p
-              else:
-                discount_rate = (price*dis_rate)/100
-                tax1_rate = ((price - discount_rate)*tx1)/100
-                tx_calc = (price - discount_rate) + tax1_rate
-                t = (tx_calc + p) + exc
-          total_cost += t
+          discount_rate = ((price + p) * dis_rate)/100
+          dis_price = (price * dis_rate)/100
+          dis_p = (p * dis_rate)/100
+          tax1_rate = ((price - dis_price)*tx1)/100
+          tx_calc = (price - dis_price) + tax1_rate
+          tx_calc1 = p - dis_p
+          total_cost += (tx_calc + tx_calc1) + exc 
         elif tax_radio == 3:
-          if sel_pro_str[10] == "1" and sel_pro_str[19] == "1":
-            if len(get_pay_data) == 0:
-              price = 0.0
-              for i in add_newline_tree.get_children():
-                price += float(add_newline_tree.item(i,'values')[3])
-              tax1 = float(sectab[16])
-              tax2 = float(sectab[19])
-              total_cost = 0.0
-              t = 0.0
-              exc = float(ex_cost_entry.get())
-              print(exc)
-              dis_rate = float(dis_rate_entry.get())
-              if dis_rate == "0":
-                if exc == "0":
-                  tax1_rate = (price*tax1)/100
-                  tax2_rate = ((price + tax1_rate)*tax2)/100
-                  t = (price + tax1_rate + tax2_rate)
-                else:
-                  tax1_rate = (price*tax1)/100
-                  tax2_rate = ((price + tax1_rate)*tax2)/100
-                  t = (price + tax1_rate + tax2_rate) + exc
-              else:
-                if exc == "0":
-                  discount_rate = (price*dis_rate)/100
-                  tax1_rate = ((price - discount_rate)*tax1)/100
-                  tax2_rate = (((price - discount_rate) + tax1_rate)*tax2)/100
-                  t = ((price - discount_rate) + tax1_rate ) + tax2_rate
-                else:
-                  discount_rate = (price*dis_rate)/100
-                  tax1_rate = ((price - discount_rate)*tax1)/100
-                  tax2_rate = (((price - discount_rate) + tax1_rate)*tax2)/100
-                  t = (((price - discount_rate) + tax1_rate ) + tax2_rate) + exc
-              total_cost += t
+          price = 0.0
+          p1 = 0.0
+          p2 = 0.0
+          p3 = 0.0
+          total_cost = 0.0
+          tx1 = float(tax1_entry.get())
+          tx2 = float(tax2_entry.get())
+          exc = float(ex_cost_entry.get())
+          dis_rate = float(dis_rate_entry.get())
+          for i in add_newline_tree.get_children():
+            if add_newline_tree.item(i,'values')[6] == "" and add_newline_tree.item(i,'values')[7] == "":
+              p1 += float(add_newline_tree.item(i,'values')[3])
+            elif add_newline_tree.item(i,'values')[6] == "🗹" and add_newline_tree.item(i,'values')[7] == "":
+              p2 += float(add_newline_tree.item(i,'values')[3])
+            elif add_newline_tree.item(i,'values')[6] == "" and add_newline_tree.item(i,'values')[7] == "🗹":
+              p3 += float(add_newline_tree.item(i,'values')[3])
             else:
-              for i in add_newline_tree.get_children():
-                for gpay in get_pay_data:
-                  if i[0] == gpay[6]:
-                    pass
-                  else:
-                    price = float(add_newline_tree.item(i,'values')[3])
-                  tax1 = float(sectab[16])
-                  tax2 = float(sectab[19])
-                  tax1_rate = (price*tax1)/100
-                  tax2_rate = ((price + tax1_rate)*tax2)/100
-                  total_cost = 0.0
-                  t = 0.0
-                  dis_rate = float(dis_rate_entry.get())
-                  if dis_rate == "0":
-                    t = (price + tax1_rate + tax2_rate)
-                  else:
-                    discount_rate = ((price + tax1_rate + tax2_rate)*dis_rate)/100
-                    t = (price + tax1_rate + tax2_rate)-discount_rate
-                  total_cost += t
-          elif sel_pro_str[10] == "1" and sel_pro_str[19] == "0":
-            if len(get_pay_data) == 0:
-              price = 0.0
-              for i in add_newline_tree.get_children():
-                price += float(add_newline_tree.item(i,'values')[3])
-                sku += add_newline_tree.item(i,'values')[0]
-              tax1 = float(sectab[16])
-              tax1_rate = (price*tax1)/100
-              total_cost = 0.0
-              t = 0.0
-              dis_rate = float(dis_rate_entry.get())
-              if dis_rate == "0":
-                t = (price + tax1_rate)
-              else:
-                discount_rate = ((price + tax1_rate)*dis_rate)/100
-                t = (price + tax1_rate)-discount_rate
-              total_cost += t
-            else:
-              for i in add_newline_tree.get_children():
-                for gpay in get_pay_data:
-                  if i[0] == gpay[6]:
-                    pass
-                  else:
-                    price = float(add_newline_tree.item(i,'values')[3])
-                  tax1 = float(sectab[16])
-                  tax1_rate = (price*tax1)/100
-                  total_cost = 0.0
-                  t = 0.0
-                  dis_rate = float(dis_rate_entry.get())
-                  if dis_rate == "0":
-                    t = (price + tax1_rate)
-                  else:
-                    discount_rate = ((price + tax1_rate)*dis_rate)/100
-                    t = (price + tax1_rate)-discount_rate
-                  total_cost += t
-          elif sel_pro_str[10] == "0" and sel_pro_str[19] == "1":
-            if len(get_pay_data) == 0:
-              price = 0.0
-              for i in add_newline_tree.get_children():
-                price += float(add_newline_tree.item(i,'values')[3])
-                sku += add_newline_tree.item(i,'values')[0]
-              tax2 = float(sectab[19])
-              tax2_rate = (price *tax2)/100
-              total_cost = 0.0
-              t = 0.0
-              dis_rate = float(dis_rate_entry.get())
-              if dis_rate == "0":
-                t = (price + tax2_rate)
-              else:
-                discount_rate = ((price + tax2_rate)*dis_rate)/100
-                t = (price + tax1_rate)-discount_rate
-              total_cost += t
-            else:
-              for i in add_newline_tree.get_children():
-                for gpay in get_pay_data:
-                  if i[0] == gpay[6]:
-                    pass
-                  else:
-                    price = float(add_newline_tree.item(i,'values')[3])
-                  tax2 = float(sectab[19])
-                  tax2_rate = (price *tax2)/100
-                  total_cost = 0.0
-                  t = 0.0
-                  dis_rate = float(dis_rate_entry.get())
-                  if dis_rate == "0":
-                    t = (price + tax2_rate)
-                  else:
-                    discount_rate = ((price + tax2_rate)*dis_rate)/100
-                    t = (price + tax1_rate)-discount_rate
-                  total_cost += t
-          else:
-            if len(get_pay_data) == 0:
-              price = 0.0
-              for i in add_newline_tree.get_children():
-                price += float(add_newline_tree.item(i,'values')[3])
-                sku += add_newline_tree.item(i,'values')[0]
-              total_cost = 0.0
-              t = 0.0
-              dis_rate = float(dis_rate_entry.get())
-              if dis_rate == "0":
-                t = price
-              else:
-                discount_rate = (price*dis_rate)/100
-                t = price-discount_rate
-              total_cost += t
-            else:
-              for i in add_newline_tree.get_children():
-                for gpay in get_pay_data:
-                  if i[0] == gpay[6]:
-                    pass
-                  else:
-                    price = float(add_newline_tree.item(i,'values')[3])
-                  total_cost = 0.0
-                  t = 0.0
-                  dis_rate = float(dis_rate_entry.get())
-                  if dis_rate == "0":
-                    t = price
-                  else:
-                    discount_rate = (price*dis_rate)/100
-                    t = price-discount_rate
-                  total_cost += t
+              price += float(add_newline_tree.item(i,'values')[3])
+          discount_rate = ((p1 + p2 + p3 + price) * dis_rate)/100
+          dis_p2 = (p2 * dis_rate)/100
+          tax1_rate = ((p2 - dis_p2) * tx1)/100
+          dis_price = (price * dis_rate)/100
+          tax2_rate = ((price - dis_price) * tx1)/100
+          tax3_rate = ((price - dis_price) * tx2)/100
+          dis_p3= (p3 * dis_rate)/100
+          tax4_rate = ((p3 - dis_p3) * tx2)/100
+          dis_p4 = (p1 * dis_rate)/100
+          tx_calc1 = (p2 - dis_p2) + tax1_rate
+          tx_calc2 = (price - dis_price) + tax2_rate + tax3_rate
+          tx_calc3 = (p3 - dis_p3) + tax4_rate
+          tx_calc4 = (p1 - dis_p4)
+          total_cost += (tx_calc1 + tx_calc2 + tx_calc3 + tx_calc4) + exc
+      
 ################ Show summary ###################
     
         if tax_radio == 1:
@@ -1287,66 +1408,49 @@ def mainpage():
             discount.config(text= str(dis_rate) + "" +"% Discount")
             discount1.config(text="-" + "" + str(discount_rate))
             sub_tot = price - discount_rate
-            sub1.config(text=sub_tot)
-            cost1.config(text=exc)
-            invoicetot1.config(text=total_cost)
+            sub1.config(text="$" + "" + str(sub_tot))
+            cost1.config(text="$" + "" + str(exc))
+            invoicetot1.config(text="$" + "" + str(total_cost))
             tot_paid = 0.0
             for tp in pay_tree.get_children():
               tot_paid += float(pay_tree.item(tp,'values')[4]) 
             bal = total_cost - tot_paid
-            balance1.config(text=bal)
+            balance1.config(text="$" + "" + str(bal))
         elif tax_radio == 2:
-          if sel_pro_str[10] == "1":
-            if len(check_newline) == 0:
-              pass
-            else:
-              discount.config(text= str(dis_rate) + "" +"% Discount")
-              discount1.config(text="-" + "" + str(discount_rate))
-              sub_tot = price - discount_rate
-              sub1.config(text=sub_tot)
-              tax_1.config(text=tax1_rate)
-              cost1.config(text=exc)
-              invoicetot1.config(text=total_cost)
-              tot_paid = 0.0
-              for tp in pay_tree.get_children():
-                tot_paid += float(pay_tree.item(tp,'values')[4]) 
-              bal = total_cost - tot_paid
-              balance1.config(text=bal)
+          if len(check_newline) == 0:
+            pass
           else:
-            if len(check_newline) == 0:
-              pass
-            else:
-              discount.config(text= str(dis_rate) + "" +"% Discount")
-              discount1.config(text="-" + "" + str(discount_rate))
-              sub_tot = price - discount_rate
-              sub1.config(text=sub_tot)
-              cost1.config(text=exc)
-              invoicetot1.config(text=total_cost)
-              tot_paid = 0.0
-              for tp in pay_tree.get_children():
-                tot_paid += float(pay_tree.item(tp,'values')[4]) 
-              bal = total_cost - tot_paid
-              balance1.config(text=bal)
-        # elif tax_radio == 3:
-        #   if sel_pro_str[10] == "1" and sel_pro_str[19] == "1":
-        #     if len(check_newline) == 0:
-        #       pass
-        #     else:
-        #       discount.config(text= str(dis_rate) + "" +"% Discount")
-        #       discount1.config(text="-" + "" + str(discount_rate))
-        #       sub_tot = price - discount_rate
-        #       sub1.config(text=sub_tot)
-        #       tax_1.config(text=tax1_rate)
-        #       tax_2.config(text=tax2_rate)
-        #       # cost1.config(text=exc)
-        #       invoicetot1.config(text=total_cost)
-        #       tot_paid = 0.0
-        #       for tp in pay_tree.get_children():
-        #         tot_paid += float(pay_tree.item(tp,'values')[4]) 
-        #       bal = total_cost - tot_paid
-        #       balance1.config(text=bal)
+            discount.config(text= str(dis_rate) + "" +"% Discount")
+            discount1.config(text="-" + "" + str(discount_rate))
+            sub_tot = (price + p) - discount_rate
+            sub1.config(text="$" + "" + str(sub_tot))
+            tax_1.config(text="$" + "" + str(tax1_rate))
+            cost1.config(text="$" + "" + str(exc))
+            invoicetot1.config(text="$" + "" + str(total_cost))
+            tot_paid = 0.0
+            for tp in pay_tree.get_children():
+              tot_paid += float(pay_tree.item(tp,'values')[4]) 
+            bal = total_cost - tot_paid
+            balance1.config(text="$" + "" + str(bal))
+        elif tax_radio == 3:
+          if len(check_newline) == 0:
+            pass
+          else:
+            discount.config(text= str(dis_rate) + "" +"% Discount")
+            discount1.config(text="-" + "" + str(discount_rate))
+            sub_tot = (price + p1 + p2 + p3) - discount_rate
+            sub1.config(text="$" + "" + str(sub_tot))
+            tax_1.config(text="$" + "" + str(tax1_rate + tax2_rate))
+            tax_2.config(text="$" + "" + str(tax3_rate + tax4_rate))
+            cost1.config(text="$" + "" + str(exc))
+            invoicetot1.config(text="$" + "" + str(total_cost))
+            tot_paid = 0.0
+            for tp in pay_tree.get_children():
+              tot_paid += float(pay_tree.item(tp,'values')[4]) 
+            bal = total_cost - tot_paid
+            balance1.config(text="$" + "" + str(bal))
+                
             
-
         def add_newline_pay():
           pay_amnt = inv_amnt_entry.get()
           pay_date = inv_pdate_entry.get_date()
@@ -1366,9 +1470,9 @@ def mainpage():
           tot_paid = 0.0
           for tp in pay_tree.get_children():
             tot_paid += float(pay_tree.item(tp,'values')[4]) 
-          total1.config(text=tot_paid)
+          total1.config(text="$" + "" + str(tot_paid))
           bal = total_cost - tot_paid
-          balance1.config(text=bal)
+          balance1.config(text="$" + "" + str(bal))
           mark_inv.destroy()
 
 
@@ -1606,14 +1710,14 @@ def mainpage():
         mark_Notebook.place(x=0, y=0)
 
         inv_bal_label=Label(Mark_Invoice, text="Invoice Balance").place(x=10, y=10)
-        inv_bal_entry=Label(Mark_Invoice, width=25,fg="red",bg="white",font=("Arial",10,"bold"))
+        inv_bal_entry=Label(Mark_Invoice, width=25,fg="red",bg="white",text=bal,font=("Arial",10,"bold"))
         inv_bal_entry.place(x=130, y=10)
         labelframe5 = LabelFrame(Mark_Invoice,text="Payement Record Details",bg="#f5f3f2")
         labelframe5.place(x=10,y=60,width=670,height=250)
         inv_amnt_entry = Entry(labelframe5,width=28)
         inv_amnt_entry.place(x=30,y=45)
-        # inv_amnt_entry.delete(0, END)
-        # inv_amnt_entry.insert(0, bal)
+        inv_amnt_entry.delete(0, END)
+        inv_amnt_entry.insert(0, bal)
         inv_pdate_label = Label(labelframe5, text="Payement Date:",bg="#f5f3f2").place(x=250,y=20)
         inv_pdate_entry = DateEntry(labelframe5,width=28)
         inv_pdate_entry.place(x=220,y=45)
@@ -1919,13 +2023,13 @@ def mainpage():
       add_newline_tree["columns"]=["1","2","3","4","5","6","7"]
 
       add_newline_tree.column("#0", width=20)
-      add_newline_tree.column("1", width=80)
-      add_newline_tree.column("2", width=190)
-      add_newline_tree.column("3", width=220)
-      add_newline_tree.column("4", width=95)
-      add_newline_tree.column("5", width=60)
-      add_newline_tree.column("6", width=60)
-      add_newline_tree.column("7", width=95)
+      add_newline_tree.column("1", width=80,anchor=CENTER)
+      add_newline_tree.column("2", width=190,anchor=CENTER)
+      add_newline_tree.column("3", width=220,anchor=CENTER)
+      add_newline_tree.column("4", width=95,anchor=CENTER)
+      add_newline_tree.column("5", width=60,anchor=CENTER)
+      add_newline_tree.column("6", width=60,anchor=CENTER)
+      add_newline_tree.column("7", width=95,anchor=CENTER)
       
       add_newline_tree.heading("#0")
       add_newline_tree.heading("1",text="ID/SKU")
@@ -1943,14 +2047,14 @@ def mainpage():
       add_newline_tree["columns"]=["1","2","3","4","5","6","7","8"]
 
       add_newline_tree.column("#0", width=20)
-      add_newline_tree.column("1", width=80)
-      add_newline_tree.column("2", width=190)
-      add_newline_tree.column("3", width=190)
-      add_newline_tree.column("4", width=80)
-      add_newline_tree.column("5", width=60)
-      add_newline_tree.column("6", width=60)
-      add_newline_tree.column("7", width=60)
-      add_newline_tree.column("8", width=80)
+      add_newline_tree.column("1", width=80,anchor=CENTER)
+      add_newline_tree.column("2", width=190,anchor=CENTER)
+      add_newline_tree.column("3", width=190,anchor=CENTER)
+      add_newline_tree.column("4", width=80,anchor=CENTER)
+      add_newline_tree.column("5", width=60,anchor=CENTER)
+      add_newline_tree.column("6", width=60,anchor=CENTER)
+      add_newline_tree.column("7", width=60,anchor=CENTER)
+      add_newline_tree.column("8", width=80,anchor=CENTER)
       
       add_newline_tree.heading("#0")
       add_newline_tree.heading("1",text="ID/SKU")
@@ -1969,15 +2073,15 @@ def mainpage():
       add_newline_tree["columns"]=["1","2","3","4","5","6","7","8","9"]
 
       add_newline_tree.column("#0", width=20)
-      add_newline_tree.column("1", width=80)
-      add_newline_tree.column("2", width=170)
-      add_newline_tree.column("3", width=170)
-      add_newline_tree.column("4", width=80)
-      add_newline_tree.column("5", width=60)
-      add_newline_tree.column("6", width=60)
-      add_newline_tree.column("7", width=60)
-      add_newline_tree.column("8", width=60)
-      add_newline_tree.column("9", width=80)
+      add_newline_tree.column("1", width=80,anchor=CENTER)
+      add_newline_tree.column("2", width=170,anchor=CENTER)
+      add_newline_tree.column("3", width=170,anchor=CENTER)
+      add_newline_tree.column("4", width=80,anchor=CENTER)
+      add_newline_tree.column("5", width=60,anchor=CENTER)
+      add_newline_tree.column("6", width=60,anchor=CENTER)
+      add_newline_tree.column("7", width=60,anchor=CENTER)
+      add_newline_tree.column("8", width=60,anchor=CENTER)
+      add_newline_tree.column("9", width=80,anchor=CENTER)
       
       add_newline_tree.heading("#0")
       add_newline_tree.heading("1",text="ID/SKU")
@@ -2054,9 +2158,11 @@ def mainpage():
     dis_rate_label=Label(labelframe1,text="Discount rate").place(x=370,y=5)
     dis_rate_entry=Spinbox(labelframe1,width=6,from_=0,to=100,justify=RIGHT)
     dis_rate_entry.place(x=460,y=5)
+    dis_rate_entry.bind('<Button-1>',recalc_dis)
     ex_cost_label=Label(labelframe1,text="Extra cost").place(x=35,y=35)
     ex_cost_entry=Entry(labelframe1,width=10,justify=RIGHT)
     ex_cost_entry.place(x=115,y=35)
+    ex_cost_entry.bind('<KeyRelease>',recalc_exc)
     ex_cost_entry.delete(0,END)
     ex_cost_entry.insert(0,"0")
     if tax_radio == 1:
