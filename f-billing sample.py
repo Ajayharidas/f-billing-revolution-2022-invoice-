@@ -1546,8 +1546,10 @@ def mainpage():
 
 
           def inv_send_mail(file=None):
-            sender_mail = email_from.get()
-            sender_password = email_passw.get()
+            # sender_mail = your_cemail_entry.get()
+            sender_mail = "infoxfbilling77@gmail.com"
+            # sender_password = your_cpass_entry.get()
+            sender_password = "dinkiurlziohgfok"
 
             server = smtplib.SMTP('smtp.gmail.com', 587)
             print("login successfull")
@@ -1557,7 +1559,6 @@ def mainpage():
             print("login successfull3")
 
             carbon_info = email_carbon.get()
-            print(carbon_info)
             msg = MIMEMultipart()
             msg['Subject'] = email_subject.get()
             mail_content = email_ltr_scroll.get("1.0",'end-1c')
@@ -1566,7 +1567,6 @@ def mainpage():
 
             gettingimg = lstfrm.get()
             lst_data = gettingimg[1:-1].split(',')
-            print(lst_data,"happy")
             
             msg.attach(MIMEText(mail_content, 'plain'))
             
@@ -1588,24 +1588,26 @@ def mainpage():
             server.sendmail(email_from.get(),email_to.get(),msg.as_string())
             server.sendmail(email_from.get(), carbon_info,msg.as_string())
 
-            date = dt.datetime.now()
-            emitemid = inv_tree.item(inv_tree.focus())["values"][1]
-            for record in inv_tree.get_children():
-              inv_tree.delete(record)
-            sqlq = "UPDATE Orders SET emailed_on=%s WHERE orderid = %s"
-            valq = (date,emitemid,)
-            fbcursor.execute(sqlq, valq,)
-            fbilldb.commit()
-            fbcursor.execute('SELECT * FROM Orders;')
-            ordertotalinput=0
-            j = 0
-            for i in fbcursor:
-              inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[20], i[6], i[7], i[8], i[9], i[10], i[11], i[12]))
-              for line in inv_tree.get_children():
-                idsave1=inv_tree.item(line)['values'][9]
-              ordertotalinput += idsave1
-            j += 1
-            invtot_rowcol.config(text=ordertotalinput)
+            date = dt.datetime.now().date()
+            never1_label.config(text=date)
+            # inv_number = inv_tree.item(inv_tree.focus())["values"][1]
+            # for record in inv_tree.get_children():
+            #   inv_tree.delete(record)
+            # sqlq = "UPDATE invoice SET emailed_on=%s WHERE invoice_number = %s"
+            # valq = (date,inv_number,)
+            # fbcursor.execute(sqlq, valq,)
+            # fbilldb.commit()
+            
+            # fbcursor.execute('SELECT * FROM invoice')
+            # ordertotalinput=0
+            # j = 0
+            # for i in fbcursor:
+            #   inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[20], i[6], i[7], i[8], i[9], i[10], i[11], i[12]))
+            #   for line in inv_tree.get_children():
+            #     idsave1=inv_tree.item(line)['values'][9]
+            #   ordertotalinput += idsave1
+            # j += 1
+            # invtot_rowcol.config(text=ordertotalinput)
 
             print("message sent")
 
@@ -1618,25 +1620,55 @@ def mainpage():
             send_precp.geometry("1030x490+150+120")
             send_precp.title("Payment reciept E-mail")
 
-            def my_SMTP():
-                if True:
-                    em_ser_conbtn.destroy()
-                    mysmtpservercon=LabelFrame(account_Frame,text="SMTP server connection(ask your ISP for your SMTP settings)", height=165, width=380)
-                    mysmtpservercon.place(x=610, y=110)
-                    lbl_hostn=Label(mysmtpservercon, text="Hostname").place(x=5, y=10)
-                    hostnent=Entry(mysmtpservercon, width=30).place(x=80, y=10)
-                    lbl_portn=Label(mysmtpservercon, text="Port").place(x=5, y=35)
-                    portent=Entry(mysmtpservercon, width=30).place(x=80, y=35)
-                    lbl_usn=Label(mysmtpservercon, text="Username").place(x=5, y=60)
-                    unament=Entry(mysmtpservercon, width=30).place(x=80, y=60)
-                    lbl_pasn=Label(mysmtpservercon, text="Password").place(x=5, y=85)
-                    pwdent=Entry(mysmtpservercon, width=30).place(x=80, y=85)
-                    ssl_chkvar=IntVar()
-                    ssl_chkbtn=Checkbutton(mysmtpservercon, variable=ssl_chkvar, text="This server requires a secure connection(SSL)", onvalue=1, offvalue=0)
-                    ssl_chkbtn.place(x=50, y=110)
-                    em_ser_conbtn1=Button(account_Frame, text="Test E-mail Server Connection").place(x=610, y=285)
-                else:
-                    pass
+            # def my_SMTP():
+            #     if True:
+            #         em_ser_conbtn.destroy()
+            #         mysmtpservercon=LabelFrame(account_Frame,text="SMTP server connection(ask your ISP for your SMTP settings)", height=165, width=380)
+            #         mysmtpservercon.place(x=610, y=110)
+            #         lbl_hostn=Label(mysmtpservercon, text="Hostname").place(x=5, y=10)
+            #         hostnent=Entry(mysmtpservercon, width=30).place(x=80, y=10)
+            #         lbl_portn=Label(mysmtpservercon, text="Port").place(x=5, y=35)
+            #         portent=Entry(mysmtpservercon, width=30).place(x=80, y=35)
+            #         lbl_usn=Label(mysmtpservercon, text="Username").place(x=5, y=60)
+            #         unament=Entry(mysmtpservercon, width=30).place(x=80, y=60)
+            #         lbl_pasn=Label(mysmtpservercon, text="Password").place(x=5, y=85)
+            #         pwdent=Entry(mysmtpservercon, width=30).place(x=80, y=85)
+            #         ssl_chkvar=IntVar()
+            #         ssl_chkbtn=Checkbutton(mysmtpservercon, variable=ssl_chkvar, text="This server requires a secure connection(SSL)", onvalue=1, offvalue=0)
+            #         ssl_chkbtn.place(x=50, y=110)
+            #         em_ser_conbtn1=Button(account_Frame, text="Test E-mail Server Connection").place(x=610, y=285)
+            #     else:
+            #         pass
+
+
+            def inv_empsfile_image(event):
+              global yawn
+              for i in  attach_list.curselection():
+                print("hloo", attach_list.get(i))
+                yawn= attach_list.get(i)        
+                edit_window_img = Toplevel()
+                edit_window_img.title("View Image")
+                edit_window_img.geometry("700x500")
+                image = Image.open("images/"+yawn)
+                resize_image = image.resize((700, 500))
+                image = ImageTk.PhotoImage(resize_image)
+                psimage = Label(edit_window_img,image=image)
+                psimage.photo = image
+                psimage.pack()
+            
+            def inv_UploadAction(event=None):
+              global filenamez
+
+              filenamez = askopenfilename(filetypes=(("png file ",'.png'),("jpg file", ".jpg"), ('PDF', '.pdf',), ("All files", ".*"),))
+              shutil.copyfile(filenamez, os.getcwd()+'/images/'+filenamez.split('/')[-1])
+              attach_list.insert(0, filenamez.split('/')[-1])
+
+
+            def inv_deletefile():
+              inv_remove=attach_list.curselection()
+              yawn=attach_list.get(inv_remove) 
+              print(yawn)       
+              attach_list.delete(ACTIVE)
 
             style = ttk.Style()
             style.theme_use('default')
@@ -1718,10 +1750,12 @@ def mainpage():
             lstfrm = StringVar()
             attach_list=Listbox(attachlbframe, height=220, width=265,listvariable=lstfrm, bg="white")
             attach_list.place(x=5, y=5)
-            attach_list.bind('<Double-Button-1>',)
+            attach_list.bind('<Double-Button-1>',inv_empsfile_image)
             lbl_btn_info=Label(attachlbframe, text="Double click on attachment to view").place(x=30, y=230)
-            btn17=Button(attachlbframe, width=20, text="Add attacment file...").place(x=60, y=260)
-            btn18=Button(attachlbframe, width=20, text="Remove attacment").place(x=60, y=295)
+            btn17=Button(attachlbframe, width=20, text="Add attacment file...",command=inv_UploadAction)
+            btn17.place(x=60, y=260)
+            btn18=Button(attachlbframe, width=20, text="Remove attacment",command=inv_deletefile)
+            btn18.place(x=60, y=295)
             lbl_tt_info=Label(email_Frame, text="You can create predefined invoice, order, estimate\nand payment receipt email templates under Main\nmenu/Settings/E-Mail templates tab")
             lbl_tt_info.place(x=740, y=370)
 
@@ -1730,38 +1764,36 @@ def mainpage():
             sendatalbframe = LabelFrame(account_Frame,text="E-Mail(Sender data)",height=270, width=600)
             sendatalbframe.place(x=5, y=5)
             your_cemail_label = Label(sendatalbframe, text="Your company email address").place(x=5, y=30)
-            your_cemail_entry = Entry(sendatalbframe, width=40,textvariable=email_from)
+            your_cemail_entry = Entry(sendatalbframe, width=40)
             your_cemail_entry.place(x=195, y=30)
-            your_cemail_entry.delete(0,END)
-            your_cemail_entry.insert(0,email_addr)
 
-            your_cpass_label = Label(sendatalbframe, text="Your name or company name").place(x=5, y=60)
-            your_cpass_entry = Entry(sendatalbframe, width=40,textvariable=email_passw)
+            your_cpass_label = Label(sendatalbframe, text="Your Password").place(x=5, y=60)
+            your_cpass_entry = Entry(sendatalbframe, width=40,show='*')
             your_cpass_entry.place(x=195, y=60)
-            company_name = inv_combo_e1.get()
-            your_cpass_entry.delete(0,END)
-            your_cpass_entry.insert(0,company_name)
-            replay_email_label = Label(sendatalbframe, text="Reply to email address").place(x=5, y=90)
-            replay_email_entry = Entry(sendatalbframe, width=40)
-            replay_email_entry.place(x=195, y=90)
-            replay_email_entry.delete(0,END)
-            replay_email_entry.insert(0,email_addr)
-            lbl_sign=Label(sendatalbframe, text="Signature").place(x=5, y=120)
-            signent=Entry(sendatalbframe,width=50).place(x=100, y=120,height=75)
-            confirm_chkvar=IntVar()
-            confirm_chkbtn=Checkbutton(sendatalbframe, variable=confirm_chkvar, text="Confirmation reading", onvalue=1, offvalue=0)
-            confirm_chkbtn.place(x=200, y=215)
-            btn18=Button(account_Frame, width=15, text="Save settings").place(x=25, y=285)
+            # company_name = inv_combo_e1.get()
+            # your_cpass_entry.delete(0,END)
+            # your_cpass_entry.insert(0,company_name)
+            # replay_email_label = Label(sendatalbframe, text="Reply to email address").place(x=5, y=90)
+            # replay_email_entry = Entry(sendatalbframe, width=40)
+            # replay_email_entry.place(x=195, y=90)
+            # replay_email_entry.delete(0,END)
+            # replay_email_entry.insert(0,email_addr)
+            # lbl_sign=Label(sendatalbframe, text="Signature").place(x=5, y=120)
+            # signent=Entry(sendatalbframe,width=50).place(x=100, y=120,height=75)
+            # confirm_chkvar=IntVar()
+            # confirm_chkbtn=Checkbutton(sendatalbframe, variable=confirm_chkvar, text="Confirmation reading", onvalue=1, offvalue=0)
+            # confirm_chkbtn.place(x=200, y=215)
+            # btn18=Button(account_Frame, width=15, text="Save settings").place(x=25, y=285)
 
-            sendatalbframe=LabelFrame(account_Frame,text="SMTP Server",height=100, width=380)
-            sendatalbframe.place(x=610, y=5)
-            servar=IntVar()
-            SMTP_rbtn=Radiobutton(sendatalbframe, text="Use the Built-In SMTP Server Settings", variable=servar, value=1)
-            SMTP_rbtn.place(x=10, y=10)
-            MySMTP_rbtn=Radiobutton(sendatalbframe, text="Use My Own SMTP Server Settings(Recommended)", variable=servar, value=2, command=my_SMTP)
-            MySMTP_rbtn.place(x=10, y=40)
-            em_ser_conbtn=Button(account_Frame, text="Test E-mail Server Connection")
-            em_ser_conbtn.place(x=710, y=110)
+            # sendatalbframe=LabelFrame(account_Frame,text="SMTP Server",height=100, width=380)
+            # sendatalbframe.place(x=610, y=5)
+            # servar=IntVar()
+            # SMTP_rbtn=Radiobutton(sendatalbframe, text="Use the Built-In SMTP Server Settings", variable=servar, value=1)
+            # SMTP_rbtn.place(x=10, y=10)
+            # MySMTP_rbtn=Radiobutton(sendatalbframe, text="Use My Own SMTP Server Settings(Recommended)", variable=servar, value=2, command=my_SMTP)
+            # MySMTP_rbtn.place(x=10, y=40)
+            # em_ser_conbtn=Button(account_Frame, text="Test E-mail Server Connection")
+            # em_ser_conbtn.place(x=710, y=110)
           else:
             pass
 
@@ -2282,7 +2314,7 @@ def mainpage():
     draft_label.place(x=50, y=3)
     email_on_label=Label(statusfrme, text="Emailed on:").place( y=50)
     never1_label=Label(statusfrme, text="Never")
-    never1_label.place(x=100,y=50)
+    never1_label.place(x=80,y=50)
     print_on_label=Label(statusfrme, text="Printed on:").place( y=90)
     never2_label=Label(statusfrme, text="Never")
     never2_label.place(x=100,y=90)
@@ -2601,15 +2633,17 @@ def mainpage():
       doc_get_1 = doc_tree_1.get_children()
       for qn in add_newline_tree_1.get_children():
         quantity_1 = add_newline_tree_1.item(qn)["values"][4]
+
+      del_storp_sql = "DELETE FROM storingproduct WHERE invoice_number=%s"
+      del_storp_val = (invoice_number_1,)
+      fbcursor.execute(del_storp_sql,del_storp_val)
+      fbilldb.commit()
+
       comp_sql = "SELECT * FROM company"
       fbcursor.execute(comp_sql,)
       comp_data_1 = fbcursor.fetchone()
       for record in add_newline_tree_1.get_children():
         storingproduct = add_newline_tree_1.item(record)["values"]
-        del_storp_sql = "DELETE FROM storingproduct WHERE invoice_number=%s"
-        del_storp_val = (invoice_number_1,)
-        fbcursor.execute(del_storp_sql,del_storp_val)
-        fbilldb.commit()
         if not comp_data_1:
           storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
           storepro_val = (invoice_number_1,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6])
@@ -2636,7 +2670,8 @@ def mainpage():
       del_file_val = (invoice_number_1,)
       fbcursor.execute(del_file_sql,del_file_val)
       fbilldb.commit()
-      for files in doc_get_1:
+      for f in doc_get_1:
+        files = doc_tree_1.item(f)["values"][1]
         file_sql = "INSERT INTO documents(invoice_number,documents) VALUES(%s,%s)"
         file_val = (invoice_number_1,files)
         fbcursor.execute(file_sql,file_val)
@@ -3828,6 +3863,216 @@ def mainpage():
           bal = round((total_cost - tot_paid),2)
           balance1_1.config(text=bal)
           mark_inv_1.destroy()
+
+
+          def inv_send_mail_1(file=None):
+            # sender_mail = your_cemail_entry.get()
+            sender_mail = "infoxfbilling77@gmail.com"
+            # sender_password = your_cpass_entry.get()
+            sender_password = "dinkiurlziohgfok"
+
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            print("login successfull")
+            server.starttls()
+            print("login successfull2")
+            server.login(sender_mail,sender_password)
+            print("login successfull3")
+
+            carbon_info = email_carbon.get()
+            msg = MIMEMultipart()
+            msg['Subject'] = email_subject.get()
+            mail_content = email_ltr_scroll.get("1.0",'end-1c')
+            msg['From'] = email_from.get()
+            msg['To'] = email_to.get()
+
+            gettingimg = lstfrm.get()
+            lst_data = gettingimg[1:-1].split(',')
+            
+            msg.attach(MIMEText(mail_content, 'plain'))
+            
+            for i in lst_data:
+              if len(i.strip()[1:-1])>1:
+                with open('images/'+ i.strip()[1:-1], "rb") as attachment:
+                    # MIME attachment is a binary file for that content type "application/octet-stream" is used
+                  part = MIMEBase("application", "octet-stream")
+                  part.set_payload(attachment.read())
+                # encode into base64 
+                  encoders.encode_base64(part) 
+            
+                  part.add_header('Content-Disposition', "attachment; filename= %s" % 'images/'+ i.strip()[1:-1]) 
+
+                # attach the instance 'part' to instance 'message' 
+                  msg.attach(part)
+              # message_body = email_body.get()
+
+            server.sendmail(email_from.get(),email_to.get(),msg.as_string())
+            server.sendmail(email_from.get(), carbon_info,msg.as_string())
+
+            date = dt.datetime.now().date()
+            never1_label_1.config(text=date)
+            print("message sent")
+
+
+
+          if checkvar1_1.get() == 1:
+            send_precp = Toplevel()
+            p2 = PhotoImage(file = "images/fbicon.png")
+            send_precp.iconphoto(False, p2)
+            send_precp.geometry("1030x490+150+120")
+            send_precp.title("Payment reciept E-mail")
+
+            # def my_SMTP():
+            #     if True:
+            #         em_ser_conbtn.destroy()
+            #         mysmtpservercon=LabelFrame(account_Frame,text="SMTP server connection(ask your ISP for your SMTP settings)", height=165, width=380)
+            #         mysmtpservercon.place(x=610, y=110)
+            #         lbl_hostn=Label(mysmtpservercon, text="Hostname").place(x=5, y=10)
+            #         hostnent=Entry(mysmtpservercon, width=30).place(x=80, y=10)
+            #         lbl_portn=Label(mysmtpservercon, text="Port").place(x=5, y=35)
+            #         portent=Entry(mysmtpservercon, width=30).place(x=80, y=35)
+            #         lbl_usn=Label(mysmtpservercon, text="Username").place(x=5, y=60)
+            #         unament=Entry(mysmtpservercon, width=30).place(x=80, y=60)
+            #         lbl_pasn=Label(mysmtpservercon, text="Password").place(x=5, y=85)
+            #         pwdent=Entry(mysmtpservercon, width=30).place(x=80, y=85)
+            #         ssl_chkvar=IntVar()
+            #         ssl_chkbtn=Checkbutton(mysmtpservercon, variable=ssl_chkvar, text="This server requires a secure connection(SSL)", onvalue=1, offvalue=0)
+            #         ssl_chkbtn.place(x=50, y=110)
+            #         em_ser_conbtn1=Button(account_Frame, text="Test E-mail Server Connection").place(x=610, y=285)
+            #     else:
+            #         pass
+
+
+            def inv_empsfile_image_1(event):
+              global yawn
+              for i in  attach_list.curselection():
+                print("hloo", attach_list.get(i))
+                yawn= attach_list.get(i)        
+                edit_window_img = Toplevel()
+                edit_window_img.title("View Image")
+                edit_window_img.geometry("700x500")
+                image = Image.open("images/"+yawn)
+                resize_image = image.resize((700, 500))
+                image = ImageTk.PhotoImage(resize_image)
+                psimage = Label(edit_window_img,image=image)
+                psimage.photo = image
+                psimage.pack()
+            
+            def inv_UploadAction_1(event=None):
+              global filenamez
+
+              filenamez = askopenfilename(filetypes=(("png file ",'.png'),("jpg file", ".jpg"), ('PDF', '.pdf',), ("All files", ".*"),))
+              shutil.copyfile(filenamez, os.getcwd()+'/images/'+filenamez.split('/')[-1])
+              attach_list.insert(0, filenamez.split('/')[-1])
+
+
+            def inv_deletefile_1():
+              inv_remove=attach_list.curselection()
+              yawn=attach_list.get(inv_remove) 
+              print(yawn)       
+              attach_list.delete(ACTIVE)
+
+            style = ttk.Style()
+            style.theme_use('default')
+            style.configure('TNotebook.Tab', background="#999999", padding=5)
+            email_Notebook = ttk.Notebook(send_precp)
+            email_Frame = Frame(email_Notebook, height=500, width=1080)
+            account_Frame = Frame(email_Notebook, height=550, width=1080)
+            email_Notebook.add(email_Frame, text="E-mail")
+            email_Notebook.add(account_Frame, text="Account")
+            email_Notebook.place(x=0, y=0)
+            messagelbframe=LabelFrame(email_Frame,text="Message", height=450, width=730)
+            messagelbframe.place(x=5, y=5)
+            global email_to,email_subject,email_from,email_paasw,email_carbon,email_ltr_scroll,email_html_scroll,attach_list,lstfrm
+            email_to = StringVar()
+            email_subject = StringVar()
+            email_from = StringVar()
+            email_passw = StringVar()
+            email_carbon = StringVar()
+            email_to_addr_label=Label(messagelbframe, text="Email to address").place(x=5, y=5)
+            email_to_addr_entry=Entry(messagelbframe, width=50,textvariable=email_to)
+            email_to_addr_entry.place(x=120, y=5)
+            email_addr = inv_email_e5_1.get()
+            email_to_addr_entry.delete(0,END)
+            email_to_addr_entry.insert(0,email_addr)
+            send_email_btn=Button(messagelbframe, text="Send Email", width=10, height=1,command=inv_send_mail_1)
+            send_email_btn.place(x=600, y=10)
+            carbon_label=Label(messagelbframe, text="Carbon copy to").place(x=5, y=32)
+            carbon_entry=Entry(messagelbframe, width=50,textvariable=email_carbon)
+            carbon_entry.place(x=120, y=32)
+            stop_email_btn=Button(messagelbframe, text="Stop sending", width=10, height=1,state=DISABLED)
+            stop_email_btn.place(x=600, y=40)
+            subject_label=Label(messagelbframe, text="Subject").place(x=5, y=59)
+            subject_entry=Entry(messagelbframe, width=50,textvariable=email_subject)
+            subject_entry.place(x=120, y=59)
+            subject = inv_number_entry_1.get()
+            subject_entry.delete(0,END)
+            subject_entry.insert(0,"Payment reciept for Invoice" + " " + "(" + subject + ")")
+
+            style = ttk.Style()
+            style.theme_use('default')
+            style.configure('TNotebook.Tab', background="#999999", width=20, padding=5)
+            mess_Notebook = ttk.Notebook(messagelbframe)
+            emailmessage_Frame = Frame(mess_Notebook,height=305, width=710)
+            htmlsourse_Frame = Frame(mess_Notebook, height=305, width=710)
+            mess_Notebook.add(emailmessage_Frame, text="E-mail message")
+            mess_Notebook.add(htmlsourse_Frame, text="Html sourse code")
+            mess_Notebook.place(x=5, y=90)
+
+            btn1=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=selectall).place(x=0, y=1)  
+            btn2=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=cut).place(x=36, y=1)
+            btn3=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=copy).place(x=73, y=1)
+            btn4=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=paste).place(x=105, y=1)
+            btn5=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=undo).place(x=140, y=1)
+            btn6=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=redo).place(x=175, y=1)
+            btn7=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=bold).place(x=210, y=1)
+            btn8=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=italics).place(x=245, y=1)
+            btn9=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=underline).place(x=280, y=1)
+            btn10=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=left).place(x=315, y=1)
+            btn11=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=right).place(x=350, y=1)
+            btn12=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=center).place(x=385, y=1)
+            btn13=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=hyperlink).place(x=420, y=1)
+            btn14=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=remove).place(x=455, y=1)
+
+            dropcomp = ttk.Combobox(emailmessage_Frame, width=12, height=3).place(x=500, y=5)
+            dropcompo = ttk.Combobox(emailmessage_Frame, width=6, height=3).place(x=600, y=5)
+            email_ltr_scroll=scrolledtext.ScrolledText(emailmessage_Frame, height=17, width=86, bg="white",undo=True)
+            email_ltr_scroll.place(x=0, y=28)
+            pay_name = inv_combo_e1_1.get()
+            email_ltr_scroll.delete("1.0",END)
+            email_ltr_scroll.insert("1.0","\n\n  Dear" + " " + pay_name + "," + "\n\n  This message is to inform you that your payment of" + " " + str(pay_amnt) + " " + "for Invoice#" + " " + pay_inv_number + " " + "has \n  been received \n\n  Payment ID: RCPT" + "" + str(pay_data[0]) + "" + "\n  Invoice ID: " + "" + pay_inv_number + "" + "\n  Payment Date: " + "" + str(pay_date) + "" + "\n  Amount: " + "" + str(pay_amnt) + "" + "\n  Paid by: " + "" + pay_by + "" + "\n  Description: " + "" + pay_desc + "" + "\n\n  Thank you for your business.\n  Your Company Name")
+            btn1=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=selectall).place(x=0, y=1)
+            btn2=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=cut).place(x=36, y=1)
+            btn3=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=copy).place(x=73, y=1)
+            btn4=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=paste).place(x=105, y=1)
+            email_html_scroll=scrolledtext.ScrolledText(htmlsourse_Frame,undo=True, height=350, width=710, bg="white")
+            email_html_scroll.place(x=0, y=28)
+            attachlbframe=LabelFrame(email_Frame,text="Attachment(s)", height=350, width=280)
+            attachlbframe.place(x=740, y=5)
+            lstfrm = StringVar()
+            attach_list=Listbox(attachlbframe, height=220, width=265,listvariable=lstfrm, bg="white")
+            attach_list.place(x=5, y=5)
+            attach_list.bind('<Double-Button-1>',inv_empsfile_image_1)
+            lbl_btn_info=Label(attachlbframe, text="Double click on attachment to view").place(x=30, y=230)
+            btn17=Button(attachlbframe, width=20, text="Add attacment file...",command=inv_UploadAction_1)
+            btn17.place(x=60, y=260)
+            btn18=Button(attachlbframe, width=20, text="Remove attacment",command=inv_deletefile_1)
+            btn18.place(x=60, y=295)
+            lbl_tt_info=Label(email_Frame, text="You can create predefined invoice, order, estimate\nand payment receipt email templates under Main\nmenu/Settings/E-Mail templates tab")
+            lbl_tt_info.place(x=740, y=370)
+
+            ready_frame=Frame(send_precp, height=20, width=1080, bg="#b3b3b3").place(x=0,y=530)
+            
+            sendatalbframe = LabelFrame(account_Frame,text="E-Mail(Sender data)",height=270, width=600)
+            sendatalbframe.place(x=5, y=5)
+            your_cemail_label = Label(sendatalbframe, text="Your company email address").place(x=5, y=30)
+            your_cemail_entry = Entry(sendatalbframe, width=40)
+            your_cemail_entry.place(x=195, y=30)
+
+            your_cpass_label = Label(sendatalbframe, text="Your Password").place(x=5, y=60)
+            your_cpass_entry = Entry(sendatalbframe, width=40,show='*')
+            your_cpass_entry.place(x=195, y=60)
+          else:
+            pass
         
         def cancel_newline_pay_1():
           mark_inv_1.destroy()
@@ -4351,10 +4596,10 @@ def mainpage():
     statusfrme.place(x=540,y=0,width=160,height=160)
     draft_label_1=Label(statusfrme, text="Draft",font=("arial", 15, "bold"), fg="grey")
     draft_label_1.place(x=50, y=3)
-    email_on_label_1=Label(statusfrme, text="Emailed on:").place( y=50)
+    email_on_label_1=Label(statusfrme, text="Emailed on:").place(x=10,y=50)
     never1_label_1=Label(statusfrme, text="Never")
-    never1_label_1.place(x=100,y=50)
-    print_on_label_1=Label(statusfrme, text="Printed on:").place( y=90)
+    never1_label_1.place(x=80,y=50)
+    print_on_label_1=Label(statusfrme, text="Printed on:").place(x=10,y=90)
     never2_label_1=Label(statusfrme, text="Never")
     never2_label_1.place(x=100,y=90)
 
@@ -4695,7 +4940,7 @@ def mainpage():
       recur_stop_check_1['state'] = NORMAL
       recur_stop_date_1['state'] = NORMAL
       recur_recalc_1['state'] = NORMAL
-    if edit_inv_data[47] == 1:
+    if edit_inv_data[47] == 0:
       checkrecStatus_1.set(0)
       recur_period_entry_1['state'] = DISABLED
       recur_month_combo_1['state'] = DISABLED
@@ -4709,10 +4954,10 @@ def mainpage():
       recur_period_entry_1.insert(0, edit_inv_data[24])
       recur_month_combo_1.delete(0,END)
       recur_month_combo_1.insert(0,edit_inv_data[25])
-      recur_nxt_inv_date_1.delete(0,END)
-      recur_nxt_inv_date_1.insert(0,edit_inv_data[26])
-      recur_stop_date_1.delete(0,END)
-      recur_stop_date_1.insert(0,edit_inv_data[27])
+      # recur_nxt_inv_date_1.delete(0,END)
+      # recur_nxt_inv_date_1.insert(0,edit_inv_data[26])
+      # recur_stop_date_1.delete(0,END)
+      # recur_stop_date_1.insert(0,edit_inv_data[27])
 
 
     pay_sql = "SELECT * FROM payments WHERE invoice_number=%s"
@@ -5326,8 +5571,8 @@ def mainpage():
   def refresh_invoice():
     for record in inv_tree.get_children():
       inv_tree.delete(record)
-      count = 0
-    fbcursor.execute('SELECT * FROM invoice;')
+    fbcursor.execute('SELECT * FROM invoice')
+    count = 0
     for i in fbcursor:
       if True:
         inv_tree.insert(parent='',index='end',iid=i,text='',value=('',i[1], i[2], i[3], i[20], i[6], i[7], i[8], i[9], i[10], i[11], i[12]))
