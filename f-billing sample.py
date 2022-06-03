@@ -188,6 +188,7 @@ photo7 = PhotoImage(file = "images/priewok.png")
 photo8 = PhotoImage(file = "images/refresh_E.png")
 photo9 = PhotoImage(file = "images/sum.png")
 photo10 = PhotoImage(file = "images/text-message.png")
+question = PhotoImage(file = "images/qstn.png")
 
 
 
@@ -1526,8 +1527,20 @@ def mainpage():
           pay_by = inv_pby_combo.get()
           pay_desc = inv_des_entry.get()
           pay_inv_number = inv_number_entry.get()
-          pay_sql = "INSERT INTO payments(payment_date,paid_by,description,amount,invoice_number) VALUES(%s,%s,%s,%s,%s)"
-          pay_val = (pay_date,pay_by,pay_desc,pay_amnt,pay_inv_number,)
+          if checkvar.get() == 0:
+            pay_full = 0
+          else:
+            pay_full = 1
+          if checkvar1.get() == 0:
+            pay_recp = 0
+          else:
+            pay_recp = 1
+          if checkvar2.get() == 0:
+            pay_att_up = 0
+          else:
+            pay_att_up = 1
+          pay_sql = "INSERT INTO payments(payment_date,paid_by,description,amount,invoice_number,paid_n_close,payment_reciept,updated_invoice) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
+          pay_val = (pay_date,pay_by,pay_desc,pay_amnt,pay_inv_number,pay_full,pay_recp,pay_att_up,)
           fbcursor.execute(pay_sql,pay_val)
           fbilldb.commit()
 
@@ -2456,22 +2469,24 @@ def mainpage():
     ############## show file ###############
 
     def show_sel_file(event):
+      import win32api
       selected_file = doc_tree.item(doc_tree.focus())["values"][1]
-      show = Toplevel()
-      show.geometry("700x500")
-      show.title("View Files")
-      if selected_file.lower().endswith(('.png','.jpg')):
-        open_image = Image.open("images/"+selected_file)
-        resize_img = open_image.resize((700,500))
-        img = ImageTk.PhotoImage(resize_img)
-        image = Label(show,image=img)
-        image.photo = img
-        image.pack()
-      else:
-        with open("images/"+selected_file,mode='r',encoding="utf-8",errors="ignore") as none_img:
-          data = none_img.read()
-          image = Label(show,text=data)
-          image.pack()
+      win32api.ShellExecute(0,"",os.getcwd()+"/images/"+selected_file,None,".",0)
+      # show = Toplevel()
+      # show.geometry("700x500")
+      # show.title("View Files")
+      # if selected_file.lower().endswith(('.png','.jpg')):
+      #   open_image = Image.open("images/"+selected_file)
+      #   resize_img = open_image.resize((700,500))
+      #   img = ImageTk.PhotoImage(resize_img)
+      #   image = Label(show,image=img)
+      #   image.photo = img
+      #   image.pack()
+      # else:
+      #   with open("images/"+selected_file,mode='r',encoding="utf-8",errors="ignore") as none_img:
+      #     data = none_img.read()
+      #     image = Label(show,text=data)
+      #     image.pack()
     
 
     doc_plus_btn=Button(doc_labelframe,image=plus_1,text="",width=20,height=25,command=attach_file)
@@ -3727,11 +3742,33 @@ def mainpage():
 
     #mark invoice
     def markinvo_1():
+      pay_sel_sql = "SELECT * FROM payments WHERE invoice_number=%s"
+      pay_sel_val = (edit_inv_data[1],)
+      fbcursor.execute(pay_sel_sql,pay_sel_val)
+      pay_sel_data = fbcursor.fetchone()
       check_newline = add_newline_tree_1.get_children()
       if inv_combo_e1_1.get() == '':
         messagebox.showwarning("F-Billing Revolution","Customer required, please select customer first.")
       elif len(check_newline) == 0:
         messagebox.showwarning("F-Billing Revolution","This invoice has no line items. \nPlease add line item(s) first.")
+      elif pay_sel_data[6] == 1 and edit_inv_data[10] == 0.0:
+        inv_as_paid_1 =Toplevel()
+        inv_as_paid_1.geometry("350x200")
+        inv_as_paid_1.title("Record Payement")
+        inv_as_paid_1.configure(bg="white")
+
+        def destroy_as_paid_1():
+          inv_as_paid_1.destroy()
+        
+        what_label_1 = Label(inv_as_paid_1,text="What would like to do?",bg="white",fg="#1a3365",font=("sans-serif",12)).place(x=50,y=10)
+        fully_label_1 = Label(inv_as_paid_1,text="This invoice looks like fully paid.",bg="white").place(x=50,y=40)
+        qstn_label_1 = Label(inv_as_paid_1,image=question,borderwidth=0,bg="white").place(x=10,y=10)
+        mark_as_paid_1 = Button(inv_as_paid_1,text='🡢 Marked as"Paid" and close invoice',fg="#0077b3",bg="white",border=0,font=("sans-serif",12))
+        mark_as_paid_1.place(x=50,y=80)
+        rec_new_1 = Button(inv_as_paid_1,text='🡢 Record new payment',fg="#0077b3",bg="white",border=0,font=("sans-serif",12))
+        rec_new_1.place(x=50,y=120)
+        cancel_as_paid = Button(inv_as_paid_1,text="Cancel",bg="white",borderwidth=1,width=8,command=destroy_as_paid_1)
+        cancel_as_paid.place(x=270,y=168)
       else:
         mark_inv_1=Toplevel()
         mark_inv_1.geometry("700x480+240+150")
@@ -3846,8 +3883,20 @@ def mainpage():
           pay_by = inv_pby_combo_1.get()
           pay_desc = inv_des_entry_1.get()
           pay_inv_number = inv_number_entry_1.get()
-          pay_sql = "INSERT INTO payments(payment_date,paid_by,description,amount,invoice_number) VALUES(%s,%s,%s,%s,%s)"
-          pay_val = (pay_date,pay_by,pay_desc,pay_amnt,pay_inv_number,)
+          if checkvar_1.get() == 0:
+            pay_full = 0
+          else:
+            pay_full = 1
+          if checkvar1_1.get() == 0:
+            pay_recp = 0
+          else:
+            pay_recp = 1
+          if checkvar2_1.get() == 0:
+            pay_att_up = 0
+          else:
+            pay_att_up = 1
+          pay_sql = "INSERT INTO payments(payment_date,paid_by,description,amount,invoice_number,paid_n_close,payment_reciept,updated_invoice) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
+          pay_val = (pay_date,pay_by,pay_desc,pay_amnt,pay_inv_number,pay_full,pay_recp,pay_att_up,)
           fbcursor.execute(pay_sql,pay_val)
           fbilldb.commit()
 
@@ -4077,51 +4126,49 @@ def mainpage():
         def cancel_newline_pay_1():
           mark_inv_1.destroy()
 
-      
-      
 
-      style = ttk.Style()
-      style.theme_use('default')
-      style.configure('TNotebook.Tab', background="#999999", padding=5)
-      mark_Notebook = ttk.Notebook(mark_inv_1)
-      Mark_Invoice = Frame(mark_Notebook, height=470, width=750)
-      mark_Notebook.add(Mark_Invoice, text="Mark Invoice")
-      mark_Notebook.place(x=0, y=0)
+        style = ttk.Style()
+        style.theme_use('default')
+        style.configure('TNotebook.Tab', background="#999999", padding=5)
+        mark_Notebook = ttk.Notebook(mark_inv_1)
+        Mark_Invoice = Frame(mark_Notebook, height=470, width=750)
+        mark_Notebook.add(Mark_Invoice, text="Mark Invoice")
+        mark_Notebook.place(x=0, y=0)
 
-      inv_bal_label_1=Label(Mark_Invoice, text="Invoice Balance").place(x=10, y=10)
-      inv_bal_entry_1=Label(Mark_Invoice, width=25,fg="red",bg="white",text=bal,font=("Arial",10,"bold"))
-      inv_bal_entry_1.place(x=130, y=10)
-      labelframe5 = LabelFrame(Mark_Invoice,text="Payement Record Details",bg="#f5f3f2")
-      labelframe5.place(x=10,y=60,width=670,height=250)
-      inv_amnt_entry_1 = Entry(labelframe5,width=28)
-      inv_amnt_entry_1.place(x=30,y=45)
-      inv_amnt_entry_1.delete(0,END)
-      inv_amnt_entry_1.insert(0,bal)
-      inv_pdate_label_1 = Label(labelframe5, text="Payement Date:",bg="#f5f3f2").place(x=250,y=20)
-      inv_pdate_entry_1 = DateEntry(labelframe5,width=28)
-      inv_pdate_entry_1.place(x=220,y=45)
-      inv_pby_label_1 = Label(labelframe5, text="Paid By:",bg="#f5f3f2").place(x=450,y=20)
-      inv_pby_combo_1 = ttk.Combobox(labelframe5, value=tdata_1)
-      inv_pby_combo_1.place(x=450,y=45)
-      inv_pby_combo_1.bind("<<ComboboxSelected>>")
-      inv_des_label_1=Label(labelframe5, text="Description").place(x=30, y=80)
-      inv_des_entry_1=Entry(labelframe5, width=100)
-      inv_des_entry_1.place(x=30, y=120)
-      checkvar_1=IntVar()
-      inv_pfull_check_1 = Checkbutton(labelframe5,text="Paid in full and close invoice",variable=checkvar_1,onvalue=1,offvalue=0,bg="#f5f3f2")
-      inv_pfull_check_1.place(x=30 ,y=150)
-      inv_precp_label_1 = Label(labelframe5,text="Payement Reciepts",bg="#f5f3f2").place(x=300,y=145)
-      checkvar1_1=IntVar()
-      inv_send_precp_1 = Checkbutton(labelframe5,text="Send Payement Reciept",variable=checkvar1_1,onvalue=1,offvalue=0,bg="#f5f3f2")
-      inv_send_precp_1.place(x=320 ,y=170)
-      checkvar2_1=IntVar()
-      inv_att_upinv_1 = Checkbutton(labelframe5,text="Attach updated invoice",variable=checkvar2_1,onvalue=1,offvalue=0,bg="#f5f3f2")
-      inv_att_upinv_1.place(x=320 ,y=200)
+        inv_bal_label_1=Label(Mark_Invoice, text="Invoice Balance").place(x=10, y=10)
+        inv_bal_entry_1=Label(Mark_Invoice, width=25,fg="red",bg="white",text=bal,font=("Arial",10,"bold"))
+        inv_bal_entry_1.place(x=130, y=10)
+        labelframe5 = LabelFrame(Mark_Invoice,text="Payement Record Details",bg="#f5f3f2")
+        labelframe5.place(x=10,y=60,width=670,height=250)
+        inv_amnt_entry_1 = Entry(labelframe5,width=28)
+        inv_amnt_entry_1.place(x=30,y=45)
+        inv_amnt_entry_1.delete(0,END)
+        inv_amnt_entry_1.insert(0,bal)
+        inv_pdate_label_1 = Label(labelframe5, text="Payement Date:",bg="#f5f3f2").place(x=250,y=20)
+        inv_pdate_entry_1 = DateEntry(labelframe5,width=28)
+        inv_pdate_entry_1.place(x=220,y=45)
+        inv_pby_label_1 = Label(labelframe5, text="Paid By:",bg="#f5f3f2").place(x=450,y=20)
+        inv_pby_combo_1 = ttk.Combobox(labelframe5, value=tdata_1)
+        inv_pby_combo_1.place(x=450,y=45)
+        inv_pby_combo_1.bind("<<ComboboxSelected>>")
+        inv_des_label_1=Label(labelframe5, text="Description").place(x=30, y=80)
+        inv_des_entry_1=Entry(labelframe5, width=100)
+        inv_des_entry_1.place(x=30, y=120)
+        checkvar_1=IntVar()
+        inv_pfull_check_1 = Checkbutton(labelframe5,text="Paid in full and close invoice",variable=checkvar_1,onvalue=1,offvalue=0,bg="#f5f3f2")
+        inv_pfull_check_1.place(x=30 ,y=150)
+        inv_precp_label_1 = Label(labelframe5,text="Payement Reciepts",bg="#f5f3f2").place(x=300,y=145)
+        checkvar1_1=IntVar()
+        inv_send_precp_1 = Checkbutton(labelframe5,text="Send Payement Reciept",variable=checkvar1_1,onvalue=1,offvalue=0,bg="#f5f3f2")
+        inv_send_precp_1.place(x=320 ,y=170)
+        checkvar2_1=IntVar()
+        inv_att_upinv_1 = Checkbutton(labelframe5,text="Attach updated invoice",variable=checkvar2_1,onvalue=1,offvalue=0,bg="#f5f3f2")
+        inv_att_upinv_1.place(x=320 ,y=200)
 
-      inv_pok_btn_1 =Button(Mark_Invoice,compound = LEFT,image=tick , text="Save payement", width=100,command=add_newline_pay_1)
-      inv_pok_btn_1.place(x=10, y=350)
-      inv_pcan_btn_1 =Button(Mark_Invoice,compound = LEFT,image=cancel, text="Cancel", width=100,command=cancel_newline_pay_1)
-      inv_pcan_btn_1.place(x=500, y=350)
+        inv_pok_btn_1 =Button(Mark_Invoice,compound = LEFT,image=tick , text="Save payement", width=100,command=add_newline_pay_1)
+        inv_pok_btn_1.place(x=10, y=350)
+        inv_pcan_btn_1 =Button(Mark_Invoice,compound = LEFT,image=cancel, text="Cancel", width=100,command=cancel_newline_pay_1)
+        inv_pcan_btn_1.place(x=500, y=350)
 
     ################## delete newline payment ###################
     def delete_newline_pay_1():
@@ -4743,22 +4790,24 @@ def mainpage():
     ############## show file ###############
 
     def show_sel_file_1(event):
+      import win32api
       selected_file_1 = doc_tree_1.item(doc_tree_1.focus())["values"][1]
-      show = Toplevel()
-      show.geometry("700x500")
-      show.title("View Files")
-      if selected_file_1.lower().endswith(('.png','.jpg')):
-        open_image_1 = Image.open("images/"+selected_file_1)
-        resize_img_1 = open_image_1.resize((700,500))
-        img_1 = ImageTk.PhotoImage(resize_img_1)
-        image_1 = Label(show,image=img_1)
-        image_1.photo = img_1
-        image_1.pack()
-      else:
-        with open("images/"+selected_file_1,mode='r',encoding="utf-8",errors="ignore") as none_img_1:
-          data_1 = none_img_1.read()
-          image_1 = Label(show,text=data_1)
-          image_1.pack()
+      win32api.ShellExecute(0,"",os.getcwd()+"/images/"+selected_file_1,None,".",0)
+      # show = Toplevel()
+      # show.geometry("700x500")
+      # show.title("View Files")
+      # if selected_file_1.lower().endswith(('.png','.jpg')):
+      #   open_image_1 = Image.open("images/"+selected_file_1)
+      #   resize_img_1 = open_image_1.resize((700,500))
+      #   img_1 = ImageTk.PhotoImage(resize_img_1)
+      #   image_1 = Label(show,image=img_1)
+      #   image_1.photo = img_1
+      #   image_1.pack()
+      # else:
+      #   with open("images/"+selected_file_1,mode='r',encoding="utf-8",errors="ignore") as none_img_1:
+      #     data_1 = none_img_1.read()
+      #     image_1 = Label(show,text=data_1)
+      #     image_1.pack()
 
     doc_plus_btn_1=Button(doc_labelframe_1,image=plus_1,text="",width=20,height=25,command=attach_file_1)
     doc_plus_btn_1.place(x=5,y=10)
@@ -5665,6 +5714,19 @@ def mainpage():
       count += 1
 
 
+      def convertion_2(B):
+        BYTE = float(B)
+        KB = float(1024)
+        MB = float(KB**2)
+
+        if BYTE < KB:
+          return '{0} {1}'.format(BYTE,'Bytes' if 0 == B > 1 else 'Byte')
+        elif KB <= BYTE < MB:
+          return '{0:.2f} KB'.format(BYTE / KB)
+        elif MB <= BYTE:
+          return '{0:.2f} MB'.format(BYTE / MB)
+
+
       def record_picker(event):
         selected_inv = inv_tree.focus()
         selected_product = inv_tree.item(selected_inv)["values"][1]
@@ -5708,10 +5770,9 @@ def mainpage():
 
         countdoc = 0
         for doc in doc_details:
-          inv_doc_tree.insert(parent='',index='end',iid=doc,text='',values=('',doc[6],''))
+          file_size_3 = convertion_2(os.path.getsize("images/"+doc[6]))
+          inv_doc_tree.insert(parent='',index='end',iid=doc,text='',values=('',doc[6],file_size_3))
         countdoc += 1
-
-
       inv_tree.bind('<ButtonRelease>',record_picker)
 
 
