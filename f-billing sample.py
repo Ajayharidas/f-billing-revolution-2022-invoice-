@@ -1878,6 +1878,97 @@ def mainpage():
     def voidinvoice():
       void_msg = messagebox.askyesno("F-Billing Revolution","Are you sure to avoid this invoice?\nAll products will be placed back into stock and all payemnts will be voided.")
       if void_msg == YES:
+        draft_label.config(text="Void")
+        if draft_label['text'] == "Void":
+          invoice_number = inv_number_entry.get()
+          invodate = inv_date_entry.get_date()
+          if checkvarStatus5.get() == 0:
+            pass
+          else:
+            duedate = inv_duedate_entry.get_date()
+          term_of_payment = inv_terms_combo.get()
+          ref = inv_ref_entry.get()
+          status = draft_label.cget("text")
+          emailon = never1_label.cget("text")
+          printon = never2_label.cget("text")
+          # smson = 
+          invoicetot = invoicetot1.cget("text")
+          totpaid = total1.cget("text")
+          balance = balance1.cget("text")
+          extracostname = ex_costn_combo.get()
+          extracost = cost1.cget("text")
+          template = template_entry.get()
+          salesper = sales_per_entry.get()
+          discourate = dis_rate_entry.get()
+          discount = discount1.cget("text")
+          tax1 = tax_1.cget("text")
+          category = category_entry.get()
+          businessname = inv_combo_e1.get()
+          businessaddress = inv_addr_e2.get("1.0",END)
+          shipname = inv_shipto_e3.get()
+          shipaddress = inv_addr_e4.get("1.0",END)
+          cpemail = inv_email_e5.get()
+          cpmobileforsms = inv_sms_e6.get()
+          if checkrecStatus.get() == 0 :
+            next_invoice = NULL
+            stop_recurring = NULL
+            recurring_period = NULL
+            recurring_period_month = NULL
+            recurring_check = 0
+          else:
+            next_invoice = recur_nxt_inv_date.get_date()
+            stop_recurring = recur_stop_date.get_date()
+            recurring_period = recur_period_entry.get()
+            recurring_period_month = recur_month_combo.get()
+            recurring_check = 1
+          title_text = title_txt_combo.get()
+          header_text = pageh_txt_combo.get()
+          footer_text = footer_txt_combo.get()
+          tax2 = tax_2.cget("text")
+          comments = comment_txt.get("1.0",END)
+          privatenotes = private_note_txt.get("1.0",END)
+          terms = term_txt.get("1.0",END)
+          paid_n_closed = 0
+          doc_get = doc_tree.get_children()
+          quantity = sel_pro_str[18]
+          for record in add_newline_tree.get_children():
+            storingproduct = add_newline_tree.item(record)["values"]
+            if not comp_data:
+              storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
+              storepro_val = (invoice_number,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6])
+              fbcursor.execute(storepro_sql,storepro_val)
+              fbilldb.commit()
+            elif comp_data[12] == "1":
+              storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
+              storepro_val = (invoice_number,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6])
+              fbcursor.execute(storepro_sql,storepro_val)
+              fbilldb.commit()
+            elif comp_data[12] == "2":
+              storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,tax1,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+              storepro_val = (invoice_number,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6],storingproduct[7])
+              fbcursor.execute(storepro_sql,storepro_val)
+              fbilldb.commit()
+            elif comp_data[12] == "3":
+              storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,tax1,tax2,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+              storepro_val = (invoice_number,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6],storingproduct[7],storingproduct[8])
+              fbcursor.execute(storepro_sql,storepro_val)
+              fbilldb.commit()
+
+
+          for files in doc_get:
+            file_sql = "INSERT INTO documents(invoice_number,documents) VALUES(%s,%s)"
+            file_val = (invoice_number,files)
+            fbcursor.execute(file_sql,file_val)
+            fbilldb.commit()
+
+          inv_sql='INSERT INTO Invoice (invoice_number,invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check,paid_n_closed) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
+          inv_val=(invoice_number,invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check,paid_n_closed,)
+          fbcursor.execute(inv_sql,inv_val)
+          fbilldb.commit()
+        else:
+          pass
+
+
         select_customer_btn['state'] = DISABLED
         add_newline_btn['state'] = DISABLED
         del_line_item_btn['state'] = DISABLED
@@ -1898,16 +1989,14 @@ def mainpage():
         ex_costn_combo['state'] = DISABLED
         dis_rate_entry['state'] = DISABLED
         ex_cost_entry['state'] = DISABLED
-        tax1_entry['state'] = DISABLED
+        if comp_data[12] == "1":
+          pass
+        elif comp_data[12] == "2":
+          tax1_entry['state'] = DISABLED
+        elif comp_data[12] == "3":
+          tax1_entry['state'] = DISABLED
+          tax2_entry['state'] = DISABLED
         template_entry['state'] = DISABLED
-        draft_label.config(text="Void")
-        if draft_label['text'] == "Void":
-          num = inv_number_entry.get()
-          sql = "UPDATE Invoice SET status='Void' WHERE invoice_number=%s"
-          val = (num,)
-          fbcursor.execute(sql,val)
-          fbilldb.commit()
-
         if checkrecStatus is not None:
           checkrecStatus.set(0)
         else:
@@ -1930,8 +2019,6 @@ def mainpage():
         doc_minus_btn['state'] = DISABLED
       else:
         pass
-
-
 
     
     #delete line item  
@@ -2597,7 +2684,7 @@ def mainpage():
     val_edit = (edit_inv_fetch,)
     fbcursor.execute(sql_edit,val_edit)
     edit_inv_data = fbcursor.fetchone()
-    
+
     def edit_invoice():
       invoice_number_1 = inv_number_entry_1.get()
       invodate_1 = inv_date_entry_1.get_date()
@@ -2645,6 +2732,7 @@ def mainpage():
       comments_1 = comment_txt_1.get("1.0",END)
       privatenotes_1 = private_note_txt_1.get("1.0",END)
       terms_1 = term_txt_1.get("1.0",END)
+      paid_n_closed = 0
       doc_get_1 = doc_tree_1.get_children()
       for qn in add_newline_tree_1.get_children():
         quantity_1 = add_newline_tree_1.item(qn)["values"][4]
@@ -2693,8 +2781,8 @@ def mainpage():
         fbilldb.commit()
 
       
-      inv_sql='UPDATE invoice SET invodate=%s,duedate=%s,status=%s,emailon=%s,printon=%s,invoicetot=%s,totpaid=%s,balance=%s,extracostname=%s,extracost=%s,template=%s,salesper=%s,discourate=%s,tax1=%s,category=%s,businessname=%s,businessaddress=%s,shipname=%s,shipaddress=%s,cpemail=%s,cpmobileforsms=%s,recurring_period=%s,recurring_period_month=%s,next_invoice=%s,stop_recurring=%s,discount=%s,terms=%s,tax2=%s,quantity=%s,title_text=%s,header_text=%s,footer_text=%s,term_of_payment=%s,ref=%s,comments=%s,privatenotes=%s WHERE invoice_number=%s' #adding values into db
-      inv_val=(invodate_1,duedate_1,status_1,emailon_1,printon_1,invoicetot_1,totpaid_1,balance_1,extracostname_1,extracost_1,template_1,salesper_1,discourate_1,tax1_01,category_1,businessname_1,businessaddress_1,shipname_1,shipaddress_1,cpemail_1,cpmobileforsms_1,recurring_period_1,recurring_period_month_1,next_invoice_1,stop_recurring_1,discount_1,terms_1,tax2_01,quantity_1,title_text_1,header_text_1,footer_text_1,term_of_payment_1,ref_1,comments_1,privatenotes_1,invoice_number_1,)
+      inv_sql='UPDATE invoice SET invodate=%s,duedate=%s,status=%s,emailon=%s,printon=%s,invoicetot=%s,totpaid=%s,balance=%s,extracostname=%s,extracost=%s,template=%s,salesper=%s,discourate=%s,tax1=%s,category=%s,businessname=%s,businessaddress=%s,shipname=%s,shipaddress=%s,cpemail=%s,cpmobileforsms=%s,recurring_period=%s,recurring_period_month=%s,next_invoice=%s,stop_recurring=%s,discount=%s,terms=%s,tax2=%s,quantity=%s,title_text=%s,header_text=%s,footer_text=%s,term_of_payment=%s,ref=%s,comments=%s,privatenotes=%s,paid_n_closed=%s WHERE invoice_number=%s' #adding values into db
+      inv_val=(invodate_1,duedate_1,status_1,emailon_1,printon_1,invoicetot_1,totpaid_1,balance_1,extracostname_1,extracost_1,template_1,salesper_1,discourate_1,tax1_01,category_1,businessname_1,businessaddress_1,shipname_1,shipaddress_1,cpemail_1,cpmobileforsms_1,recurring_period_1,recurring_period_month_1,next_invoice_1,stop_recurring_1,discount_1,terms_1,tax2_01,quantity_1,title_text_1,header_text_1,footer_text_1,term_of_payment_1,ref_1,comments_1,privatenotes_1,paid_n_closed,invoice_number_1,)
       fbcursor.execute(inv_sql,inv_val)
       fbilldb.commit()
       pop_1.destroy()
@@ -3739,35 +3827,88 @@ def mainpage():
         bal = round((total_cost - tot_paid),2)
         balance1_1.config(text=bal)         
 
-
     #mark invoice
     def markinvo_1():
       pay_sel_sql = "SELECT * FROM payments WHERE invoice_number=%s"
       pay_sel_val = (edit_inv_data[1],)
       fbcursor.execute(pay_sel_sql,pay_sel_val)
-      pay_sel_data = fbcursor.fetchone()
+      pay_sel_data = fbcursor.fetchall()
+      if pay_sel_data:
+        pay_list = []
+        for p in pay_sel_data:
+          pay_list.append(p)
+        pd = pay_list[-1]
+      else:
+        pd = 0
       check_newline = add_newline_tree_1.get_children()
+
+      def markas_paid_1():
+        close_sql = "UPDATE invoice SET paid_n_closed=%s WHERE invoice_number=%s"
+        close_val = (1,edit_inv_data[1],)
+        fbcursor.execute(close_sql,close_val)
+        fbilldb.commit()
+        select_customer_btn_1["state"] = DISABLED
+        add_newline_btn_1['state'] = DISABLED
+        del_line_item_btn_1['state'] = DISABLED
+        mark_inv_paid_1['state'] = DISABLED
+        save_invoice_1["state"] = DISABLED
+        inv_combo_e1_1['state'] = DISABLED
+        inv_addr_e2_1['state'] = DISABLED
+        inv_shipto_e3_1['state'] = DISABLED
+        inv_addr_e4_1['state'] = DISABLED
+        inv_email_e5_1['state'] = DISABLED
+        inv_sms_e6_1['state'] = DISABLED
+        inv_number_entry_1['state'] = DISABLED
+        inv_date_entry_1['state'] = DISABLED
+        inv_duedate_entry_1['state'] = DISABLED
+        inv_terms_combo_1['state'] = DISABLED
+        inv_ref_entry_1['state'] = DISABLED
+        ex_costn_combo_1['state'] = DISABLED
+        dis_rate_entry_1['state'] = DISABLED
+        ex_cost_entry_1['state'] = DISABLED
+        if comp_data[12] == "1":
+          pass
+        elif comp_data[12] == "2":
+          tax1_entry_1['state'] = DISABLED
+        elif comp_data[12] == "3":
+          tax1_entry_1['state'] = DISABLED
+          tax2_entry_1['state'] = DISABLED
+        template_entry_1['state'] = DISABLED
+        recur_check_btn_1['state'] = DISABLED
+        recur_period_entry_1['state'] = DISABLED
+        recur_month_combo_1['state'] = DISABLED
+        recur_nxt_inv_date_1['state'] = DISABLED
+        recur_stop_check_1['state'] = DISABLED
+        recur_stop_date_1['state'] = DISABLED
+        recur_recalc_1['state'] = DISABLED
+        pay_plus_1['state'] = DISABLED
+        pay_minus_1['state'] = DISABLED
+        title_txt_combo_1['state'] = DISABLED
+        pageh_txt_combo_1['state'] = DISABLED
+        footer_txt_combo_1['state'] = DISABLED
+        term_txt_1['state'] = DISABLED
+        comment_txt_1['state'] = DISABLED
+        doc_plus_btn_1['state'] = DISABLED
+        doc_minus_btn_1['state'] = DISABLED
+        inv_as_paid_1.destroy()
       if inv_combo_e1_1.get() == '':
         messagebox.showwarning("F-Billing Revolution","Customer required, please select customer first.")
       elif len(check_newline) == 0:
         messagebox.showwarning("F-Billing Revolution","This invoice has no line items. \nPlease add line item(s) first.")
-      elif pay_sel_data[6] == 1 and edit_inv_data[10] == 0.0:
+      elif pd != 0 and pd[6] == 1 and balance1_1.cget("text") == 0.0:
         inv_as_paid_1 =Toplevel()
-        inv_as_paid_1.geometry("350x200")
+        inv_as_paid_1.geometry("350x200+450+200")
         inv_as_paid_1.title("Record Payement")
         inv_as_paid_1.configure(bg="white")
-
-        def destroy_as_paid_1():
-          inv_as_paid_1.destroy()
         
         what_label_1 = Label(inv_as_paid_1,text="What would like to do?",bg="white",fg="#1a3365",font=("sans-serif",12)).place(x=50,y=10)
         fully_label_1 = Label(inv_as_paid_1,text="This invoice looks like fully paid.",bg="white").place(x=50,y=40)
         qstn_label_1 = Label(inv_as_paid_1,image=question,borderwidth=0,bg="white").place(x=10,y=10)
-        mark_as_paid_1 = Button(inv_as_paid_1,text='🡢 Marked as"Paid" and close invoice',fg="#0077b3",bg="white",border=0,font=("sans-serif",12))
-        mark_as_paid_1.place(x=50,y=80)
-        rec_new_1 = Button(inv_as_paid_1,text='🡢 Record new payment',fg="#0077b3",bg="white",border=0,font=("sans-serif",12))
-        rec_new_1.place(x=50,y=120)
-        cancel_as_paid = Button(inv_as_paid_1,text="Cancel",bg="white",borderwidth=1,width=8,command=destroy_as_paid_1)
+        mark_as_paid_btn_1 = Button(inv_as_paid_1,text='🡢 Marked as "Paid" and close invoice',fg="#0077b3",bg="white",border=0,font=("sans-serif",12),command=markas_paid_1)
+        mark_as_paid_btn_1.place(x=50,y=80)
+        rec_new_btn_1 = Button(inv_as_paid_1,text='🡢 Record new payment',fg="#0077b3",bg="white",border=0,font=("sans-serif",12))
+        rec_new_btn_1.place(x=50,y=120)
+        cancel_as_paid = Button(inv_as_paid_1,text="Cancel",bg="white",borderwidth=1,width=8,command=lambda:inv_as_paid_1.destroy())
         cancel_as_paid.place(x=270,y=168)
       else:
         mark_inv_1=Toplevel()
@@ -3883,7 +4024,11 @@ def mainpage():
           pay_by = inv_pby_combo_1.get()
           pay_desc = inv_des_entry_1.get()
           pay_inv_number = inv_number_entry_1.get()
-          if checkvar_1.get() == 0:
+          if checkvar_1.get() == 0 and balance1_1.cget("text") == "0.0":
+            pay_full = 0
+          if checkvar_1.get() == 1 and balance1_1.cget("text") != "0.0":
+            pay_full = 0
+          if checkvar_1.get() == 0 and balance1_1.cget("text") != "0.0":
             pay_full = 0
           else:
             pay_full = 1
@@ -4188,6 +4333,7 @@ def mainpage():
       
     #voidinvoice
     def voidinvoice_1():
+      void_msg_1 = messagebox.askyesno("F-Billing Revolution","Are you sure to avoid this invoice?\nAll products will be placed back into stock and all payemnts will be voided.")
       if void_msg_1 == YES:
         select_customer_btn_1['state'] = DISABLED
         add_newline_btn_1['state'] = DISABLED
@@ -4209,7 +4355,13 @@ def mainpage():
         ex_costn_combo_1['state'] = DISABLED
         dis_rate_entry_1['state'] = DISABLED
         ex_cost_entry_1['state'] = DISABLED
-        tax1_entry_1['state'] = DISABLED
+        if comp_data[12] == "1":
+          pass
+        elif comp_data[12] == "2":
+          tax1_entry_1['state'] = DISABLED
+        elif comp_data[12] == "3":
+          tax1_entry_1['state'] = DISABLED
+          tax2_entry_1['state'] = DISABLED
         template_entry_1['state'] = DISABLED
         draft_label_1.config(text="void")
         if checkrecStatus_1 is not None:
@@ -4341,9 +4493,6 @@ def mainpage():
         inv_addr_e4_1.insert('1.0',edit_inv_data[21])
 
 
-        
-        
-
     sql = "select businessname from Customer"
     fbcursor.execute(sql,)
     cdata = fbcursor.fetchall()
@@ -4378,19 +4527,43 @@ def mainpage():
     inv_sms_e6_1=Entry(labelframe2,width=30)
     inv_sms_e6_1.place(x=402,y=5)
     
-
-    inv_combo_e1_1.delete(0,END)
-    inv_combo_e1_1.insert(0,edit_inv_data[18])
-    inv_addr_e2_1.delete('1.0',END)
-    inv_addr_e2_1.insert('1.0',edit_inv_data[19])
-    inv_shipto_e3_1.delete(0, END)
-    inv_shipto_e3_1.insert(0, edit_inv_data[20])
-    inv_addr_e4_1.delete('1.0',END)
-    inv_addr_e4_1.insert('1.0',edit_inv_data[21])
-    inv_email_e5_1.delete(0,END)
-    inv_email_e5_1.insert(0,edit_inv_data[22])
-    inv_sms_e6_1.delete(0,END)
-    inv_sms_e6_1.insert(0,edit_inv_data[23])
+    if edit_inv_data[48] == 1:
+      inv_combo_e1_1.delete(0,END)
+      inv_combo_e1_1.insert(0,edit_inv_data[18])
+      inv_addr_e2_1.delete('1.0',END)
+      inv_addr_e2_1.insert('1.0',edit_inv_data[19])
+      inv_shipto_e3_1.delete(0, END)
+      inv_shipto_e3_1.insert(0, edit_inv_data[20])
+      inv_addr_e4_1.delete('1.0',END)
+      inv_addr_e4_1.insert('1.0',edit_inv_data[21])
+      inv_email_e5_1.delete(0,END)
+      inv_email_e5_1.insert(0,edit_inv_data[22])
+      inv_sms_e6_1.delete(0,END)
+      inv_sms_e6_1.insert(0,edit_inv_data[23])
+      inv_combo_e1_1['state'] = DISABLED
+      inv_addr_e2_1['state'] = DISABLED
+      inv_shipto_e3_1['state'] = DISABLED
+      inv_addr_e4_1['state'] = DISABLED
+      inv_email_e5_1['state'] = DISABLED
+      inv_sms_e6_1['state'] = DISABLED
+      select_customer_btn_1["state"] = DISABLED
+      add_newline_btn_1['state'] = DISABLED
+      del_line_item_btn_1['state'] = DISABLED
+      mark_inv_paid_1['state'] = DISABLED
+      save_invoice_1["state"] = DISABLED
+    else:
+      inv_combo_e1_1.delete(0,END)
+      inv_combo_e1_1.insert(0,edit_inv_data[18])
+      inv_addr_e2_1.delete('1.0',END)
+      inv_addr_e2_1.insert('1.0',edit_inv_data[19])
+      inv_shipto_e3_1.delete(0, END)
+      inv_shipto_e3_1.insert(0, edit_inv_data[20])
+      inv_addr_e4_1.delete('1.0',END)
+      inv_addr_e4_1.insert('1.0',edit_inv_data[21])
+      inv_email_e5_1.delete(0,END)
+      inv_email_e5_1.insert(0,edit_inv_data[22])
+      inv_sms_e6_1.delete(0,END)
+      inv_sms_e6_1.insert(0,edit_inv_data[23])
       
     labelframe = LabelFrame(inv_first_frame2_1,text="Invoice",font=("arial",15))
     labelframe.place(x=652,y=5,width=290,height=170)
@@ -4402,8 +4575,13 @@ def mainpage():
     inv_number_entry_1=Entry(labelframe,width=25)
     inv_number_entry_1.place(x=100,y=5,)
 
-    inv_number_entry_1.delete(0,'end')
-    inv_number_entry_1.insert(0, edit_inv_data[1])
+    if edit_inv_data[48] == 1:
+      inv_number_entry_1.delete(0,'end')
+      inv_number_entry_1.insert(0, edit_inv_data[1])
+      inv_number_entry_1["state"] = DISABLED
+    else:
+      inv_number_entry_1.delete(0,'end')
+      inv_number_entry_1.insert(0, edit_inv_data[1])
 
     def inv_due_check_1():
       if checkvarStatus5_1.get() == 0:
@@ -4437,19 +4615,39 @@ def mainpage():
     inv_ref_entry_1=Entry(labelframe,width=25 )
     inv_ref_entry_1.place(x=100,y=118)
 
-    inv_date_entry_1.delete(0, END)
-    inv_date_entry_1.insert(0, edit_inv_data[2])
-    if checkvarStatus5_1 is not None:
-      checkvarStatus5_1.set(1)
+    if edit_inv_data[48] == 1:
+      inv_date_entry_1.delete(0, END)
+      inv_date_entry_1.insert(0, edit_inv_data[2])
+      if checkvarStatus5_1 is not None:
+        checkvarStatus5_1.set(1)
+      else:
+        checkvarStatus5_1.set(1)
+      inv_duedate_entry_1['state'] = NORMAL
+      inv_duedate_entry_1.delete(0, END)
+      inv_duedate_entry_1.insert(0, edit_inv_data[3])
+      inv_terms_combo_1.delete(0, END)
+      inv_terms_combo_1.insert(0, edit_inv_data[42])
+      inv_ref_entry_1.delete(0, END)
+      inv_ref_entry_1.insert(0, edit_inv_data[43])
+      inv_date_entry_1['state'] = DISABLED
+      inv_duedate_entry_1['state'] = DISABLED
+      inv_terms_combo_1['state'] = DISABLED
+      inv_ref_entry_1['state'] = DISABLED
+      inv_duedate_check_1['state'] = DISABLED
     else:
-      checkvarStatus5_1.set(1)
-    inv_duedate_entry_1['state'] = NORMAL
-    inv_duedate_entry_1.delete(0, END)
-    inv_duedate_entry_1.insert(0, edit_inv_data[3])
-    inv_terms_combo_1.delete(0, END)
-    inv_terms_combo_1.insert(0, edit_inv_data[42])
-    inv_ref_entry_1.delete(0, END)
-    inv_ref_entry_1.insert(0, edit_inv_data[43])
+      inv_date_entry_1.delete(0, END)
+      inv_date_entry_1.insert(0, edit_inv_data[2])
+      if checkvarStatus5_1 is not None:
+        checkvarStatus5_1.set(1)
+      else:
+        checkvarStatus5_1.set(1)
+      inv_duedate_entry_1['state'] = NORMAL
+      inv_duedate_entry_1.delete(0, END)
+      inv_duedate_entry_1.insert(0, edit_inv_data[3])
+      inv_terms_combo_1.delete(0, END)
+      inv_terms_combo_1.insert(0, edit_inv_data[42])
+      inv_ref_entry_1.delete(0, END)
+      inv_ref_entry_1.insert(0, edit_inv_data[43])
     
     
 
@@ -4613,22 +4811,20 @@ def mainpage():
       tax1_label_1=Label(labelframe1,text="Tax1").place(x=420,y=35)
       tax1_entry_1=Entry(labelframe1,width=7,justify=RIGHT)
       tax1_entry_1.place(x=460,y=35)
-      def1_val_1 = tax1ratee.get()
       tax1_entry_1.delete(0, END)
-      tax1_entry_1.insert(0, def1_val_1)
+      tax1_entry_1.insert(0, comp_data[16])
     elif comp_data[12] == "3":
       tax1_label_1=Label(labelframe1,text="Tax1").place(x=420,y=35)
       tax1_entry_1=Entry(labelframe1,width=7,justify=RIGHT)
       tax1_entry_1.place(x=460,y=35)
       def1_val_1 = tax1ratee.get()
       tax1_entry_1.delete(0,END)
-      tax1_entry_1.insert(0,def1_val_1)
+      tax1_entry_1.insert(0,comp_data[16])
       tax2_label_1=Label(labelframe1,text="Tax2").place(x=420,y=65)
       tax2_entry_1=Entry(labelframe1,width=7,justify=RIGHT)
       tax2_entry_1.place(x=460,y=65)
-      def2_val_1 = tax2ratee.get()
       tax2_entry_1.delete(0, END)
-      tax2_entry_1.insert(0, def2_val_1)
+      tax2_entry_1.insert(0, comp_data[19])
     template_label_1=Label(labelframe1,text="Template").place(x=37,y=70)
     template_entry_1=ttk.Combobox(labelframe1, value="",width=25)
     template_entry_1.place(x=115,y=70)
@@ -4914,99 +5110,112 @@ def mainpage():
 
     fir5Frame=Frame(pop_1,height=38,width=210)
     fir5Frame.place(x=735,y=485)
-    btndown_1=Button(fir5Frame, compound="left", text="Line Down").place(x=75, y=0)
-    btnup_1=Button(fir5Frame, compound="left", text="Line Up").place(x=150, y=0)
+    btndown_1=Button(fir5Frame, compound="left", text="Line Down")
+    btndown_1.place(x=75, y=0)
+    btnup_1=Button(fir5Frame, compound="left", text="Line Up")
+    btnup_1.place(x=150, y=0)
 
-    ex_costn_combo_1.delete(0, END)
-    ex_costn_combo_1.insert(0, edit_inv_data[11])
-    dis_rate_entry_1.delete(0, END)
-    dis_rate_entry_1.insert(0, int(edit_inv_data[15]))
-    ex_cost_entry_1.delete(0, END)
-    ex_cost_entry_1.insert(0, edit_inv_data[12])
-    template_entry_1.delete(0, END)
-    template_entry_1.insert(0, edit_inv_data[13])
-    sales_per_entry_1.delete(0, END)
-    sales_per_entry_1.insert(0, edit_inv_data[14])
-    category_entry_1.delete(0, END)
-    category_entry_1.insert(0, edit_inv_data[17])
-    draft_label_1.config(text=edit_inv_data[4])
-    if draft_label_1['text'] == "Void":
-      select_customer_btn_1['state'] = DISABLED
-      add_newline_btn_1['state'] = DISABLED
-      del_line_item_btn_1['state'] = DISABLED
-      mark_inv_paid_1['state'] = DISABLED
-      void_invoice_1['state'] = DISABLED
-      save_invoice_1['state'] = DISABLED
-      inv_combo_e1_1['state'] = DISABLED
-      inv_addr_e2_1['state'] = DISABLED
-      inv_shipto_e3_1['state'] = DISABLED
-      inv_addr_e4_1['state'] = DISABLED
-      inv_email_e5_1['state'] = DISABLED
-      inv_sms_e6_1['state'] = DISABLED
-      inv_number_entry_1['state'] = DISABLED
-      inv_date_entry_1['state'] = DISABLED
-      inv_duedate_entry_1['state'] = DISABLED
-      inv_terms_combo_1['state'] = DISABLED
-      inv_ref_entry_1['state'] = DISABLED
+    if edit_inv_data[48] == 1:
+      ex_costn_combo_1.delete(0, END)
+      ex_costn_combo_1.insert(0, edit_inv_data[11])
+      dis_rate_entry_1.delete(0, END)
+      dis_rate_entry_1.insert(0, int(edit_inv_data[15]))
+      ex_cost_entry_1.delete(0, END)
+      ex_cost_entry_1.insert(0, edit_inv_data[12])
+      template_entry_1.delete(0, END)
+      template_entry_1.insert(0, edit_inv_data[13])
+      sales_per_entry_1.delete(0, END)
+      sales_per_entry_1.insert(0, edit_inv_data[14])
+      category_entry_1.delete(0, END)
+      category_entry_1.insert(0, edit_inv_data[17])
+      draft_label_1.config(text=edit_inv_data[4])
       ex_costn_combo_1['state'] = DISABLED
       dis_rate_entry_1['state'] = DISABLED
       ex_cost_entry_1['state'] = DISABLED
-      tax1_entry_1['state'] = DISABLED
+      if comp_data[12] == "1":
+        pass
+      elif comp_data[12] == "2":
+        tax1_entry_1['state'] = DISABLED
+      elif comp_data[12] == "3":
+        tax1_entry_1['state'] = DISABLED
+        tax2_entry_1['state'] = DISABLED
       template_entry_1['state'] = DISABLED
-      recur_check_btn_1['state'] = DISABLED
-      recur_period_entry_1['state'] = DISABLED
-      recur_month_combo_1['state'] = DISABLED
-      recur_nxt_inv_date_1['state'] = DISABLED
-      recur_stop_check_1['state'] = DISABLED
-      recur_stop_date_1['state'] = DISABLED
-      recur_recalc_1['state'] = DISABLED
-      pay_plus_1['state'] = DISABLED
-      pay_minus_1['state'] = DISABLED
-      title_txt_combo_1['state'] = DISABLED
-      pageh_txt_combo_1['state'] = DISABLED
-      footer_txt_combo_1['state'] = DISABLED
-      term_txt_1['state'] = DISABLED
-      comment_txt_1['state'] = DISABLED
-      doc_plus_btn_1['state'] = DISABLED
-      doc_minus_btn_1['state'] = DISABLED
+      btndown_1['state'] = DISABLED
+      btnup_1['state'] = DISABLED
     else:
-      pass
+      ex_costn_combo_1.delete(0, END)
+      ex_costn_combo_1.insert(0, edit_inv_data[11])
+      dis_rate_entry_1.delete(0, END)
+      dis_rate_entry_1.insert(0, int(edit_inv_data[15]))
+      ex_cost_entry_1.delete(0, END)
+      ex_cost_entry_1.insert(0, edit_inv_data[12])
+      template_entry_1.delete(0, END)
+      template_entry_1.insert(0, edit_inv_data[13])
+      sales_per_entry_1.delete(0, END)
+      sales_per_entry_1.insert(0, edit_inv_data[14])
+      category_entry_1.delete(0, END)
+      category_entry_1.insert(0, edit_inv_data[17])
+      draft_label_1.config(text=edit_inv_data[4])
     never1_label_1.config(text=edit_inv_data[5])
     never2_label_1.config(text=edit_inv_data[6])
-    if draft_label_1['text'] == "Void":
-      recur_check_btn_1['state'] = DISABLED
-      recur_period_entry_1['state'] = DISABLED
-      recur_month_combo_1['state'] = DISABLED
-      recur_nxt_inv_date_1['state'] = DISABLED
-      recur_stop_check_1['state'] = DISABLED
-      recur_stop_date_1['state'] = DISABLED
-      recur_recalc_1['state'] = DISABLED
+    if edit_inv_data[48] == 1:
+      if edit_inv_data[47] == 0:
+        checkrecStatus_1.set(0)
+        recur_check_btn_1['state'] = DISABLED
+        recur_period_entry_1['state'] = DISABLED
+        recur_month_combo_1['state'] = DISABLED
+        recur_nxt_inv_date_1['state'] = DISABLED
+        recur_stop_check_1['state'] = DISABLED
+        recur_stop_date_1['state'] = DISABLED
+        recur_recalc_1['state'] = DISABLED
+      else:
+        checkrecStatus_1.set(1)
+        recur_period_entry_1['state'] = NORMAL
+        recur_month_combo_1['state'] = NORMAL
+        recur_nxt_inv_date_1['state'] = NORMAL
+        recur_stop_check_1['state'] = NORMAL
+        recur_stop_date_1['state'] = NORMAL
+        recur_recalc_1['state'] = NORMAL
+        recur_period_entry_1.delete(0, END)
+        recur_period_entry_1.insert(0, edit_inv_data[24])
+        recur_month_combo_1.delete(0,END)
+        recur_month_combo_1.insert(0,edit_inv_data[25])
+        recur_nxt_inv_date_1.delete(0,END)
+        recur_nxt_inv_date_1.insert(0,edit_inv_data[26])
+        recur_stop_date_1.delete(0,END)
+        recur_stop_date_1.insert(0,edit_inv_data[27])
+        recur_check_btn_1['state'] = DISABLED
+        recur_period_entry_1['state'] = DISABLED
+        recur_month_combo_1['state'] = DISABLED
+        recur_nxt_inv_date_1['state'] = DISABLED
+        recur_stop_check_1['state'] = DISABLED
+        recur_stop_date_1['state'] = DISABLED
+        recur_recalc_1['state'] = DISABLED
     else:
-      checkrecStatus_1.set(1)
-      recur_period_entry_1['state'] = NORMAL
-      recur_month_combo_1['state'] = NORMAL
-      recur_nxt_inv_date_1['state'] = NORMAL
-      recur_stop_check_1['state'] = NORMAL
-      recur_stop_date_1['state'] = NORMAL
-      recur_recalc_1['state'] = NORMAL
-    if edit_inv_data[47] == 0:
-      checkrecStatus_1.set(0)
-      recur_period_entry_1['state'] = DISABLED
-      recur_month_combo_1['state'] = DISABLED
-      recur_nxt_inv_date_1['state'] = DISABLED
-      recur_stop_check_1['state'] = DISABLED
-      recur_stop_date_1['state'] = DISABLED
-      recur_recalc_1['state'] = DISABLED
-    else:
-      checkrecStatus_1.set(1)
-      recur_period_entry_1.delete(0, END)
-      recur_period_entry_1.insert(0, edit_inv_data[24])
-      recur_month_combo_1.delete(0,END)
-      recur_month_combo_1.insert(0,edit_inv_data[25])
-      # recur_nxt_inv_date_1.delete(0,END)
-      # recur_nxt_inv_date_1.insert(0,edit_inv_data[26])
-      # recur_stop_date_1.delete(0,END)
-      # recur_stop_date_1.insert(0,edit_inv_data[27])
+      if edit_inv_data[47] == 0:
+        checkrecStatus_1.set(0)
+        recur_period_entry_1['state'] = DISABLED
+        recur_month_combo_1['state'] = DISABLED
+        recur_nxt_inv_date_1['state'] = DISABLED
+        recur_stop_check_1['state'] = DISABLED
+        recur_stop_date_1['state'] = DISABLED
+        recur_recalc_1['state'] = DISABLED
+      else:
+        checkrecStatus_1.set(1)
+        recur_period_entry_1['state'] = NORMAL
+        recur_month_combo_1['state'] = NORMAL
+        recur_nxt_inv_date_1['state'] = NORMAL
+        recur_stop_check_1['state'] = NORMAL
+        recur_stop_date_1['state'] = NORMAL
+        recur_recalc_1['state'] = NORMAL
+        recur_period_entry_1.delete(0, END)
+        recur_period_entry_1.insert(0, edit_inv_data[24])
+        recur_month_combo_1.delete(0,END)
+        recur_month_combo_1.insert(0,edit_inv_data[25])
+        recur_nxt_inv_date_1.delete(0,END)
+        recur_nxt_inv_date_1.insert(0,edit_inv_data[26])
+        recur_stop_date_1.delete(0,END)
+        recur_stop_date_1.insert(0,edit_inv_data[27])
 
 
     pay_sql = "SELECT * FROM payments WHERE invoice_number=%s"
@@ -5021,18 +5230,41 @@ def mainpage():
         pass
     count += 1
 
-    title_txt_combo_1.delete(0,END)
-    title_txt_combo_1.insert(0,edit_inv_data[39])
-    pageh_txt_combo_1.delete(0,END)
-    pageh_txt_combo_1.insert(0,edit_inv_data[40])
-    footer_txt_combo_1.delete(0,END)
-    footer_txt_combo_1.insert(0,edit_inv_data[41])
-    private_note_txt_1.delete("1.0",END)
-    private_note_txt_1.insert("1.0",edit_inv_data[45])
-    term_txt_1.delete("1.0",END)
-    term_txt_1.insert("1.0",edit_inv_data[35])
-    comment_txt_1.delete("1.0",END)
-    comment_txt_1.insert("1.0",edit_inv_data[44])
+    if edit_inv_data[48] == 1:
+      title_txt_combo_1.delete(0,END)
+      title_txt_combo_1.insert(0,edit_inv_data[39])
+      pageh_txt_combo_1.delete(0,END)
+      pageh_txt_combo_1.insert(0,edit_inv_data[40])
+      footer_txt_combo_1.delete(0,END)
+      footer_txt_combo_1.insert(0,edit_inv_data[41])
+      private_note_txt_1.delete("1.0",END)
+      private_note_txt_1.insert("1.0",edit_inv_data[45])
+      term_txt_1.delete("1.0",END)
+      term_txt_1.insert("1.0",edit_inv_data[35])
+      comment_txt_1.delete("1.0",END)
+      comment_txt_1.insert("1.0",edit_inv_data[44])
+      title_txt_combo_1["state"] = DISABLED
+      pageh_txt_combo_1["state"] = DISABLED
+      footer_txt_combo_1["state"] = DISABLED
+      term_txt_1["state"] = DISABLED
+      comment_txt_1["state"] = DISABLED
+      pay_plus_1['state'] = DISABLED
+      pay_minus_1['state'] = DISABLED
+      doc_plus_btn_1['state'] = DISABLED
+      doc_minus_btn_1['state'] = DISABLED
+    else:
+      title_txt_combo_1.delete(0,END)
+      title_txt_combo_1.insert(0,edit_inv_data[39])
+      pageh_txt_combo_1.delete(0,END)
+      pageh_txt_combo_1.insert(0,edit_inv_data[40])
+      footer_txt_combo_1.delete(0,END)
+      footer_txt_combo_1.insert(0,edit_inv_data[41])
+      private_note_txt_1.delete("1.0",END)
+      private_note_txt_1.insert("1.0",edit_inv_data[45])
+      term_txt_1.delete("1.0",END)
+      term_txt_1.insert("1.0",edit_inv_data[35])
+      comment_txt_1.delete("1.0",END)
+      comment_txt_1.insert("1.0",edit_inv_data[44])
 
     doc_sql = "SELECT * FROM documents WHERE invoice_number=%s"
     doc_val = (edit_inv_data[1],)
@@ -5169,6 +5401,54 @@ def mainpage():
         total1_1.config(text=round(tot_paid,2))
         bal = round((total_cost - tot_paid),2)
         balance1_1.config(text=bal)
+
+    if draft_label_1['text'] == "Void":
+      select_customer_btn_1['state'] = DISABLED
+      add_newline_btn_1['state'] = DISABLED
+      del_line_item_btn_1['state'] = DISABLED
+      mark_inv_paid_1['state'] = DISABLED
+      void_invoice_1['state'] = DISABLED
+      save_invoice_1['state'] = DISABLED
+      inv_combo_e1_1['state'] = DISABLED
+      inv_addr_e2_1['state'] = DISABLED
+      inv_shipto_e3_1['state'] = DISABLED
+      inv_addr_e4_1['state'] = DISABLED
+      inv_email_e5_1['state'] = DISABLED
+      inv_sms_e6_1['state'] = DISABLED
+      inv_number_entry_1['state'] = DISABLED
+      inv_date_entry_1['state'] = DISABLED
+      inv_duedate_entry_1['state'] = DISABLED
+      inv_terms_combo_1['state'] = DISABLED
+      inv_ref_entry_1['state'] = DISABLED
+      ex_costn_combo_1['state'] = DISABLED
+      dis_rate_entry_1['state'] = DISABLED
+      ex_cost_entry_1['state'] = DISABLED
+      if comp_data[12] == "1":
+        pass
+      elif comp_data[12] == "2":
+        tax1_entry_1['state'] = DISABLED
+      elif comp_data[12] == "3":
+        tax1_entry_1['state'] = DISABLED
+        tax2_entry_1['state'] = DISABLED
+      template_entry_1['state'] = DISABLED
+      recur_check_btn_1['state'] = DISABLED
+      recur_period_entry_1['state'] = DISABLED
+      recur_month_combo_1['state'] = DISABLED
+      recur_nxt_inv_date_1['state'] = DISABLED
+      recur_stop_check_1['state'] = DISABLED
+      recur_stop_date_1['state'] = DISABLED
+      recur_recalc_1['state'] = DISABLED
+      pay_plus_1['state'] = DISABLED
+      pay_minus_1['state'] = DISABLED
+      title_txt_combo_1['state'] = DISABLED
+      pageh_txt_combo_1['state'] = DISABLED
+      footer_txt_combo_1['state'] = DISABLED
+      term_txt_1['state'] = DISABLED
+      comment_txt_1['state'] = DISABLED
+      doc_plus_btn_1['state'] = DISABLED
+      doc_minus_btn_1['state'] = DISABLED
+    else:
+      pass
 
   ####################### End edit/view invoice ##################
 
