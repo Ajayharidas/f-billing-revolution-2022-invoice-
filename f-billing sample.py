@@ -23,6 +23,7 @@ from tkinter import *
 from tkinter import messagebox
 from tkinter import ttk
 from tkinter import font
+from tkinter import colorchooser
 from tkinter.font import BOLD
 from turtle import width
 from urllib.parse import parse_qs
@@ -52,6 +53,8 @@ import shutil
 import csv
 import json
 from pathlib import Path
+from tkinter import font as tkFont
+from _tkinter import TclError
 
 fbilldb = mysql.connector.connect(
     host="localhost", user="root", password="", database="fbillingsintgrtd", port="3306"
@@ -189,6 +192,7 @@ photo8 = PhotoImage(file = "images/refresh_E.png")
 photo9 = PhotoImage(file = "images/sum.png")
 photo10 = PhotoImage(file = "images/text-message.png")
 question = PhotoImage(file = "images/qstn.png")
+color = PhotoImage(file = "images/colorpicker.png")
 
 
 
@@ -1408,11 +1412,174 @@ def mainpage():
 
     #mark invoice
     def markinvo():
+      invoice_number = inv_number_entry.get()
+      pay_sel_sql = "SELECT * FROM payments WHERE invoice_number=%s"
+      pay_sel_val = (invoice_number,)
+      fbcursor.execute(pay_sel_sql,pay_sel_val)
+      pay_sel_data = fbcursor.fetchall()
+      if pay_sel_data:
+        pay_list = []
+        for p in pay_sel_data:
+          pay_list.append(p)
+        pd = pay_list[-1]
+      else:
+        pd = 0
       check_newline = add_newline_tree.get_children()
+
+      def markas_paid():
+        invodate = inv_date_entry.get_date()
+        if checkvarStatus5.get() == 0:
+          pass
+        else:
+          duedate = inv_duedate_entry.get_date()
+        term_of_payment = inv_terms_combo.get()
+        ref = inv_ref_entry.get()
+        status = draft_label.cget("text")
+        emailon = never1_label.cget("text")
+        printon = never2_label.cget("text")
+        # smson = 
+        invoicetot = invoicetot1.cget("text")
+        totpaid = total1.cget("text")
+        balance = balance1.cget("text")
+        extracostname = ex_costn_combo.get()
+        extracost = cost1.cget("text")
+        template = template_entry.get()
+        salesper = sales_per_entry.get()
+        discourate = dis_rate_entry.get()
+        discount = discount1.cget("text")
+        tax1 = tax_1.cget("text")
+        category = category_entry.get()
+        businessname = inv_combo_e1.get()
+        businessaddress = inv_addr_e2.get("1.0",END)
+        shipname = inv_shipto_e3.get()
+        shipaddress = inv_addr_e4.get("1.0",END)
+        cpemail = inv_email_e5.get()
+        cpmobileforsms = inv_sms_e6.get()
+        if checkrecStatus.get() == 0 :
+          next_invoice = NULL
+          stop_recurring = NULL
+          recurring_period = NULL
+          recurring_period_month = NULL
+          recurring_check = 0
+        else:
+          next_invoice = recur_nxt_inv_date.get_date()
+          stop_recurring = recur_stop_date.get_date()
+          recurring_period = recur_period_entry.get()
+          recurring_period_month = recur_month_combo.get()
+          recurring_check = 1
+        title_text = title_txt_combo.get()
+        header_text = pageh_txt_combo.get()
+        footer_text = footer_txt_combo.get()
+        tax2 = tax_2.cget("text")
+        comments = comment_txt.get("1.0",END)
+        privatenotes = private_note_txt.get("1.0",END)
+        terms = term_txt.get("1.0",END)
+        paid_n_closed = 1
+        doc_get = doc_tree.get_children()
+        quantity = sel_pro_str[18]
+        comp_sql = "SELECT * FROM company"
+        fbcursor.execute(comp_sql,)
+        comp_data = fbcursor.fetchone()
+        for record in add_newline_tree.get_children():
+          storingproduct = add_newline_tree.item(record)["values"]
+          if not comp_data:
+            storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
+            storepro_val = (invoice_number,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6])
+            fbcursor.execute(storepro_sql,storepro_val)
+            fbilldb.commit()
+          elif comp_data[12] == "1":
+            storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
+            storepro_val = (invoice_number,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6])
+            fbcursor.execute(storepro_sql,storepro_val)
+            fbilldb.commit()
+          elif comp_data[12] == "2":
+            storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,tax1,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+            storepro_val = (invoice_number,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6],storingproduct[7])
+            fbcursor.execute(storepro_sql,storepro_val)
+            fbilldb.commit()
+          elif comp_data[12] == "3":
+            storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,tax1,tax2,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+            storepro_val = (invoice_number,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6],storingproduct[7],storingproduct[8])
+            fbcursor.execute(storepro_sql,storepro_val)
+            fbilldb.commit()
+
+
+        for files in doc_get:
+          file_sql = "INSERT INTO documents(invoice_number,documents) VALUES(%s,%s)"
+          file_val = (invoice_number,files)
+          fbcursor.execute(file_sql,file_val)
+          fbilldb.commit()
+
+        
+        inv_sql='INSERT INTO Invoice (invoice_number,invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check,paid_n_closed) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
+        inv_val=(invoice_number,invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check,paid_n_closed,)
+        fbcursor.execute(inv_sql,inv_val)
+        fbilldb.commit()
+
+        select_customer_btn["state"] = DISABLED
+        add_newline_btn['state'] = DISABLED
+        del_line_item_btn['state'] = DISABLED
+        mark_inv_paid['state'] = DISABLED
+        save_invoice["state"] = DISABLED
+        inv_combo_e1['state'] = DISABLED
+        inv_addr_e2['state'] = DISABLED
+        inv_shipto_e3['state'] = DISABLED
+        inv_addr_e4['state'] = DISABLED
+        inv_email_e5['state'] = DISABLED
+        inv_sms_e6['state'] = DISABLED
+        inv_number_entry['state'] = DISABLED
+        inv_date_entry['state'] = DISABLED
+        inv_duedate_check['state'] = DISABLED
+        inv_duedate_entry['state'] = DISABLED
+        inv_terms_combo['state'] = DISABLED
+        inv_ref_entry['state'] = DISABLED
+        ex_costn_combo['state'] = DISABLED
+        dis_rate_entry['state'] = DISABLED
+        ex_cost_entry['state'] = DISABLED
+        if comp_data[12] == "1":
+          pass
+        elif comp_data[12] == "2":
+          tax1_entry['state'] = DISABLED
+        elif comp_data[12] == "3":
+          tax1_entry['state'] = DISABLED
+          tax2_entry['state'] = DISABLED
+        template_entry['state'] = DISABLED
+        recur_check_btn['state'] = DISABLED
+        recur_period_entry['state'] = DISABLED
+        recur_month_combo['state'] = DISABLED
+        recur_nxt_inv_date['state'] = DISABLED
+        recur_stop_check['state'] = DISABLED
+        recur_stop_date['state'] = DISABLED
+        recur_recalc['state'] = DISABLED
+        pay_plus['state'] = DISABLED
+        pay_minus['state'] = DISABLED
+        title_txt_combo['state'] = DISABLED
+        pageh_txt_combo['state'] = DISABLED
+        footer_txt_combo['state'] = DISABLED
+        term_txt['state'] = DISABLED
+        comment_txt['state'] = DISABLED
+        doc_plus_btn['state'] = DISABLED
+        doc_minus_btn['state'] = DISABLED
+        inv_as_paid.destroy()
       if inv_combo_e1.get() == '':
         messagebox.showwarning("F-Billing Revolution","Customer required, please select customer first.")
       elif len(check_newline) == 0:
         messagebox.showwarning("F-Billing Revolution","This invoice has no line items. \nPlease add line item(s) first.")
+      elif pd != 0 and pd[6] == 1 and balance1.cget("text") == 0.0:
+        inv_as_paid =Toplevel()
+        inv_as_paid.geometry("350x200+450+200")
+        inv_as_paid.title("Record Payement")
+        inv_as_paid.configure(bg="white")
+        
+        what_label = Label(inv_as_paid,text="What would like to do?",bg="white",fg="#1a3365",font=("sans-serif",12)).place(x=50,y=10)
+        fully_label = Label(inv_as_paid,text="This invoice looks like fully paid.",bg="white").place(x=50,y=40)
+        qstn_label = Label(inv_as_paid,image=question,borderwidth=0,bg="white").place(x=10,y=10)
+        mark_as_paid_btn = Button(inv_as_paid,text='🡢 Marked as "Paid" and close invoice',fg="#0077b3",bg="white",border=0,font=("sans-serif",12),command=markas_paid)
+        mark_as_paid_btn.place(x=50,y=80)
+        rec_new_btn = Button(inv_as_paid,text='🡢 Record new payment',fg="#0077b3",bg="white",border=0,font=("sans-serif",12))
+        rec_new_btn.place(x=50,y=120)
+        cancel_as_paid = Button(inv_as_paid,text="Cancel",bg="white",borderwidth=1,width=8,command=lambda:inv_as_paid.destroy())
+        cancel_as_paid.place(x=270,y=168)
       else:
         mark_inv=Toplevel()
         mark_inv.geometry("700x480+240+150")
@@ -1730,38 +1897,125 @@ def mainpage():
             mess_Notebook.add(htmlsourse_Frame, text="Html sourse code")
             mess_Notebook.place(x=5, y=90)
 
-            btn1=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=selectall).place(x=0, y=1)  
-            btn2=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=cut).place(x=36, y=1)
-            btn3=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=copy).place(x=73, y=1)
-            btn4=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=paste).place(x=105, y=1)
-            btn5=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=undo).place(x=140, y=1)
-            btn6=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=redo).place(x=175, y=1)
-            btn7=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=bold).place(x=210, y=1)
-            btn8=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=italics).place(x=245, y=1)
-            btn9=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=underline).place(x=280, y=1)
-            btn10=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=left).place(x=315, y=1)
-            btn11=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=right).place(x=350, y=1)
-            btn12=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=center).place(x=385, y=1)
-            btn13=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=hyperlink).place(x=420, y=1)
-            btn14=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=remove).place(x=455, y=1)
-
-            dropcomp = ttk.Combobox(emailmessage_Frame, width=12, height=3).place(x=500, y=5)
-            dropcompo = ttk.Combobox(emailmessage_Frame, width=6, height=3).place(x=600, y=5)
             email_ltr_scroll=scrolledtext.ScrolledText(emailmessage_Frame, height=17, width=86, bg="white",undo=True)
             email_ltr_scroll.place(x=0, y=28)
             pay_name = inv_combo_e1.get()
             email_ltr_scroll.delete("1.0",END)
             email_ltr_scroll.insert("1.0","\n\n  Dear" + " " + pay_name + "," + "\n\n  This message is to inform you that your payment of" + " " + str(pay_amnt) + " " + "for Invoice#" + " " + pay_inv_number + " " + "has \n  been received \n\n  Payment ID: RCPT" + "" + str(pay_data[0]) + "" + "\n  Invoice ID: " + "" + pay_inv_number + "" + "\n  Payment Date: " + "" + str(pay_date) + "" + "\n  Amount: " + "" + str(pay_amnt) + "" + "\n  Paid by: " + "" + pay_by + "" + "\n  Description: " + "" + pay_desc + "" + "\n\n  Thank you for your business.\n  Your Company Name")
+
+            sel_all_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=selectall,command=lambda:email_ltr_scroll.event_generate('<Control a>'))
+            sel_all_btn.place(x=0, y=1)  
+            cut_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=cut,command=lambda :email_ltr_scroll.event_generate('<Control x>'))
+            cut_btn.place(x=36, y=1)
+            copy_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=copy,command=lambda :email_ltr_scroll.event_generate('<Control c>'))
+            copy_btn.place(x=73, y=1)
+            paste_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=paste,command=lambda :email_ltr_scroll.event_generate('<Control v>'))
+            paste_btn.place(x=105, y=1)
+            undo_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=undo,command=email_ltr_scroll.edit_undo)
+            undo_btn.place(x=140, y=1)
+            redo_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=redo,command=email_ltr_scroll.edit_redo)
+            redo_btn.place(x=175, y=1)
+
+            def bold_text():
+              bold_font = font.Font(email_ltr_scroll, email_ltr_scroll.cget("font"))
+              bold_font.configure(weight="bold")
+
+              email_ltr_scroll.tag_configure("bold", font=bold_font)
+
+              current_tags = email_ltr_scroll.tag_names("sel.first")
+
+              if "bold" in current_tags:
+                email_ltr_scroll.tag_remove("bold", "sel.first", "sel.last")
+              else:
+                email_ltr_scroll.tag_add("bold", "sel.first", "sel.last")
+            bold_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=bold,command=bold_text)
+            bold_btn.place(x=210, y=1)
+
+            def italic_text():
+              italic_font = font.Font(email_ltr_scroll, email_ltr_scroll.cget("font"))
+              italic_font.configure(slant="italic")
+
+              email_ltr_scroll.tag_configure("italic", font=italic_font)
+
+              current_tags = email_ltr_scroll.tag_names("sel.first")
+
+              if "italic" in current_tags:
+                email_ltr_scroll.tag_remove("italic", "sel.first", "sel.last")
+              else:
+                email_ltr_scroll.tag_add("italic", "sel.first", "sel.last")
+            italic_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=italics,command=italic_text)
+            italic_btn.place(x=245, y=1)
+
+            def underline_text():
+              try:
+                if email_ltr_scroll.tag_nextrange('underline_selection', 'sel.first', 'sel.last') != ():
+                    email_ltr_scroll.tag_remove('underline_selection', 'sel.first', 'sel.last')
+                else:
+                    email_ltr_scroll.tag_add('underline_selection', 'sel.first', 'sel.last')
+                    email_ltr_scroll.tag_configure('underline_selection', underline=True)
+              except TclError:
+                  pass
+            underline_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=underline,command=underline_text)
+            underline_btn.place(x=280, y=1)
+
+            def align_left():
+              data = email_ltr_scroll.get(0.0,END)
+              email_ltr_scroll.tag_config('left',justify=LEFT)
+              email_ltr_scroll.delete(0.0,END)
+              email_ltr_scroll.insert(INSERT,data,'left')
+            align_lbtn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=left,command=align_left)
+            align_lbtn.place(x=315, y=1)
+
+            def align_right():
+              data = email_ltr_scroll.get(0.0,END)
+              email_ltr_scroll.tag_config('right',justify=RIGHT)
+              email_ltr_scroll.delete(0.0,END)
+              email_ltr_scroll.insert(INSERT,data,'right')
+            align_rbtn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=right,command=align_right)
+            align_rbtn.place(x=350, y=1)
+
+            def align_center():
+              data = email_ltr_scroll.get(0.0,END)
+              email_ltr_scroll.tag_config('center',justify=CENTER)
+              email_ltr_scroll.delete(0.0,END)
+              email_ltr_scroll.insert(INSERT,data,'center')
+            align_cbtn= Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=center,command=align_center)
+            align_cbtn.place(x=385, y=1)
+            hyper_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=hyperlink)
+            hyper_btn.place(x=420, y=1)
+            remove_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=remove,command=lambda :email_ltr_scroll.delete(0.0,END))
+            remove_btn.place(x=455, y=1)
+
+            def color_text():
+              color = colorchooser.askcolor()[1]
+              if color:
+                color_font = font.Font(email_ltr_scroll, email_ltr_scroll.cget("font"))
+
+                email_ltr_scroll.tag_configure("colored", font=color_font, foreground=color)
+
+                current_tags = email_ltr_scroll.tag_names("sel.first")
+
+                if "colored" in current_tags:
+                  email_ltr_scroll.tag_remove("colored", "sel.first", "sel.last")
+                else:
+                  email_ltr_scroll.tag_add("colored", "sel.first", "sel.last")
+            color_btn = Button(emailmessage_Frame, width=31, height=23,compound = LEFT,image=color,command=color_text)
+            color_btn.place(x=490,y=1)
+
+            fontsize_combo = ttk.Combobox(emailmessage_Frame, width=6, height=3)
+            fontsize_combo.place(x=600, y=5)
+            fontsize_combo['values'] = ('1','2','3','4','5','6','7')
+            fontsize_combo.current(0)
             btn1=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=selectall).place(x=0, y=1)
             btn2=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=cut).place(x=36, y=1)
             btn3=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=copy).place(x=73, y=1)
             btn4=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=paste).place(x=105, y=1)
             email_html_scroll=scrolledtext.ScrolledText(htmlsourse_Frame,undo=True, height=350, width=710, bg="white")
             email_html_scroll.place(x=0, y=28)
-            attachlbframe=LabelFrame(email_Frame,text="Attachment(s)", height=350, width=280)
+            attachlbframe=LabelFrame(email_Frame,text="Attachment(s)", height=350, width=283)
             attachlbframe.place(x=740, y=5)
             lstfrm = StringVar()
-            attach_list=Listbox(attachlbframe, height=220, width=265,listvariable=lstfrm, bg="white")
+            attach_list=Listbox(attachlbframe, height=13, width=44,listvariable=lstfrm, bg="white")
             attach_list.place(x=5, y=5)
             attach_list.bind('<Double-Button-1>',inv_empsfile_image)
             lbl_btn_info=Label(attachlbframe, text="Double click on attachment to view").place(x=30, y=230)
@@ -1892,9 +2146,9 @@ def mainpage():
           emailon = never1_label.cget("text")
           printon = never2_label.cget("text")
           # smson = 
-          invoicetot = invoicetot1.cget("text")
-          totpaid = total1.cget("text")
-          balance = balance1.cget("text")
+          invoicetot = 0
+          totpaid = 0
+          balance = 0
           extracostname = ex_costn_combo.get()
           extracost = cost1.cget("text")
           template = template_entry.get()
@@ -1928,43 +2182,101 @@ def mainpage():
           comments = comment_txt.get("1.0",END)
           privatenotes = private_note_txt.get("1.0",END)
           terms = term_txt.get("1.0",END)
-          paid_n_closed = 0
           doc_get = doc_tree.get_children()
-          quantity = sel_pro_str[18]
-          for record in add_newline_tree.get_children():
-            storingproduct = add_newline_tree.item(record)["values"]
-            if not comp_data:
-              storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
-              storepro_val = (invoice_number,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6])
-              fbcursor.execute(storepro_sql,storepro_val)
-              fbilldb.commit()
-            elif comp_data[12] == "1":
-              storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
-              storepro_val = (invoice_number,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6])
-              fbcursor.execute(storepro_sql,storepro_val)
-              fbilldb.commit()
-            elif comp_data[12] == "2":
-              storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,tax1,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-              storepro_val = (invoice_number,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6],storingproduct[7])
-              fbcursor.execute(storepro_sql,storepro_val)
-              fbilldb.commit()
-            elif comp_data[12] == "3":
-              storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,tax1,tax2,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-              storepro_val = (invoice_number,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6],storingproduct[7],storingproduct[8])
-              fbcursor.execute(storepro_sql,storepro_val)
+          for qn in add_newline_tree.get_children():
+            quantity = add_newline_tree.item(qn)["values"][4]
+
+          paidinv_sql = "SELECT * FROM invoice WHERE invoice_number=%s"
+          paidinv_val = (invoice_number,)
+          fbcursor.execute(paidinv_sql,paidinv_val)
+          paidinv_data = fbcursor.fetchone()         
+
+          if not paidinv_data:
+            paid_n_closed = 0
+
+            for record in add_newline_tree.get_children():
+              storingproduct = add_newline_tree.item(record)["values"]
+              if not comp_data:
+                storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
+                storepro_val = (invoice_number,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6])
+                fbcursor.execute(storepro_sql,storepro_val)
+                fbilldb.commit()
+              elif comp_data[12] == "1":
+                storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
+                storepro_val = (invoice_number,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6])
+                fbcursor.execute(storepro_sql,storepro_val)
+                fbilldb.commit()
+              elif comp_data[12] == "2":
+                storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,tax1,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                storepro_val = (invoice_number,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6],storingproduct[7])
+                fbcursor.execute(storepro_sql,storepro_val)
+                fbilldb.commit()
+              elif comp_data[12] == "3":
+                storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,tax1,tax2,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                storepro_val = (invoice_number,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6],storingproduct[7],storingproduct[8])
+                fbcursor.execute(storepro_sql,storepro_val)
+                fbilldb.commit()
+
+            for files in doc_get:
+              file_sql = "INSERT INTO documents(invoice_number,documents) VALUES(%s,%s)"
+              file_val = (invoice_number,files)
+              fbcursor.execute(file_sql,file_val)
               fbilldb.commit()
 
+            inv_sql='INSERT INTO Invoice (invoice_number,invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check,paid_n_closed) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
+            inv_val=(invoice_number,invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check,paid_n_closed,)
+            fbcursor.execute(inv_sql,inv_val)
+            fbilldb.commit()
+          elif paidinv_data[48] == 1:
+            status = draft_label.cget("text")
 
-          for files in doc_get:
-            file_sql = "INSERT INTO documents(invoice_number,documents) VALUES(%s,%s)"
-            file_val = (invoice_number,files)
-            fbcursor.execute(file_sql,file_val)
+            inv_sql = "UPDATE invoice SET status=%s,invoicetot=%s,totpaid=%s,balance=%s WHERE invoice_number=%s"
+            inv_val = (status,invoicetot,totpaid,balance,paidinv_data[1],)
+            fbcursor.execute(inv_sql,inv_val)
+            fbilldb.commit()
+          else:
+            del_storp_sql = "DELETE FROM storingproduct WHERE invoice_number=%s"
+            del_storp_val = (invoice_number,)
+            fbcursor.execute(del_storp_sql,del_storp_val)
             fbilldb.commit()
 
-          inv_sql='INSERT INTO Invoice (invoice_number,invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check,paid_n_closed) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
-          inv_val=(invoice_number,invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check,paid_n_closed,)
-          fbcursor.execute(inv_sql,inv_val)
-          fbilldb.commit()
+            for record in add_newline_tree.get_children():
+              storingproduct = add_newline_tree.item(record)["values"]
+              if not comp_data:
+                storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
+                storepro_val = (invoice_number,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6])
+                fbcursor.execute(storepro_sql,storepro_val)
+                fbilldb.commit()
+              elif comp_data[12] == "1":
+                storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
+                storepro_val = (invoice_number,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6])
+                fbcursor.execute(storepro_sql,storepro_val)
+                fbilldb.commit()
+              elif comp_data[12] == "2":
+                storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,tax1,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                storepro_val = (invoice_number,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6],storingproduct[7])
+                fbcursor.execute(storepro_sql,storepro_val)
+                fbilldb.commit()
+              elif comp_data[12] == "3":
+                storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,tax1,tax2,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                storepro_val = (invoice_number,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6],storingproduct[7],storingproduct[8])
+                fbcursor.execute(storepro_sql,storepro_val)
+                fbilldb.commit()
+
+            del_file_sql = "DELETE FROM documents WHERE invoice_number=%s"
+            del_file_val = (invoice_number,)
+            fbcursor.execute(del_file_sql,del_file_val)
+            fbilldb.commit()
+            for files in doc_get:
+              file_sql = "INSERT INTO documents(invoice_number,documents) VALUES(%s,%s)"
+              file_val = (invoice_number,files)
+              fbcursor.execute(file_sql,file_val)
+              fbilldb.commit()
+
+            inv_sql='UPDATE invoice SET invodate=%s,duedate=%s,status=%s,emailon=%s,printon=%s,invoicetot=%s,totpaid=%s,balance=%s,extracostname=%s,extracost=%s,template=%s,salesper=%s,discourate=%s,tax1=%s,category=%s,businessname=%s,businessaddress=%s,shipname=%s,shipaddress=%s,cpemail=%s,cpmobileforsms=%s,recurring_period=%s,recurring_period_month=%s,next_invoice=%s,stop_recurring=%s,discount=%s,terms=%s,tax2=%s,quantity=%s,title_text=%s,header_text=%s,footer_text=%s,term_of_payment=%s,ref=%s,comments=%s,privatenotes=%s,recurring_check=%s WHERE invoice_number=%s' #adding values into db
+            inv_val=(invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check,invoice_number,)
+            fbcursor.execute(inv_sql,inv_val)
+            fbilldb.commit()
         else:
           pass
 
@@ -1983,6 +2295,7 @@ def mainpage():
         inv_sms_e6['state'] = DISABLED
         inv_number_entry['state'] = DISABLED
         inv_date_entry['state'] = DISABLED
+        inv_duedate_check['state'] = DISABLED
         inv_duedate_entry['state'] = DISABLED
         inv_terms_combo['state'] = DISABLED
         inv_ref_entry['state'] = DISABLED
@@ -2059,7 +2372,7 @@ def mainpage():
     w = Canvas(inv_first_frame, width=1, height=65, bg="#b3b3b3", bd=0)
     w.pack(side="left", padx=5)
 
-    mail_invoice= Button(inv_first_frame,compound="top", text="Email\nInvoice",relief=RAISED, image=photo6,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=emailorder)
+    mail_invoice= Button(inv_first_frame,compound="top", text="Email\nInvoice",relief=RAISED, image=photo6,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=email_invoice_1)
     mail_invoice.pack(side="left", pady=3, ipadx=4)
 
     sms_invoice= Button(inv_first_frame,compound="top", text="Send SMS\nnotification",relief=RAISED, image=photo10,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=sms1)
@@ -3847,6 +4160,51 @@ def mainpage():
         close_val = (1,edit_inv_data[1],)
         fbcursor.execute(close_sql,close_val)
         fbilldb.commit()
+
+        comp_sql = "SELECT * FROM company"
+        fbcursor.execute(comp_sql,)
+        comp_data_1 = fbcursor.fetchone()
+
+        del_storp_sql = "DELETE FROM storingproduct WHERE invoice_number=%s"
+        del_storp_val = (edit_inv_data[1],)
+        fbcursor.execute(del_storp_sql,del_storp_val)
+        fbilldb.commit()
+        for record in add_newline_tree_1.get_children():
+          storingproduct = add_newline_tree_1.item(record)["values"]
+          if not comp_data_1:
+            storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
+            storepro_val = (edit_inv_data[1],storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6])
+            fbcursor.execute(storepro_sql,storepro_val)
+            fbilldb.commit()
+          elif comp_data_1[12] == "1":
+            storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
+            storepro_val = (edit_inv_data[1],storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6])
+            fbcursor.execute(storepro_sql,storepro_val)
+            fbilldb.commit()
+          elif comp_data_1[12] == "2":
+            storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,tax1,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+            storepro_val = (edit_inv_data[1],storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6],storingproduct[7])
+            fbcursor.execute(storepro_sql,storepro_val)
+            fbilldb.commit()
+          elif comp_data_1[12] == "3":
+            storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,tax1,tax2,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+            storepro_val = (edit_inv_data[1],storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6],storingproduct[7],storingproduct[8])
+            fbcursor.execute(storepro_sql,storepro_val)
+            fbilldb.commit()
+            
+      
+        del_file_sql = "DELETE FROM documents WHERE invoice_number=%s"
+        del_file_val = (edit_inv_data[1],)
+        fbcursor.execute(del_file_sql,del_file_val)
+        fbilldb.commit()
+        for f in doc_tree_1.get_children():
+          files = doc_tree_1.item(f)["values"][1]
+          file_sql = "INSERT INTO documents(invoice_number,documents) VALUES(%s,%s)"
+          file_val = (edit_inv_data[1],files)
+          fbcursor.execute(file_sql,file_val)
+          fbilldb.commit()
+
+
         select_customer_btn_1["state"] = DISABLED
         add_newline_btn_1['state'] = DISABLED
         del_line_item_btn_1['state'] = DISABLED
@@ -3859,6 +4217,7 @@ def mainpage():
         inv_email_e5_1['state'] = DISABLED
         inv_sms_e6_1['state'] = DISABLED
         inv_number_entry_1['state'] = DISABLED
+        inv_duedate_check_1["state"] = DISABLED
         inv_date_entry_1['state'] = DISABLED
         inv_duedate_entry_1['state'] = DISABLED
         inv_terms_combo_1['state'] = DISABLED
@@ -3908,8 +4267,8 @@ def mainpage():
         mark_as_paid_btn_1.place(x=50,y=80)
         rec_new_btn_1 = Button(inv_as_paid_1,text='🡢 Record new payment',fg="#0077b3",bg="white",border=0,font=("sans-serif",12))
         rec_new_btn_1.place(x=50,y=120)
-        cancel_as_paid = Button(inv_as_paid_1,text="Cancel",bg="white",borderwidth=1,width=8,command=lambda:inv_as_paid_1.destroy())
-        cancel_as_paid.place(x=270,y=168)
+        cancel_as_paid_1 = Button(inv_as_paid_1,text="Cancel",bg="white",borderwidth=1,width=8,command=lambda:inv_as_paid_1.destroy())
+        cancel_as_paid_1.place(x=270,y=168)
       else:
         mark_inv_1=Toplevel()
         mark_inv_1.geometry("700x480+240+150")
@@ -4212,39 +4571,126 @@ def mainpage():
             mess_Notebook.add(htmlsourse_Frame, text="Html sourse code")
             mess_Notebook.place(x=5, y=90)
 
-            btn1=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=selectall).place(x=0, y=1)  
-            btn2=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=cut).place(x=36, y=1)
-            btn3=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=copy).place(x=73, y=1)
-            btn4=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=paste).place(x=105, y=1)
-            btn5=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=undo).place(x=140, y=1)
-            btn6=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=redo).place(x=175, y=1)
-            btn7=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=bold).place(x=210, y=1)
-            btn8=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=italics).place(x=245, y=1)
-            btn9=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=underline).place(x=280, y=1)
-            btn10=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=left).place(x=315, y=1)
-            btn11=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=right).place(x=350, y=1)
-            btn12=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=center).place(x=385, y=1)
-            btn13=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=hyperlink).place(x=420, y=1)
-            btn14=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=remove).place(x=455, y=1)
-
-            dropcomp = ttk.Combobox(emailmessage_Frame, width=12, height=3).place(x=500, y=5)
-            dropcompo = ttk.Combobox(emailmessage_Frame, width=6, height=3).place(x=600, y=5)
             email_ltr_scroll=scrolledtext.ScrolledText(emailmessage_Frame, height=17, width=86, bg="white",undo=True)
             email_ltr_scroll.place(x=0, y=28)
             pay_name = inv_combo_e1_1.get()
             email_ltr_scroll.delete("1.0",END)
             email_ltr_scroll.insert("1.0","\n\n  Dear" + " " + pay_name + "," + "\n\n  This message is to inform you that your payment of" + " " + str(pay_amnt) + " " + "for Invoice#" + " " + pay_inv_number + " " + "has \n  been received \n\n  Payment ID: RCPT" + "" + str(pay_data[0]) + "" + "\n  Invoice ID: " + "" + pay_inv_number + "" + "\n  Payment Date: " + "" + str(pay_date) + "" + "\n  Amount: " + "" + str(pay_amnt) + "" + "\n  Paid by: " + "" + pay_by + "" + "\n  Description: " + "" + pay_desc + "" + "\n\n  Thank you for your business.\n  Your Company Name")
+
+            sel_all_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=selectall,command=lambda:email_ltr_scroll.event_generate('<Control a>'))
+            sel_all_btn.place(x=0, y=1)  
+            cut_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=cut,command=lambda :email_ltr_scroll.event_generate('<Control x>'))
+            cut_btn.place(x=36, y=1)
+            copy_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=copy,command=lambda :email_ltr_scroll.event_generate('<Control c>'))
+            copy_btn.place(x=73, y=1)
+            paste_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=paste,command=lambda :email_ltr_scroll.event_generate('<Control v>'))
+            paste_btn.place(x=105, y=1)
+            undo_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=undo,command=email_ltr_scroll.edit_undo)
+            undo_btn.place(x=140, y=1)
+            redo_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=redo,command=email_ltr_scroll.edit_redo)
+            redo_btn.place(x=175, y=1)
+
+            def bold_text():
+              bold_font = font.Font(email_ltr_scroll, email_ltr_scroll.cget("font"))
+              bold_font.configure(weight="bold")
+
+              email_ltr_scroll.tag_configure("bold", font=bold_font)
+
+              current_tags = email_ltr_scroll.tag_names("sel.first")
+
+              if "bold" in current_tags:
+                email_ltr_scroll.tag_remove("bold", "sel.first", "sel.last")
+              else:
+                email_ltr_scroll.tag_add("bold", "sel.first", "sel.last")
+            bold_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=bold,command=bold_text)
+            bold_btn.place(x=210, y=1)
+
+            def italic_text():
+              italic_font = font.Font(email_ltr_scroll, email_ltr_scroll.cget("font"))
+              italic_font.configure(slant="italic")
+
+              email_ltr_scroll.tag_configure("italic", font=italic_font)
+
+              current_tags = email_ltr_scroll.tag_names("sel.first")
+
+              if "italic" in current_tags:
+                email_ltr_scroll.tag_remove("italic", "sel.first", "sel.last")
+              else:
+                email_ltr_scroll.tag_add("italic", "sel.first", "sel.last")
+            italic_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=italics,command=italic_text)
+            italic_btn.place(x=245, y=1)
+
+            def underline_text():
+              try:
+                if email_ltr_scroll.tag_nextrange('underline_selection', 'sel.first', 'sel.last') != ():
+                    email_ltr_scroll.tag_remove('underline_selection', 'sel.first', 'sel.last')
+                else:
+                    email_ltr_scroll.tag_add('underline_selection', 'sel.first', 'sel.last')
+                    email_ltr_scroll.tag_configure('underline_selection', underline=True)
+              except TclError:
+                  pass
+            underline_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=underline,command=underline_text)
+            underline_btn.place(x=280, y=1)
+
+            def align_left():
+              data = email_ltr_scroll.get(0.0,END)
+              email_ltr_scroll.tag_config('left',justify=LEFT)
+              email_ltr_scroll.delete(0.0,END)
+              email_ltr_scroll.insert(INSERT,data,'left')
+            align_lbtn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=left,command=align_left)
+            align_lbtn.place(x=315, y=1)
+
+            def align_right():
+              data = email_ltr_scroll.get(0.0,END)
+              email_ltr_scroll.tag_config('right',justify=RIGHT)
+              email_ltr_scroll.delete(0.0,END)
+              email_ltr_scroll.insert(INSERT,data,'right')
+            align_rbtn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=right,command=align_right)
+            align_rbtn.place(x=350, y=1)
+
+            def align_center():
+              data = email_ltr_scroll.get(0.0,END)
+              email_ltr_scroll.tag_config('center',justify=CENTER)
+              email_ltr_scroll.delete(0.0,END)
+              email_ltr_scroll.insert(INSERT,data,'center')
+            align_cbtn= Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=center,command=align_center)
+            align_cbtn.place(x=385, y=1)
+            hyper_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=hyperlink)
+            hyper_btn.place(x=420, y=1)
+            remove_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=remove,command=lambda :email_ltr_scroll.delete(0.0,END))
+            remove_btn.place(x=455, y=1)
+
+            def color_text():
+              color = colorchooser.askcolor()[1]
+              if color:
+                color_font = font.Font(email_ltr_scroll, email_ltr_scroll.cget("font"))
+
+                email_ltr_scroll.tag_configure("colored", font=color_font, foreground=color)
+
+                current_tags = email_ltr_scroll.tag_names("sel.first")
+
+                if "colored" in current_tags:
+                  email_ltr_scroll.tag_remove("colored", "sel.first", "sel.last")
+                else:
+                  email_ltr_scroll.tag_add("colored", "sel.first", "sel.last")
+            color_btn = Button(emailmessage_Frame, width=31, height=23,compound = LEFT,image=color,command=color_text)
+            color_btn.place(x=490, y=1)
+
+            fontsize_combo = ttk.Combobox(emailmessage_Frame, width=6, height=3)
+            fontsize_combo.place(x=600, y=5)
+            fontsize_combo['values'] = ('1','2','3','4','5','6','7')
+            fontsize_combo.current(0)
             btn1=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=selectall).place(x=0, y=1)
             btn2=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=cut).place(x=36, y=1)
             btn3=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=copy).place(x=73, y=1)
             btn4=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=paste).place(x=105, y=1)
             email_html_scroll=scrolledtext.ScrolledText(htmlsourse_Frame,undo=True, height=350, width=710, bg="white")
             email_html_scroll.place(x=0, y=28)
-            attachlbframe=LabelFrame(email_Frame,text="Attachment(s)", height=350, width=280)
+            attachlbframe=LabelFrame(email_Frame,text="Attachment(s)", height=350, width=283)
             attachlbframe.place(x=740, y=5)
             lstfrm = StringVar()
-            attach_list=Listbox(attachlbframe, height=220, width=265,listvariable=lstfrm, bg="white")
-            attach_list.place(x=5, y=5)
+            attach_list=Listbox(attachlbframe, height=13, width=44,listvariable=lstfrm, bg="white")
+            attach_list.place(x=5, y=3)
             attach_list.bind('<Double-Button-1>',inv_empsfile_image_1)
             lbl_btn_info=Label(attachlbframe, text="Double click on attachment to view").place(x=30, y=230)
             btn17=Button(attachlbframe, width=20, text="Add attacment file...",command=inv_UploadAction_1)
@@ -4335,6 +4781,121 @@ def mainpage():
     def voidinvoice_1():
       void_msg_1 = messagebox.askyesno("F-Billing Revolution","Are you sure to avoid this invoice?\nAll products will be placed back into stock and all payemnts will be voided.")
       if void_msg_1 == YES:
+        draft_label_1.config(text="Void")
+        if draft_label_1["text"] == "Void":
+          if edit_inv_data[48] == 1:
+            status_1 = draft_label_1.cget("text")
+            invoicetot_1 = 0
+            totpaid_1 = 0
+            balance_1 = 0
+            inv_sql = "UPDATE invoice SET status=%s,invoicetot=%s,totpaid=%s,balance=%s WHERE invoice_number=%s"
+            inv_val = (status_1,invoicetot_1,totpaid_1,balance_1,edit_inv_data[1])
+            fbcursor.execute(inv_sql,inv_val)
+            fbilldb.commit()
+          else:
+            invoice_number_1 = inv_number_entry_1.get()
+            invodate_1 = inv_date_entry_1.get_date()
+            if checkvarStatus5_1.get() == 0:
+              pass
+            else:
+              duedate_1 = inv_duedate_entry_1.get_date()
+            term_of_payment_1 = inv_terms_combo_1.get()
+            ref_1 = inv_ref_entry_1.get()
+            status_1 = draft_label_1.cget("text")
+            emailon_1 = never1_label_1.cget("text")
+            printon_1 = never2_label_1.cget("text")
+            # smson = 
+            invoicetot_1 = 0
+            totpaid_1 = 0
+            balance_1 = 0
+            extracostname_1 = ex_costn_combo_1.get()
+            extracost_1 = cost1_1.cget("text")
+            template_1 = template_entry_1.get()
+            salesper_1 = sales_per_entry_1.get()
+            discourate_1 = dis_rate_entry_1.get()
+            discount_1 = discount1_1.cget("text")
+            tax1_01 = tax1_1.cget("text")
+            category_1 = category_entry_1.get()
+            businessname_1 = inv_combo_e1_1.get()
+            businessaddress_1 = inv_addr_e2_1.get("1.0",END)
+            shipname_1 = inv_shipto_e3_1.get()
+            shipaddress_1 = inv_addr_e4_1.get("1.0",END)
+            cpemail_1 = inv_email_e5_1.get()
+            cpmobileforsms_1 = inv_sms_e6_1.get()
+            if checkrecStatus_1.get() == 0 :
+              next_invoice_1 = NULL
+              stop_recurring_1 = NULL
+              recurring_period_1 = NULL
+              recurring_period_month_1 = NULL
+              recurring_check_1 = 0
+            else:
+              next_invoice_1 = recur_nxt_inv_date_1.get_date()
+              stop_recurring_1 = recur_stop_date_1.get_date()
+              recurring_period_1 = recur_period_entry_1.get()
+              recurring_period_month_1 = recur_month_combo_1.get()
+              recurring_check_1 = 1
+            title_text_1 = title_txt_combo_1.get()
+            header_text_1 = pageh_txt_combo_1.get()
+            footer_text_1 = footer_txt_combo_1.get()
+            tax2_01 = tax2_1.cget("text")
+            comments_1 = comment_txt_1.get("1.0",END)
+            privatenotes_1 = private_note_txt_1.get("1.0",END)
+            terms_1 = term_txt_1.get("1.0",END)
+            doc_get_1 = doc_tree_1.get_children()
+            for qn in add_newline_tree_1.get_children():
+              quantity_1 = add_newline_tree_1.item(qn)["values"][4]
+
+            comp_sql = "SELECT * FROM company"
+            fbcursor.execute(comp_sql,)
+            comp_data_1 = fbcursor.fetchone()
+
+            del_storp_sql = "DELETE FROM storingproduct WHERE invoice_number=%s"
+            del_storp_val = (invoice_number_1,)
+            fbcursor.execute(del_storp_sql,del_storp_val)
+            fbilldb.commit()
+            for record in add_newline_tree_1.get_children():
+              storingproduct = add_newline_tree_1.item(record)["values"]
+              if not comp_data_1:
+                storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
+                storepro_val = (invoice_number_1,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6])
+                fbcursor.execute(storepro_sql,storepro_val)
+                fbilldb.commit()
+              elif comp_data_1[12] == "1":
+                storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
+                storepro_val = (invoice_number_1,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6])
+                fbcursor.execute(storepro_sql,storepro_val)
+                fbilldb.commit()
+              elif comp_data_1[12] == "2":
+                storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,tax1,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                storepro_val = (invoice_number_1,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6],storingproduct[7])
+                fbcursor.execute(storepro_sql,storepro_val)
+                fbilldb.commit()
+              elif comp_data_1[12] == "3":
+                storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,tax1,tax2,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                storepro_val = (invoice_number_1,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6],storingproduct[7],storingproduct[8])
+                fbcursor.execute(storepro_sql,storepro_val)
+                fbilldb.commit()
+                
+          
+            del_file_sql = "DELETE FROM documents WHERE invoice_number=%s"
+            del_file_val = (invoice_number_1,)
+            fbcursor.execute(del_file_sql,del_file_val)
+            fbilldb.commit()
+            for f in doc_get_1:
+              files = doc_tree_1.item(f)["values"][1]
+              file_sql = "INSERT INTO documents(invoice_number,documents) VALUES(%s,%s)"
+              file_val = (invoice_number_1,files)
+              fbcursor.execute(file_sql,file_val)
+              fbilldb.commit()
+
+            inv_sql='UPDATE invoice SET invodate=%s,duedate=%s,status=%s,emailon=%s,printon=%s,invoicetot=%s,totpaid=%s,balance=%s,extracostname=%s,extracost=%s,template=%s,salesper=%s,discourate=%s,tax1=%s,category=%s,businessname=%s,businessaddress=%s,shipname=%s,shipaddress=%s,cpemail=%s,cpmobileforsms=%s,recurring_period=%s,recurring_period_month=%s,next_invoice=%s,stop_recurring=%s,discount=%s,terms=%s,tax2=%s,quantity=%s,title_text=%s,header_text=%s,footer_text=%s,term_of_payment=%s,ref=%s,comments=%s,privatenotes=%s,recurring_check=%s WHERE invoice_number=%s' #adding values into db
+            inv_val=(invodate_1,duedate_1,status_1,emailon_1,printon_1,invoicetot_1,totpaid_1,balance_1,extracostname_1,extracost_1,template_1,salesper_1,discourate_1,tax1_01,category_1,businessname_1,businessaddress_1,shipname_1,shipaddress_1,cpemail_1,cpmobileforsms_1,recurring_period_1,recurring_period_month_1,next_invoice_1,stop_recurring_1,discount_1,terms_1,tax2_01,quantity_1,title_text_1,header_text_1,footer_text_1,term_of_payment_1,ref_1,comments_1,privatenotes_1,recurring_check_1,invoice_number_1,)
+            fbcursor.execute(inv_sql,inv_val)
+            fbilldb.commit()
+        else:
+          pass
+
+
         select_customer_btn_1['state'] = DISABLED
         add_newline_btn_1['state'] = DISABLED
         del_line_item_btn_1['state'] = DISABLED
@@ -4349,6 +4910,7 @@ def mainpage():
         inv_sms_e6_1['state'] = DISABLED
         inv_number_entry_1['state'] = DISABLED
         inv_date_entry_1['state'] = DISABLED
+        inv_duedate_check_1['state'] = DISABLED
         inv_duedate_entry_1['state'] = DISABLED
         inv_terms_combo_1['state'] = DISABLED
         inv_ref_entry_1['state'] = DISABLED
@@ -4363,7 +4925,6 @@ def mainpage():
           tax1_entry_1['state'] = DISABLED
           tax2_entry_1['state'] = DISABLED
         template_entry_1['state'] = DISABLED
-        draft_label_1.config(text="void")
         if checkrecStatus_1 is not None:
           checkrecStatus_1.set(0)
         else:
@@ -4426,7 +4987,7 @@ def mainpage():
     w = Canvas(inv_first_frame2, width=1, height=65, bg="#b3b3b3", bd=0)
     w.pack(side="left", padx=5)
 
-    mail= Button(inv_first_frame2,compound="top", text="Email\nInvoice",relief=RAISED, image=photo6,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=emailorder)
+    mail= Button(inv_first_frame2,compound="top", text="Email\nInvoice",relief=RAISED, image=photo6,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=email_invoice_1)
     mail.pack(side="left", pady=3, ipadx=4)
 
     sms1= Button(inv_first_frame2,compound="top", text="Send SMS\nnotification",relief=RAISED, image=photo10,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=sms1)
@@ -4497,7 +5058,7 @@ def mainpage():
     fbcursor.execute(sql,)
     cdata = fbcursor.fetchall()
 
-    global inv_combo_e1_1,inv_addr_e2_1,inv_shipto_e3_1,inv_addr_e4_1,inv_email_e5_1,inv_sms_e6_1
+    global inv_combo_e1_1,inv_addr_e2_1,inv_shipto_e3_1,inv_addr_e4_1,inv_email_e5_1,inv_sms_e6_1,inv_number_entry_1
 
     invoice_to_1 = Label(labelframe1, text="Invoice to").place(x=10,y=5)
     inv_to_1 = StringVar()
@@ -4527,7 +5088,7 @@ def mainpage():
     inv_sms_e6_1=Entry(labelframe2,width=30)
     inv_sms_e6_1.place(x=402,y=5)
     
-    if edit_inv_data[48] == 1:
+    if edit_inv_data[48] == 1 and edit_inv_data[4] != "Void":
       inv_combo_e1_1.delete(0,END)
       inv_combo_e1_1.insert(0,edit_inv_data[18])
       inv_addr_e2_1.delete('1.0',END)
@@ -4550,6 +5111,31 @@ def mainpage():
       add_newline_btn_1['state'] = DISABLED
       del_line_item_btn_1['state'] = DISABLED
       mark_inv_paid_1['state'] = DISABLED
+      save_invoice_1["state"] = DISABLED
+    elif edit_inv_data[48] == 1 and edit_inv_data[4] == "Void":
+      inv_combo_e1_1.delete(0,END)
+      inv_combo_e1_1.insert(0,edit_inv_data[18])
+      inv_addr_e2_1.delete('1.0',END)
+      inv_addr_e2_1.insert('1.0',edit_inv_data[19])
+      inv_shipto_e3_1.delete(0, END)
+      inv_shipto_e3_1.insert(0, edit_inv_data[20])
+      inv_addr_e4_1.delete('1.0',END)
+      inv_addr_e4_1.insert('1.0',edit_inv_data[21])
+      inv_email_e5_1.delete(0,END)
+      inv_email_e5_1.insert(0,edit_inv_data[22])
+      inv_sms_e6_1.delete(0,END)
+      inv_sms_e6_1.insert(0,edit_inv_data[23])
+      inv_combo_e1_1['state'] = DISABLED
+      inv_addr_e2_1['state'] = DISABLED
+      inv_shipto_e3_1['state'] = DISABLED
+      inv_addr_e4_1['state'] = DISABLED
+      inv_email_e5_1['state'] = DISABLED
+      inv_sms_e6_1['state'] = DISABLED
+      select_customer_btn_1["state"] = DISABLED
+      add_newline_btn_1['state'] = DISABLED
+      del_line_item_btn_1['state'] = DISABLED
+      mark_inv_paid_1['state'] = DISABLED
+      void_invoice_1["state"] = DISABLED
       save_invoice_1["state"] = DISABLED
     else:
       inv_combo_e1_1.delete(0,END)
@@ -4575,7 +5161,7 @@ def mainpage():
     inv_number_entry_1=Entry(labelframe,width=25)
     inv_number_entry_1.place(x=100,y=5,)
 
-    if edit_inv_data[48] == 1:
+    if edit_inv_data[48] == 1 or edit_inv_data[4] == "Void":
       inv_number_entry_1.delete(0,'end')
       inv_number_entry_1.insert(0, edit_inv_data[1])
       inv_number_entry_1["state"] = DISABLED
@@ -4615,7 +5201,7 @@ def mainpage():
     inv_ref_entry_1=Entry(labelframe,width=25 )
     inv_ref_entry_1.place(x=100,y=118)
 
-    if edit_inv_data[48] == 1:
+    if edit_inv_data[48] == 1 or edit_inv_data[4] == "Void":
       inv_date_entry_1.delete(0, END)
       inv_date_entry_1.insert(0, edit_inv_data[2])
       if checkvarStatus5_1 is not None:
@@ -4784,6 +5370,8 @@ def mainpage():
     sql_exn_1 = "SELECT extra_cost_name FROM extra_cost_name"
     fbcursor.execute(sql_exn_1)
     ex_data_1 = fbcursor.fetchall()
+
+    global never1_label_1
 
     labelframe1 = LabelFrame(invoiceFrame,text="",font=("arial",15))
     labelframe1.place(x=1,y=1,width=735,height=170)
@@ -5115,7 +5703,7 @@ def mainpage():
     btnup_1=Button(fir5Frame, compound="left", text="Line Up")
     btnup_1.place(x=150, y=0)
 
-    if edit_inv_data[48] == 1:
+    if edit_inv_data[48] == 1 or edit_inv_data[4] == "Void":
       ex_costn_combo_1.delete(0, END)
       ex_costn_combo_1.insert(0, edit_inv_data[11])
       dis_rate_entry_1.delete(0, END)
@@ -5158,7 +5746,7 @@ def mainpage():
       draft_label_1.config(text=edit_inv_data[4])
     never1_label_1.config(text=edit_inv_data[5])
     never2_label_1.config(text=edit_inv_data[6])
-    if edit_inv_data[48] == 1:
+    if edit_inv_data[48] == 1 or edit_inv_data[4] == "Void":
       if edit_inv_data[47] == 0:
         checkrecStatus_1.set(0)
         recur_check_btn_1['state'] = DISABLED
@@ -5230,7 +5818,7 @@ def mainpage():
         pass
     count += 1
 
-    if edit_inv_data[48] == 1:
+    if edit_inv_data[48] == 1 or edit_inv_data[4] == "Void":
       title_txt_combo_1.delete(0,END)
       title_txt_combo_1.insert(0,edit_inv_data[39])
       pageh_txt_combo_1.delete(0,END)
@@ -5568,125 +6156,279 @@ def mainpage():
         
 
 
+  def inv_send_mail_1(file=None):
+    # sender_mail = your_cemail_entry.get()
+    sender_mail = "infoxfbilling77@gmail.com"
+    # sender_password = your_cpass_entry.get()
+    sender_password = "dinkiurlziohgfok"
+
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    print("login successfull")
+    server.starttls()
+    print("login successfull2")
+    server.login(sender_mail,sender_password)
+    print("login successfull3")
+
+    carbon_info = email_carbon.get()
+    msg = MIMEMultipart()
+    msg['Subject'] = email_subject.get()
+    mail_content = email_ltr_scroll.get("1.0",'end-1c')
+    msg['From'] = email_from.get()
+    msg['To'] = email_to.get()
+
+    gettingimg = lstfrm.get()
+    lst_data = gettingimg[1:-1].split(',')
+    
+    msg.attach(MIMEText(mail_content, 'plain'))
+    
+    for i in lst_data:
+      if len(i.strip()[1:-1])>1:
+        with open('images/'+ i.strip()[1:-1], "rb") as attachment:
+            # MIME attachment is a binary file for that content type "application/octet-stream" is used
+          part = MIMEBase("application", "octet-stream")
+          part.set_payload(attachment.read())
+        # encode into base64 
+          encoders.encode_base64(part) 
+    
+          part.add_header('Content-Disposition', "attachment; filename= %s" % 'images/'+ i.strip()[1:-1]) 
+
+        # attach the instance 'part' to instance 'message' 
+          msg.attach(part)
+      # message_body = email_body.get()
+
+    server.sendmail(email_from.get(),email_to.get(),msg.as_string())
+    server.sendmail(email_from.get(), carbon_info,msg.as_string())
+
+    date = dt.datetime.now().date()
+    never1_label_1.config(text=date)
+    print("message sent")
+
+
   #email
         
-  def emailorder():
-    mailDetail=Toplevel()
-    mailDetail.title("E-Mail Invoice List")
+  def email_invoice_1():
+    mail_invo =Toplevel()
+    mail_invo.title("E-Mail Invoice List")
     p2 = PhotoImage(file = "images/fbicon.png")
-    mailDetail.iconphoto(False, p2)
-    mailDetail.geometry("1030x550+150+120")
+    mail_invo.iconphoto(False, p2)
+    mail_invo.geometry("1030x490+150+120")
   
-    def my_SMTP():
-        if True:
-            em_ser_conbtn.destroy()
-            mysmtpservercon=LabelFrame(account_Frame,text="SMTP server connection(ask your ISP for your SMTP settings)", height=165, width=380)
-            mysmtpservercon.place(x=610, y=110)
-            lbl_hostn=Label(mysmtpservercon, text="Hostname").place(x=5, y=10)
-            hostnent=Entry(mysmtpservercon, width=30).place(x=80, y=10)
-            lbl_portn=Label(mysmtpservercon, text="Port").place(x=5, y=35)
-            portent=Entry(mysmtpservercon, width=30).place(x=80, y=35)
-            lbl_usn=Label(mysmtpservercon, text="Username").place(x=5, y=60)
-            unament=Entry(mysmtpservercon, width=30).place(x=80, y=60)
-            lbl_pasn=Label(mysmtpservercon, text="Password").place(x=5, y=85)
-            pwdent=Entry(mysmtpservercon, width=30).place(x=80, y=85)
-            ssl_chkvar=IntVar()
-            ssl_chkbtn=Checkbutton(mysmtpservercon, variable=ssl_chkvar, text="This server requires a secure connection(SSL)", onvalue=1, offvalue=0)
-            ssl_chkbtn.place(x=50, y=110)
-            em_ser_conbtn1=Button(account_Frame, text="Test E-mail Server Connection").place(x=610, y=285)
-        else:
-            pass
       
+    def inv_empsfile_image_1(event):
+      global yawn
+      for i in  attach_list.curselection():
+        print("hloo", attach_list.get(i))
+        yawn= attach_list.get(i)        
+        edit_window_img = Toplevel()
+        edit_window_img.title("View Image")
+        edit_window_img.geometry("700x500")
+        image = Image.open("images/"+yawn)
+        resize_image = image.resize((700, 500))
+        image = ImageTk.PhotoImage(resize_image)
+        psimage = Label(edit_window_img,image=image)
+        psimage.photo = image
+        psimage.pack()
+    
+    def inv_UploadAction_1(event=None):
+      global filenamez
+
+      filenamez = askopenfilename(filetypes=(("png file ",'.png'),("jpg file", ".jpg"), ('PDF', '.pdf',), ("All files", ".*"),))
+      shutil.copyfile(filenamez, os.getcwd()+'/images/'+filenamez.split('/')[-1])
+      attach_list.insert(0, filenamez.split('/')[-1])
+
+
+    def inv_deletefile_1():
+      inv_remove=attach_list.curselection()
+      yawn=attach_list.get(inv_remove) 
+      print(yawn)       
+      attach_list.delete(ACTIVE)
+
     style = ttk.Style()
     style.theme_use('default')
     style.configure('TNotebook.Tab', background="#999999", padding=5)
-    email_Notebook = ttk.Notebook(mailDetail)
+    email_Notebook = ttk.Notebook(mail_invo)
     email_Frame = Frame(email_Notebook, height=500, width=1080)
     account_Frame = Frame(email_Notebook, height=550, width=1080)
     email_Notebook.add(email_Frame, text="E-mail")
     email_Notebook.add(account_Frame, text="Account")
     email_Notebook.place(x=0, y=0)
-    messagelbframe=LabelFrame(email_Frame,text="Message", height=495, width=730)
+    messagelbframe=LabelFrame(email_Frame,text="Message", height=450, width=730)
     messagelbframe.place(x=5, y=5)
-    lbl_emailtoaddr=Label(messagelbframe, text="Email to address").place(x=5, y=5)
-    emailtoent=Entry(messagelbframe, width=50).place(x=120, y=5)
-    sendemail_btn=Button(messagelbframe, text="Send Email", width=10, height=1).place(x=600, y=10)
-    lbl_carcopyto=Label(messagelbframe, text="Carbon copy to").place(x=5, y=32)
-    carcopyent=Entry(messagelbframe, width=50).place(x=120, y=32)
-    stopemail_btn=Button(messagelbframe, text="Stop sending", width=10, height=1).place(x=600, y=40)
-    lbl_subject=Label(messagelbframe, text="Subject").place(x=5, y=59)
-    subent=Entry(messagelbframe, width=50).place(x=120, y=59)
+    global email_to,email_subject,email_from,email_paasw,email_carbon,email_ltr_scroll,email_html_scroll,attach_list,lstfrm
+    email_to = StringVar()
+    email_subject = StringVar()
+    email_from = StringVar()
+    email_passw = StringVar()
+    email_carbon = StringVar()
+    email_to_addr_label=Label(messagelbframe, text="Email to address").place(x=5, y=5)
+    email_to_addr_entry=Entry(messagelbframe, width=50,textvariable=email_to)
+    email_to_addr_entry.place(x=120, y=5)
+    email_addr = inv_email_e5_1.get()
+    email_to_addr_entry.delete(0,END)
+    email_to_addr_entry.insert(0,email_addr)
+    send_email_btn=Button(messagelbframe, text="Send Email", width=10, height=1,command=inv_send_mail_1)
+    send_email_btn.place(x=600, y=10)
+    carbon_label=Label(messagelbframe, text="Carbon copy to").place(x=5, y=32)
+    carbon_entry=Entry(messagelbframe, width=50,textvariable=email_carbon)
+    carbon_entry.place(x=120, y=32)
+    stop_email_btn=Button(messagelbframe, text="Stop sending", width=10, height=1,state=DISABLED)
+    stop_email_btn.place(x=600, y=40)
+    subject_label=Label(messagelbframe, text="Subject").place(x=5, y=59)
+    subject_entry=Entry(messagelbframe, width=50,textvariable=email_subject)
+    subject_entry.place(x=120, y=59)
+    subject = inv_number_entry_1.get()
+    subject_entry.delete(0,END)
+    subject_entry.insert(0,"Invoice" + " " + "(" + subject + ")")
 
     style = ttk.Style()
     style.theme_use('default')
     style.configure('TNotebook.Tab', background="#999999", width=20, padding=5)
     mess_Notebook = ttk.Notebook(messagelbframe)
-    emailmessage_Frame = Frame(mess_Notebook, height=350, width=710)
-    htmlsourse_Frame = Frame(mess_Notebook, height=350, width=710)
+    emailmessage_Frame = Frame(mess_Notebook,height=305, width=710)
+    htmlsourse_Frame = Frame(mess_Notebook, height=305, width=710)
     mess_Notebook.add(emailmessage_Frame, text="E-mail message")
     mess_Notebook.add(htmlsourse_Frame, text="Html sourse code")
     mess_Notebook.place(x=5, y=90)
 
-    btn1=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=selectall).place(x=0, y=1)  
-    btn2=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=cut).place(x=36, y=1)
-    btn3=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=copy).place(x=73, y=1)
-    btn4=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=paste).place(x=105, y=1)
-    btn5=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=undo).place(x=140, y=1)
-    btn6=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=redo).place(x=175, y=1)
-    btn7=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=bold).place(x=210, y=1)
-    btn8=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=italics).place(x=245, y=1)
-    btn9=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=underline).place(x=280, y=1)
-    btn10=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=left).place(x=315, y=1)
-    btn11=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=right).place(x=350, y=1)
-    btn12=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=center).place(x=385, y=1)
-    btn13=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=hyperlink).place(x=420, y=1)
-    btn14=Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=remove).place(x=455, y=1)
+    email_ltr_scroll=scrolledtext.ScrolledText(emailmessage_Frame, height=17, width=86, bg="white",undo=True)
+    email_ltr_scroll.place(x=0, y=28)
 
-    dropcomp = ttk.Combobox(emailmessage_Frame, width=12, height=3).place(x=500, y=5)
-    dropcompo = ttk.Combobox(emailmessage_Frame, width=6, height=3).place(x=600, y=5)
-    mframe=Frame(emailmessage_Frame, height=350, width=710, bg="white")
-    mframe.place(x=0, y=28)
+    sel_all_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=selectall,command=lambda:email_ltr_scroll.event_generate('<Control a>'))
+    sel_all_btn.place(x=0, y=1)  
+    cut_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=cut,command=lambda :email_ltr_scroll.event_generate('<Control x>'))
+    cut_btn.place(x=36, y=1)
+    copy_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=copy,command=lambda :email_ltr_scroll.event_generate('<Control c>'))
+    copy_btn.place(x=73, y=1)
+    paste_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=paste,command=lambda :email_ltr_scroll.event_generate('<Control v>'))
+    paste_btn.place(x=105, y=1)
+    undo_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=undo,command=email_ltr_scroll.edit_undo)
+    undo_btn.place(x=140, y=1)
+    redo_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=redo,command=email_ltr_scroll.edit_redo)
+    redo_btn.place(x=175, y=1)
+
+    def bold_text():
+      bold_font = font.Font(email_ltr_scroll, email_ltr_scroll.cget("font"))
+      bold_font.configure(weight="bold")
+
+      email_ltr_scroll.tag_configure("bold", font=bold_font)
+
+      current_tags = email_ltr_scroll.tag_names("sel.first")
+
+      if "bold" in current_tags:
+        email_ltr_scroll.tag_remove("bold", "sel.first", "sel.last")
+      else:
+        email_ltr_scroll.tag_add("bold", "sel.first", "sel.last")
+    
+    bold_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=bold,command=bold_text)
+    bold_btn.place(x=210, y=1)
+
+    def italic_text():
+      italic_font = font.Font(email_ltr_scroll, email_ltr_scroll.cget("font"))
+      italic_font.configure(slant="italic")
+
+      email_ltr_scroll.tag_configure("italic", font=italic_font)
+
+      current_tags = email_ltr_scroll.tag_names("sel.first")
+
+      if "italic" in current_tags:
+        email_ltr_scroll.tag_remove("italic", "sel.first", "sel.last")
+      else:
+        email_ltr_scroll.tag_add("italic", "sel.first", "sel.last")
+    italic_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=italics,command=italic_text)
+    italic_btn.place(x=245, y=1)
+
+    def underline_text():
+      try:
+        if email_ltr_scroll.tag_nextrange('underline_selection', 'sel.first', 'sel.last') != ():
+            email_ltr_scroll.tag_remove('underline_selection', 'sel.first', 'sel.last')
+        else:
+            email_ltr_scroll.tag_add('underline_selection', 'sel.first', 'sel.last')
+            email_ltr_scroll.tag_configure('underline_selection', underline=True)
+      except TclError:
+          pass
+    underline_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=underline,command=underline_text)
+    underline_btn.place(x=280, y=1)
+
+    def align_left():
+      data = email_ltr_scroll.get(0.0,END)
+      email_ltr_scroll.tag_config('left',justify=LEFT)
+      email_ltr_scroll.delete(0.0,END)
+      email_ltr_scroll.insert(INSERT,data,'left')
+    align_lbtn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=left,command=align_left)
+    align_lbtn.place(x=315, y=1)
+
+    def align_right():
+      data = email_ltr_scroll.get(0.0,END)
+      email_ltr_scroll.tag_config('right',justify=RIGHT)
+      email_ltr_scroll.delete(0.0,END)
+      email_ltr_scroll.insert(INSERT,data,'right')
+    align_rbtn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=right,command=align_right)
+    align_rbtn.place(x=350, y=1)
+
+    def align_center():
+      data = email_ltr_scroll.get(0.0,END)
+      email_ltr_scroll.tag_config('center',justify=CENTER)
+      email_ltr_scroll.delete(0.0,END)
+      email_ltr_scroll.insert(INSERT,data,'center')
+    align_cbtn= Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=center,command=align_center)
+    align_cbtn.place(x=385, y=1)
+    hyper_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=hyperlink)
+    hyper_btn.place(x=420, y=1)
+    remove_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=remove,command=lambda :email_ltr_scroll.delete(0.0,END))
+    remove_btn.place(x=455, y=1)
+
+
+    def color_text():
+      color = colorchooser.askcolor()[1]
+      if color:
+        color_font = font.Font(email_ltr_scroll, email_ltr_scroll.cget("font"))
+
+        email_ltr_scroll.tag_configure("colored", font=color_font, foreground=color)
+
+        current_tags = email_ltr_scroll.tag_names("sel.first")
+
+        if "colored" in current_tags:
+          email_ltr_scroll.tag_remove("colored", "sel.first", "sel.last")
+        else:
+          email_ltr_scroll.tag_add("colored", "sel.first", "sel.last")
+    color_btn = Button(emailmessage_Frame, width=31, height=23,compound = LEFT,image=color,command=color_text)
+    color_btn.place(x=490, y=1)
+
+    fontsize_combo = ttk.Combobox(emailmessage_Frame, width=6, height=3)
+    fontsize_combo.place(x=600, y=5)
+    fontsize_combo['values'] = ('1','2','3','4','5','6','7')
+    fontsize_combo.current(0)
     btn1=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=selectall).place(x=0, y=1)
     btn2=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=cut).place(x=36, y=1)
     btn3=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=copy).place(x=73, y=1)
     btn4=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=paste).place(x=105, y=1)
-    mframe=Frame(htmlsourse_Frame, height=350, width=710, bg="white")
-    mframe.place(x=0, y=28)
-    attachlbframe=LabelFrame(email_Frame,text="Attachment(s)", height=350, width=280)
+    email_html_scroll=scrolledtext.ScrolledText(htmlsourse_Frame,undo=True, height=350, width=710, bg="white")
+    email_html_scroll.place(x=0, y=28)
+    attachlbframe=LabelFrame(email_Frame,text="Attachment(s)", height=350, width=283)
     attachlbframe.place(x=740, y=5)
-    htcodeframe=Frame(attachlbframe, height=220, width=265, bg="white").place(x=5, y=5)
+    lstfrm = StringVar()
+    attach_list=Listbox(attachlbframe, height=13, width=44,listvariable=lstfrm, bg="white")
+    attach_list.place(x=5, y=5)
+    attach_list.bind('<Double-Button-1>',inv_empsfile_image_1)
     lbl_btn_info=Label(attachlbframe, text="Double click on attachment to view").place(x=30, y=230)
-    btn17=Button(attachlbframe, width=20, text="Add attacment file...").place(x=60, y=260)
-    btn18=Button(attachlbframe, width=20, text="Remove attacment").place(x=60, y=295)
+    btn17=Button(attachlbframe, width=20, text="Add attacment file...",command=inv_UploadAction_1)
+    btn17.place(x=60, y=260)
+    btn18=Button(attachlbframe, width=20, text="Remove attacment",command=inv_deletefile_1)
+    btn18.place(x=60, y=295)
     lbl_tt_info=Label(email_Frame, text="You can create predefined invoice, order, estimate\nand payment receipt email templates under Main\nmenu/Settings/E-Mail templates tab")
     lbl_tt_info.place(x=740, y=370)
 
-    ready_frame=Frame(mailDetail, height=20, width=1080, bg="#b3b3b3").place(x=0,y=530)
+    ready_frame=Frame(mail_invo, height=20, width=1080, bg="#b3b3b3").place(x=0,y=530)
     
-    sendatalbframe=LabelFrame(account_Frame,text="E-Mail(Sender data)",height=270, width=600)
+    sendatalbframe = LabelFrame(account_Frame,text="E-Mail(Sender data)",height=270, width=600)
     sendatalbframe.place(x=5, y=5)
-    lbl_sendermail=Label(sendatalbframe, text="Your company email address").place(x=5, y=30)
-    sentent=Entry(sendatalbframe, width=40).place(x=195, y=30)
-    lbl_orcompanyname=Label(sendatalbframe, text="Your name or company name").place(x=5, y=60)
-    nament=Entry(sendatalbframe, width=40).place(x=195, y=60)
-    lbl_reply=Label(sendatalbframe, text="Reply to email address").place(x=5, y=90)
-    replyent=Entry(sendatalbframe, width=40).place(x=195, y=90)
-    lbl_sign=Label(sendatalbframe, text="Signature").place(x=5, y=120)
-    signent=Entry(sendatalbframe,width=50).place(x=100, y=120,height=75)
-    confirm_chkvar=IntVar()
-    confirm_chkbtn=Checkbutton(sendatalbframe, variable=confirm_chkvar, text="Confirmation reading", onvalue=1, offvalue=0)
-    confirm_chkbtn.place(x=200, y=215)
-    btn18=Button(account_Frame, width=15, text="Save settings").place(x=25, y=285)
+    your_cemail_label = Label(sendatalbframe, text="Your company email address").place(x=5, y=30)
+    your_cemail_entry = Entry(sendatalbframe, width=40)
+    your_cemail_entry.place(x=195, y=30)
 
-    sendatalbframe=LabelFrame(account_Frame,text="SMTP Server",height=100, width=380)
-    sendatalbframe.place(x=610, y=5)
-    servar=IntVar()
-    SMTP_rbtn=Radiobutton(sendatalbframe, text="Use the Built-In SMTP Server Settings", variable=servar, value=1)
-    SMTP_rbtn.place(x=10, y=10)
-    MySMTP_rbtn=Radiobutton(sendatalbframe, text="Use My Own SMTP Server Settings(Recommended)", variable=servar, value=2, command=my_SMTP)
-    MySMTP_rbtn.place(x=10, y=40)
-    em_ser_conbtn=Button(account_Frame, text="Test E-mail Server Connection")
-    em_ser_conbtn.place(x=710, y=110)
+    your_cpass_label = Label(sendatalbframe, text="Your Password").place(x=5, y=60)
+    your_cpass_entry = Entry(sendatalbframe, width=40,show='*')
+    your_cpass_entry.place(x=195, y=60)
 
 
 
@@ -5869,7 +6611,7 @@ def mainpage():
   w = Canvas(inv_midFrame, width=1, height=55, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  expenseLabel = Button(inv_midFrame,compound="top", text=" E-mail \nInvoice",relief=RAISED, image=photo6,bg="#f8f8f2", fg="black", height=55, bd=1, width=55,command=emailorder)
+  expenseLabel = Button(inv_midFrame,compound="top", text=" E-mail \nInvoice",relief=RAISED, image=photo6,bg="#f8f8f2", fg="black", height=55, bd=1, width=55,command=email_invoice_1)
   expenseLabel.pack(side="left")
 
   smsLabel = Button(inv_midFrame,compound="top", text="Send SMS\nnotification",relief=RAISED, image=photo10,bg="#f8f8f2", fg="black", height=55, bd=1, width=55,command=sms)
