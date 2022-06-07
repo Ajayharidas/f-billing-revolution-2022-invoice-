@@ -43,6 +43,7 @@ from tkcalendar import Calendar
 from tkcalendar import DateEntry
 from datetime import date,datetime
 import datetime as dt
+from dateutil.relativedelta import relativedelta
 from tkinter import filedialog
 import subprocess
 import mysql.connector
@@ -2338,6 +2339,282 @@ def mainpage():
     def delete_line_item():
       selected_line_item = add_newline_tree.selection()[0]
       add_newline_tree.delete(selected_line_item)
+
+    ############## Email Invoice ###################
+
+    def inv_send_mail(file=None):
+      # sender_mail = your_cemail_entry.get()
+      sender_mail = "infoxfbilling77@gmail.com"
+      # sender_password = your_cpass_entry.get()
+      sender_password = "dinkiurlziohgfok"
+
+      server = smtplib.SMTP('smtp.gmail.com', 587)
+      print("login successfull")
+      server.starttls()
+      print("login successfull2")
+      server.login(sender_mail,sender_password)
+      print("login successfull3")
+
+      carbon_info = email_carbon.get()
+      msg = MIMEMultipart()
+      msg['Subject'] = email_subject.get()
+      mail_content = email_ltr_scroll.get("1.0",'end-1c')
+      msg['From'] = email_from.get()
+      msg['To'] = email_to.get()
+
+      gettingimg = lstfrm.get()
+      lst_data = gettingimg[1:-1].split(',')
+      
+      msg.attach(MIMEText(mail_content, 'plain'))
+      
+      for i in lst_data:
+        if len(i.strip()[1:-1])>1:
+          with open('images/'+ i.strip()[1:-1], "rb") as attachment:
+              # MIME attachment is a binary file for that content type "application/octet-stream" is used
+            part = MIMEBase("application", "octet-stream")
+            part.set_payload(attachment.read())
+          # encode into base64 
+            encoders.encode_base64(part) 
+      
+            part.add_header('Content-Disposition', "attachment; filename= %s" % 'images/'+ i.strip()[1:-1]) 
+
+          # attach the instance 'part' to instance 'message' 
+            msg.attach(part)
+        # message_body = email_body.get()
+
+      server.sendmail(email_from.get(),email_to.get(),msg.as_string())
+      server.sendmail(email_from.get(), carbon_info,msg.as_string())
+
+      date = dt.datetime.now().date()
+      never1_label_1.config(text=date)
+      print("message sent")
+
+
+    #email
+          
+    def email_invoice():
+      mail_invo =Toplevel()
+      mail_invo.title("E-Mail Invoice List")
+      p2 = PhotoImage(file = "images/fbicon.png")
+      mail_invo.iconphoto(False, p2)
+      mail_invo.geometry("1030x490+150+120")
+    
+        
+      def inv_empsfile_image_1(event):
+        global yawn
+        for i in  attach_list.curselection():
+          print("hloo", attach_list.get(i))
+          yawn= attach_list.get(i)        
+          edit_window_img = Toplevel()
+          edit_window_img.title("View Image")
+          edit_window_img.geometry("700x500")
+          image = Image.open("images/"+yawn)
+          resize_image = image.resize((700, 500))
+          image = ImageTk.PhotoImage(resize_image)
+          psimage = Label(edit_window_img,image=image)
+          psimage.photo = image
+          psimage.pack()
+      
+      def inv_UploadAction_1(event=None):
+        global filenamez
+
+        filenamez = askopenfilename(filetypes=(("png file ",'.png'),("jpg file", ".jpg"), ('PDF', '.pdf',), ("All files", ".*"),))
+        shutil.copyfile(filenamez, os.getcwd()+'/images/'+filenamez.split('/')[-1])
+        attach_list.insert(0, filenamez.split('/')[-1])
+
+
+      def inv_deletefile_1():
+        inv_remove=attach_list.curselection()
+        yawn=attach_list.get(inv_remove) 
+        print(yawn)       
+        attach_list.delete(ACTIVE)
+
+      style = ttk.Style()
+      style.theme_use('default')
+      style.configure('TNotebook.Tab', background="#999999", padding=5)
+      email_Notebook = ttk.Notebook(mail_invo)
+      email_Frame = Frame(email_Notebook, height=500, width=1080)
+      account_Frame = Frame(email_Notebook, height=550, width=1080)
+      email_Notebook.add(email_Frame, text="E-mail")
+      email_Notebook.add(account_Frame, text="Account")
+      email_Notebook.place(x=0, y=0)
+      messagelbframe=LabelFrame(email_Frame,text="Message", height=450, width=730)
+      messagelbframe.place(x=5, y=5)
+      global email_to,email_subject,email_from,email_paasw,email_carbon,email_ltr_scroll,email_html_scroll,attach_list,lstfrm
+      email_to = StringVar()
+      email_subject = StringVar()
+      email_from = StringVar()
+      email_passw = StringVar()
+      email_carbon = StringVar()
+      email_to_addr_label=Label(messagelbframe, text="Email to address").place(x=5, y=5)
+      email_to_addr_entry=Entry(messagelbframe, width=50,textvariable=email_to)
+      email_to_addr_entry.place(x=120, y=5)
+      email_addr = inv_email_e5.get()
+      email_to_addr_entry.delete(0,END)
+      email_to_addr_entry.insert(0,email_addr)
+      send_email_btn=Button(messagelbframe, text="Send Email", width=10, height=1,command=inv_send_mail)
+      send_email_btn.place(x=600, y=10)
+      carbon_label=Label(messagelbframe, text="Carbon copy to").place(x=5, y=32)
+      carbon_entry=Entry(messagelbframe, width=50,textvariable=email_carbon)
+      carbon_entry.place(x=120, y=32)
+      stop_email_btn=Button(messagelbframe, text="Stop sending", width=10, height=1,state=DISABLED)
+      stop_email_btn.place(x=600, y=40)
+      subject_label=Label(messagelbframe, text="Subject").place(x=5, y=59)
+      subject_entry=Entry(messagelbframe, width=50,textvariable=email_subject)
+      subject_entry.place(x=120, y=59)
+      subject = inv_number_entry.get()
+      subject_entry.delete(0,END)
+      subject_entry.insert(0,"Invoice" + " " + "(" + subject + ")")
+
+      style = ttk.Style()
+      style.theme_use('default')
+      style.configure('TNotebook.Tab', background="#999999", width=20, padding=5)
+      mess_Notebook = ttk.Notebook(messagelbframe)
+      emailmessage_Frame = Frame(mess_Notebook,height=305, width=710)
+      htmlsourse_Frame = Frame(mess_Notebook, height=305, width=710)
+      mess_Notebook.add(emailmessage_Frame, text="E-mail message")
+      mess_Notebook.add(htmlsourse_Frame, text="Html sourse code")
+      mess_Notebook.place(x=5, y=90)
+
+      email_ltr_scroll=scrolledtext.ScrolledText(emailmessage_Frame, height=17, width=86, bg="white",undo=True)
+      email_ltr_scroll.place(x=0, y=28)
+
+      sel_all_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=selectall,command=lambda:email_ltr_scroll.event_generate('<Control a>'))
+      sel_all_btn.place(x=0, y=1)  
+      cut_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=cut,command=lambda :email_ltr_scroll.event_generate('<Control x>'))
+      cut_btn.place(x=36, y=1)
+      copy_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=copy,command=lambda :email_ltr_scroll.event_generate('<Control c>'))
+      copy_btn.place(x=73, y=1)
+      paste_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=paste,command=lambda :email_ltr_scroll.event_generate('<Control v>'))
+      paste_btn.place(x=105, y=1)
+      undo_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=undo,command=email_ltr_scroll.edit_undo)
+      undo_btn.place(x=140, y=1)
+      redo_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=redo,command=email_ltr_scroll.edit_redo)
+      redo_btn.place(x=175, y=1)
+
+      def bold_text():
+        bold_font = font.Font(email_ltr_scroll, email_ltr_scroll.cget("font"))
+        bold_font.configure(weight="bold")
+
+        email_ltr_scroll.tag_configure("bold", font=bold_font)
+
+        current_tags = email_ltr_scroll.tag_names("sel.first")
+
+        if "bold" in current_tags:
+          email_ltr_scroll.tag_remove("bold", "sel.first", "sel.last")
+        else:
+          email_ltr_scroll.tag_add("bold", "sel.first", "sel.last")
+      
+      bold_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=bold,command=bold_text)
+      bold_btn.place(x=210, y=1)
+
+      def italic_text():
+        italic_font = font.Font(email_ltr_scroll, email_ltr_scroll.cget("font"))
+        italic_font.configure(slant="italic")
+
+        email_ltr_scroll.tag_configure("italic", font=italic_font)
+
+        current_tags = email_ltr_scroll.tag_names("sel.first")
+
+        if "italic" in current_tags:
+          email_ltr_scroll.tag_remove("italic", "sel.first", "sel.last")
+        else:
+          email_ltr_scroll.tag_add("italic", "sel.first", "sel.last")
+      italic_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=italics,command=italic_text)
+      italic_btn.place(x=245, y=1)
+
+      def underline_text():
+        try:
+          if email_ltr_scroll.tag_nextrange('underline_selection', 'sel.first', 'sel.last') != ():
+              email_ltr_scroll.tag_remove('underline_selection', 'sel.first', 'sel.last')
+          else:
+              email_ltr_scroll.tag_add('underline_selection', 'sel.first', 'sel.last')
+              email_ltr_scroll.tag_configure('underline_selection', underline=True)
+        except TclError:
+            pass
+      underline_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=underline,command=underline_text)
+      underline_btn.place(x=280, y=1)
+
+      def align_left():
+        data = email_ltr_scroll.get(0.0,END)
+        email_ltr_scroll.tag_config('left',justify=LEFT)
+        email_ltr_scroll.delete(0.0,END)
+        email_ltr_scroll.insert(INSERT,data,'left')
+      align_lbtn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=left,command=align_left)
+      align_lbtn.place(x=315, y=1)
+
+      def align_right():
+        data = email_ltr_scroll.get(0.0,END)
+        email_ltr_scroll.tag_config('right',justify=RIGHT)
+        email_ltr_scroll.delete(0.0,END)
+        email_ltr_scroll.insert(INSERT,data,'right')
+      align_rbtn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=right,command=align_right)
+      align_rbtn.place(x=350, y=1)
+
+      def align_center():
+        data = email_ltr_scroll.get(0.0,END)
+        email_ltr_scroll.tag_config('center',justify=CENTER)
+        email_ltr_scroll.delete(0.0,END)
+        email_ltr_scroll.insert(INSERT,data,'center')
+      align_cbtn= Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=center,command=align_center)
+      align_cbtn.place(x=385, y=1)
+      hyper_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=hyperlink)
+      hyper_btn.place(x=420, y=1)
+      remove_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=remove,command=lambda :email_ltr_scroll.delete(0.0,END))
+      remove_btn.place(x=455, y=1)
+
+
+      def color_text():
+        color = colorchooser.askcolor()[1]
+        if color:
+          color_font = font.Font(email_ltr_scroll, email_ltr_scroll.cget("font"))
+
+          email_ltr_scroll.tag_configure("colored", font=color_font, foreground=color)
+
+          current_tags = email_ltr_scroll.tag_names("sel.first")
+
+          if "colored" in current_tags:
+            email_ltr_scroll.tag_remove("colored", "sel.first", "sel.last")
+          else:
+            email_ltr_scroll.tag_add("colored", "sel.first", "sel.last")
+      color_btn = Button(emailmessage_Frame, width=31, height=23,compound = LEFT,image=color,command=color_text)
+      color_btn.place(x=490, y=1)
+
+      fontsize_combo = ttk.Combobox(emailmessage_Frame, width=6, height=3)
+      fontsize_combo.place(x=600, y=5)
+      fontsize_combo['values'] = ('1','2','3','4','5','6','7')
+      fontsize_combo.current(0)
+      btn1=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=selectall).place(x=0, y=1)
+      btn2=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=cut).place(x=36, y=1)
+      btn3=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=copy).place(x=73, y=1)
+      btn4=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=paste).place(x=105, y=1)
+      email_html_scroll=scrolledtext.ScrolledText(htmlsourse_Frame,undo=True, height=350, width=710, bg="white")
+      email_html_scroll.place(x=0, y=28)
+      attachlbframe=LabelFrame(email_Frame,text="Attachment(s)", height=350, width=283)
+      attachlbframe.place(x=740, y=5)
+      lstfrm = StringVar()
+      attach_list=Listbox(attachlbframe, height=13, width=44,listvariable=lstfrm, bg="white")
+      attach_list.place(x=5, y=5)
+      attach_list.bind('<Double-Button-1>',inv_empsfile_image_1)
+      lbl_btn_info=Label(attachlbframe, text="Double click on attachment to view").place(x=30, y=230)
+      btn17=Button(attachlbframe, width=20, text="Add attacment file...",command=inv_UploadAction_1)
+      btn17.place(x=60, y=260)
+      btn18=Button(attachlbframe, width=20, text="Remove attacment",command=inv_deletefile_1)
+      btn18.place(x=60, y=295)
+      lbl_tt_info=Label(email_Frame, text="You can create predefined invoice, order, estimate\nand payment receipt email templates under Main\nmenu/Settings/E-Mail templates tab")
+      lbl_tt_info.place(x=740, y=370)
+
+      ready_frame=Frame(mail_invo, height=20, width=1080, bg="#b3b3b3").place(x=0,y=530)
+      
+      sendatalbframe = LabelFrame(account_Frame,text="E-Mail(Sender data)",height=270, width=600)
+      sendatalbframe.place(x=5, y=5)
+      your_cemail_label = Label(sendatalbframe, text="Your company email address").place(x=5, y=30)
+      your_cemail_entry = Entry(sendatalbframe, width=40)
+      your_cemail_entry.place(x=195, y=30)
+
+      your_cpass_label = Label(sendatalbframe, text="Your Password").place(x=5, y=60)
+      your_cpass_entry = Entry(sendatalbframe, width=40,show='*')
+      your_cpass_entry.place(x=195, y=60)
       
       
 
@@ -2372,7 +2649,7 @@ def mainpage():
     w = Canvas(inv_first_frame, width=1, height=65, bg="#b3b3b3", bd=0)
     w.pack(side="left", padx=5)
 
-    mail_invoice= Button(inv_first_frame,compound="top", text="Email\nInvoice",relief=RAISED, image=photo6,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=email_invoice_1)
+    mail_invoice= Button(inv_first_frame,compound="top", text="Email\nInvoice",relief=RAISED, image=photo6,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=email_invoice)
     mail_invoice.pack(side="left", pady=3, ipadx=4)
 
     sms_invoice= Button(inv_first_frame,compound="top", text="Send SMS\nnotification",relief=RAISED, image=photo10,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=sms1)
@@ -2644,24 +2921,6 @@ def mainpage():
     myNotebook.add(documentFrame,compound="left",  text="Documents")
     myNotebook.pack(expand = 1, fill ="both")  
 
-
-    def recur_check():
-      if checkrecStatus.get() == 0:
-        recur_period_entry['state'] = DISABLED
-        recur_month_combo['state'] = DISABLED
-        recur_nxt_inv_date['state'] = DISABLED
-        recur_stop_check['state'] = DISABLED
-        recur_stop_date['state'] = DISABLED
-        recur_recalc['state'] = DISABLED
-      else:
-        recur_period_entry['state'] = NORMAL
-        recur_month_combo['state'] = NORMAL
-        recur_nxt_inv_date['state'] = NORMAL
-        recur_stop_check['state'] = NORMAL
-        recur_stop_date['state'] = NORMAL
-        recur_recalc['state'] = NORMAL
-
-
     sql_exn = "SELECT extra_cost_name FROM extra_cost_name"
     fbcursor.execute(sql_exn)
     ex_data = fbcursor.fetchall()
@@ -2735,13 +2994,44 @@ def mainpage():
     recur_labelframe = LabelFrame(recurFrame,text="",font=("arial",15))
     recur_labelframe.place(x=1,y=1,width=735,height=170)
 
-    # def inv_stop_check():
-    #   if checkstopStatus.get() == 0:
-    #     recur_stop_date['state'] = NORMAL
-    #   else:
-    #     recur_stop_date['state'] = DISABLED
+    ############## check recurring #############
+
+    def recur_check():
+      if checkrecStatus.get() == 0:
+        recur_period_entry['state'] = DISABLED
+        recur_month_combo['state'] = DISABLED
+        recur_nxt_inv_date['state'] = DISABLED
+        recur_stop_check['state'] = DISABLED
+        recur_stop_date['state'] = DISABLED
+        recur_recalc['state'] = DISABLED
+      else:
+        recur_period_entry['state'] = NORMAL
+        recur_month_combo['state'] = NORMAL
+        recur_nxt_inv_date['state'] = NORMAL
+        recur_stop_check['state'] = NORMAL
+        recur_stop_date['state'] = NORMAL
+        recur_recalc['state'] = NORMAL
 
     mdata = ["Month(s)","Day(s)"]
+
+    ################## recalculate recurring ################
+    def recur_recalculate():
+      recur_period = recur_period_entry.get()
+      recur_stop = recur_stop_date.get_date()
+      stop_date = datetime.strptime(str(recur_stop),"%Y-%m-%d")
+      if recur_month_combo.get() == "Month(s)":
+        n = stop_date + relativedelta(months=+int(recur_period))
+        nxt = n.date()
+        nxt_inv = datetime.strptime(str(nxt),"%Y-%m-%d")
+        recur_nxt_inv_date.delete(0,END)
+        recur_nxt_inv_date.insert(0,'{0}/{1}/{2:02}'.format(nxt_inv.month,nxt_inv.day,nxt_inv.year % 100))
+      else:
+        n = stop_date + relativedelta(days=+int(recur_period))
+        nxt = n.date()
+        nxt_inv = datetime.strptime(str(nxt),"%Y-%m-%d")
+        recur_nxt_inv_date.delete(0,END)
+        recur_nxt_inv_date.insert(0,'{0}/{1}/{2:02}'.format(nxt_inv.month,nxt_inv.day,nxt_inv.year % 100))
+
 
     checkrecStatus=IntVar()
     recur_check_btn = Checkbutton(recur_labelframe,variable=checkrecStatus,text="Recurring",onvalue=1,offvalue=0,command=recur_check)
@@ -2761,8 +3051,22 @@ def mainpage():
     recur_stop_check.place(x=225,y=95)
     recur_stop_date = DateEntry(recur_labelframe,width=20,state=DISABLED)
     recur_stop_date.place(x=360,y=95)
-    recur_recalc = Button(recur_labelframe,compound=LEFT,image=recalc,text="Recalculate",width=80,height=12,state=DISABLED)
+    recur_recalc = Button(recur_labelframe,compound=LEFT,image=recalc,text="Recalculate",width=80,height=12,state=DISABLED,command=recur_recalculate)
     recur_recalc.place(x=540,y=70)
+
+    recur_stop_date['state'] = NORMAL
+    recur_nxt_inv_date['state'] = NORMAL
+    stop = datetime.today().date()
+    stop_date = datetime.strptime(str(stop),"%Y-%m-%d").date()
+    recur_stop_date.delete(0,END)
+    recur_stop_date.insert(0,'{0}/{1}/{2:02}'.format(stop_date.month,stop_date.day,stop_date.year % 100))
+    n = stop_date + relativedelta(months=+1)
+    nxt_inv = datetime.strptime(str(n),"%Y-%m-%d")
+    recur_nxt_inv_date.delete(0,END)
+    recur_nxt_inv_date.insert(0,'{0}/{1}/{2:02}'.format(nxt_inv.month,nxt_inv.day,nxt_inv.year % 100))
+    recur_stop_date['state'] = DISABLED
+    recur_nxt_inv_date['state'] = DISABLED
+
 
     pay_labelframe_1 = LabelFrame(payementFrame,text="",font=("arial",15))
     pay_labelframe_1.place(x=1,y=1,width=735,height=170)
@@ -4952,6 +5256,283 @@ def mainpage():
     def delete_line_item_1():
       selected_line_item_1 = add_newline_tree_1.selection()[0]
       add_newline_tree_1.delete(selected_line_item_1)
+
+
+    ############# Email Invoice ######################
+
+    def inv_send_mail_1(file=None):
+      # sender_mail = your_cemail_entry.get()
+      sender_mail = "infoxfbilling77@gmail.com"
+      # sender_password = your_cpass_entry.get()
+      sender_password = "dinkiurlziohgfok"
+
+      server = smtplib.SMTP('smtp.gmail.com', 587)
+      print("login successfull")
+      server.starttls()
+      print("login successfull2")
+      server.login(sender_mail,sender_password)
+      print("login successfull3")
+
+      carbon_info = email_carbon.get()
+      msg = MIMEMultipart()
+      msg['Subject'] = email_subject.get()
+      mail_content = email_ltr_scroll.get("1.0",'end-1c')
+      msg['From'] = email_from.get()
+      msg['To'] = email_to.get()
+
+      gettingimg = lstfrm.get()
+      lst_data = gettingimg[1:-1].split(',')
+      
+      msg.attach(MIMEText(mail_content, 'plain'))
+      
+      for i in lst_data:
+        if len(i.strip()[1:-1])>1:
+          with open('images/'+ i.strip()[1:-1], "rb") as attachment:
+              # MIME attachment is a binary file for that content type "application/octet-stream" is used
+            part = MIMEBase("application", "octet-stream")
+            part.set_payload(attachment.read())
+          # encode into base64 
+            encoders.encode_base64(part) 
+      
+            part.add_header('Content-Disposition', "attachment; filename= %s" % 'images/'+ i.strip()[1:-1]) 
+
+          # attach the instance 'part' to instance 'message' 
+            msg.attach(part)
+        # message_body = email_body.get()
+
+      server.sendmail(email_from.get(),email_to.get(),msg.as_string())
+      server.sendmail(email_from.get(), carbon_info,msg.as_string())
+
+      date = dt.datetime.now().date()
+      never1_label_1.config(text=date)
+      print("message sent")
+
+
+    #email
+          
+    def email_invoice_1():
+      mail_invo =Toplevel()
+      mail_invo.title("E-Mail Invoice List")
+      p2 = PhotoImage(file = "images/fbicon.png")
+      mail_invo.iconphoto(False, p2)
+      mail_invo.geometry("1030x490+150+120")
+    
+        
+      def inv_empsfile_image_1(event):
+        global yawn
+        for i in  attach_list.curselection():
+          print("hloo", attach_list.get(i))
+          yawn= attach_list.get(i)        
+          edit_window_img = Toplevel()
+          edit_window_img.title("View Image")
+          edit_window_img.geometry("700x500")
+          image = Image.open("images/"+yawn)
+          resize_image = image.resize((700, 500))
+          image = ImageTk.PhotoImage(resize_image)
+          psimage = Label(edit_window_img,image=image)
+          psimage.photo = image
+          psimage.pack()
+      
+      def inv_UploadAction_1(event=None):
+        global filenamez
+
+        filenamez = askopenfilename(filetypes=(("png file ",'.png'),("jpg file", ".jpg"), ('PDF', '.pdf',), ("All files", ".*"),))
+        shutil.copyfile(filenamez, os.getcwd()+'/images/'+filenamez.split('/')[-1])
+        attach_list.insert(0, filenamez.split('/')[-1])
+
+
+      def inv_deletefile_1():
+        inv_remove=attach_list.curselection()
+        yawn=attach_list.get(inv_remove) 
+        print(yawn)       
+        attach_list.delete(ACTIVE)
+
+      style = ttk.Style()
+      style.theme_use('default')
+      style.configure('TNotebook.Tab', background="#999999", padding=5)
+      email_Notebook = ttk.Notebook(mail_invo)
+      email_Frame = Frame(email_Notebook, height=500, width=1080)
+      account_Frame = Frame(email_Notebook, height=550, width=1080)
+      email_Notebook.add(email_Frame, text="E-mail")
+      email_Notebook.add(account_Frame, text="Account")
+      email_Notebook.place(x=0, y=0)
+      messagelbframe=LabelFrame(email_Frame,text="Message", height=450, width=730)
+      messagelbframe.place(x=5, y=5)
+      global email_to,email_subject,email_from,email_paasw,email_carbon,email_ltr_scroll,email_html_scroll,attach_list,lstfrm
+      email_to = StringVar()
+      email_subject = StringVar()
+      email_from = StringVar()
+      email_passw = StringVar()
+      email_carbon = StringVar()
+      email_to_addr_label=Label(messagelbframe, text="Email to address").place(x=5, y=5)
+      email_to_addr_entry=Entry(messagelbframe, width=50,textvariable=email_to)
+      email_to_addr_entry.place(x=120, y=5)
+      email_addr = inv_email_e5_1.get()
+      email_to_addr_entry.delete(0,END)
+      email_to_addr_entry.insert(0,email_addr)
+      send_email_btn=Button(messagelbframe, text="Send Email", width=10, height=1,command=inv_send_mail_1)
+      send_email_btn.place(x=600, y=10)
+      carbon_label=Label(messagelbframe, text="Carbon copy to").place(x=5, y=32)
+      carbon_entry=Entry(messagelbframe, width=50,textvariable=email_carbon)
+      carbon_entry.place(x=120, y=32)
+      stop_email_btn=Button(messagelbframe, text="Stop sending", width=10, height=1,state=DISABLED)
+      stop_email_btn.place(x=600, y=40)
+      subject_label=Label(messagelbframe, text="Subject").place(x=5, y=59)
+      subject_entry=Entry(messagelbframe, width=50,textvariable=email_subject)
+      subject_entry.place(x=120, y=59)
+      subject = inv_number_entry_1.get()
+      subject_entry.delete(0,END)
+      subject_entry.insert(0,"Invoice" + " " + "(" + subject + ")")
+
+      style = ttk.Style()
+      style.theme_use('default')
+      style.configure('TNotebook.Tab', background="#999999", width=20, padding=5)
+      mess_Notebook = ttk.Notebook(messagelbframe)
+      emailmessage_Frame = Frame(mess_Notebook,height=305, width=710)
+      htmlsourse_Frame = Frame(mess_Notebook, height=305, width=710)
+      mess_Notebook.add(emailmessage_Frame, text="E-mail message")
+      mess_Notebook.add(htmlsourse_Frame, text="Html sourse code")
+      mess_Notebook.place(x=5, y=90)
+
+      email_ltr_scroll=scrolledtext.ScrolledText(emailmessage_Frame, height=17, width=86, bg="white",undo=True)
+      email_ltr_scroll.place(x=0, y=28)
+
+      sel_all_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=selectall,command=lambda:email_ltr_scroll.event_generate('<Control a>'))
+      sel_all_btn.place(x=0, y=1)  
+      cut_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=cut,command=lambda :email_ltr_scroll.event_generate('<Control x>'))
+      cut_btn.place(x=36, y=1)
+      copy_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=copy,command=lambda :email_ltr_scroll.event_generate('<Control c>'))
+      copy_btn.place(x=73, y=1)
+      paste_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=paste,command=lambda :email_ltr_scroll.event_generate('<Control v>'))
+      paste_btn.place(x=105, y=1)
+      undo_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=undo,command=email_ltr_scroll.edit_undo)
+      undo_btn.place(x=140, y=1)
+      redo_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=redo,command=email_ltr_scroll.edit_redo)
+      redo_btn.place(x=175, y=1)
+
+      def bold_text():
+        bold_font = font.Font(email_ltr_scroll, email_ltr_scroll.cget("font"))
+        bold_font.configure(weight="bold")
+
+        email_ltr_scroll.tag_configure("bold", font=bold_font)
+
+        current_tags = email_ltr_scroll.tag_names("sel.first")
+
+        if "bold" in current_tags:
+          email_ltr_scroll.tag_remove("bold", "sel.first", "sel.last")
+        else:
+          email_ltr_scroll.tag_add("bold", "sel.first", "sel.last")
+      
+      bold_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=bold,command=bold_text)
+      bold_btn.place(x=210, y=1)
+
+      def italic_text():
+        italic_font = font.Font(email_ltr_scroll, email_ltr_scroll.cget("font"))
+        italic_font.configure(slant="italic")
+
+        email_ltr_scroll.tag_configure("italic", font=italic_font)
+
+        current_tags = email_ltr_scroll.tag_names("sel.first")
+
+        if "italic" in current_tags:
+          email_ltr_scroll.tag_remove("italic", "sel.first", "sel.last")
+        else:
+          email_ltr_scroll.tag_add("italic", "sel.first", "sel.last")
+      italic_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=italics,command=italic_text)
+      italic_btn.place(x=245, y=1)
+
+      def underline_text():
+        try:
+          if email_ltr_scroll.tag_nextrange('underline_selection', 'sel.first', 'sel.last') != ():
+              email_ltr_scroll.tag_remove('underline_selection', 'sel.first', 'sel.last')
+          else:
+              email_ltr_scroll.tag_add('underline_selection', 'sel.first', 'sel.last')
+              email_ltr_scroll.tag_configure('underline_selection', underline=True)
+        except TclError:
+            pass
+      underline_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=underline,command=underline_text)
+      underline_btn.place(x=280, y=1)
+
+      def align_left():
+        data = email_ltr_scroll.get(0.0,END)
+        email_ltr_scroll.tag_config('left',justify=LEFT)
+        email_ltr_scroll.delete(0.0,END)
+        email_ltr_scroll.insert(INSERT,data,'left')
+      align_lbtn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=left,command=align_left)
+      align_lbtn.place(x=315, y=1)
+
+      def align_right():
+        data = email_ltr_scroll.get(0.0,END)
+        email_ltr_scroll.tag_config('right',justify=RIGHT)
+        email_ltr_scroll.delete(0.0,END)
+        email_ltr_scroll.insert(INSERT,data,'right')
+      align_rbtn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=right,command=align_right)
+      align_rbtn.place(x=350, y=1)
+
+      def align_center():
+        data = email_ltr_scroll.get(0.0,END)
+        email_ltr_scroll.tag_config('center',justify=CENTER)
+        email_ltr_scroll.delete(0.0,END)
+        email_ltr_scroll.insert(INSERT,data,'center')
+      align_cbtn= Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=center,command=align_center)
+      align_cbtn.place(x=385, y=1)
+      hyper_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=hyperlink)
+      hyper_btn.place(x=420, y=1)
+      remove_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=remove,command=lambda :email_ltr_scroll.delete(0.0,END))
+      remove_btn.place(x=455, y=1)
+
+
+      def color_text():
+        color = colorchooser.askcolor()[1]
+        if color:
+          color_font = font.Font(email_ltr_scroll, email_ltr_scroll.cget("font"))
+
+          email_ltr_scroll.tag_configure("colored", font=color_font, foreground=color)
+
+          current_tags = email_ltr_scroll.tag_names("sel.first")
+
+          if "colored" in current_tags:
+            email_ltr_scroll.tag_remove("colored", "sel.first", "sel.last")
+          else:
+            email_ltr_scroll.tag_add("colored", "sel.first", "sel.last")
+      color_btn = Button(emailmessage_Frame, width=31, height=23,compound = LEFT,image=color,command=color_text)
+      color_btn.place(x=490, y=1)
+
+      fontsize_combo = ttk.Combobox(emailmessage_Frame, width=6, height=3)
+      fontsize_combo.place(x=600, y=5)
+      fontsize_combo['values'] = ('1','2','3','4','5','6','7')
+      fontsize_combo.current(0)
+      btn1=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=selectall).place(x=0, y=1)
+      btn2=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=cut).place(x=36, y=1)
+      btn3=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=copy).place(x=73, y=1)
+      btn4=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=paste).place(x=105, y=1)
+      email_html_scroll=scrolledtext.ScrolledText(htmlsourse_Frame,undo=True, height=350, width=710, bg="white")
+      email_html_scroll.place(x=0, y=28)
+      attachlbframe=LabelFrame(email_Frame,text="Attachment(s)", height=350, width=283)
+      attachlbframe.place(x=740, y=5)
+      lstfrm = StringVar()
+      attach_list=Listbox(attachlbframe, height=13, width=44,listvariable=lstfrm, bg="white")
+      attach_list.place(x=5, y=5)
+      attach_list.bind('<Double-Button-1>',inv_empsfile_image_1)
+      lbl_btn_info=Label(attachlbframe, text="Double click on attachment to view").place(x=30, y=230)
+      btn17=Button(attachlbframe, width=20, text="Add attacment file...",command=inv_UploadAction_1)
+      btn17.place(x=60, y=260)
+      btn18=Button(attachlbframe, width=20, text="Remove attacment",command=inv_deletefile_1)
+      btn18.place(x=60, y=295)
+      lbl_tt_info=Label(email_Frame, text="You can create predefined invoice, order, estimate\nand payment receipt email templates under Main\nmenu/Settings/E-Mail templates tab")
+      lbl_tt_info.place(x=740, y=370)
+
+      ready_frame=Frame(mail_invo, height=20, width=1080, bg="#b3b3b3").place(x=0,y=530)
+      
+      sendatalbframe = LabelFrame(account_Frame,text="E-Mail(Sender data)",height=270, width=600)
+      sendatalbframe.place(x=5, y=5)
+      your_cemail_label = Label(sendatalbframe, text="Your company email address").place(x=5, y=30)
+      your_cemail_entry = Entry(sendatalbframe, width=40)
+      your_cemail_entry.place(x=195, y=30)
+
+      your_cpass_label = Label(sendatalbframe, text="Your Password").place(x=5, y=60)
+      your_cpass_entry = Entry(sendatalbframe, width=40,show='*')
+      your_cpass_entry.place(x=195, y=60)
       
       
       
@@ -4987,8 +5568,8 @@ def mainpage():
     w = Canvas(inv_first_frame2, width=1, height=65, bg="#b3b3b3", bd=0)
     w.pack(side="left", padx=5)
 
-    mail= Button(inv_first_frame2,compound="top", text="Email\nInvoice",relief=RAISED, image=photo6,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=email_invoice_1)
-    mail.pack(side="left", pady=3, ipadx=4)
+    mail_invoice_1= Button(inv_first_frame2,compound="top", text="Email\nInvoice",relief=RAISED, image=photo6,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=email_invoice_1)
+    mail_invoice_1.pack(side="left", pady=3, ipadx=4)
 
     sms1= Button(inv_first_frame2,compound="top", text="Send SMS\nnotification",relief=RAISED, image=photo10,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=sms1)
     sms1.pack(side="left", pady=3, ipadx=4)
@@ -5202,15 +5783,17 @@ def mainpage():
     inv_ref_entry_1.place(x=100,y=118)
 
     if edit_inv_data[48] == 1 or edit_inv_data[4] == "Void":
+      date = datetime.strptime(str(edit_inv_data[2]),"%Y-%m-%d")
       inv_date_entry_1.delete(0, END)
-      inv_date_entry_1.insert(0, edit_inv_data[2])
+      inv_date_entry_1.insert(0, '{0}/{1}/{2:02}'.format(date.month,date.day,date.year % 100))
       if checkvarStatus5_1 is not None:
         checkvarStatus5_1.set(1)
       else:
         checkvarStatus5_1.set(1)
       inv_duedate_entry_1['state'] = NORMAL
+      due_date = datetime.strptime(str(edit_inv_data[3]),"%Y-%m-%d")
       inv_duedate_entry_1.delete(0, END)
-      inv_duedate_entry_1.insert(0, edit_inv_data[3])
+      inv_duedate_entry_1.insert(0, '{0}/{1}/{2:02}'.format(due_date.month,due_date.day,due_date.year % 100))
       inv_terms_combo_1.delete(0, END)
       inv_terms_combo_1.insert(0, edit_inv_data[42])
       inv_ref_entry_1.delete(0, END)
@@ -5221,15 +5804,17 @@ def mainpage():
       inv_ref_entry_1['state'] = DISABLED
       inv_duedate_check_1['state'] = DISABLED
     else:
+      date = datetime.strptime(str(edit_inv_data[2]),"%Y-%m-%d")
       inv_date_entry_1.delete(0, END)
-      inv_date_entry_1.insert(0, edit_inv_data[2])
+      inv_date_entry_1.insert(0, '{0}/{1}/{2:02}'.format(date.month,date.day,date.year % 100))
       if checkvarStatus5_1 is not None:
         checkvarStatus5_1.set(1)
       else:
         checkvarStatus5_1.set(1)
       inv_duedate_entry_1['state'] = NORMAL
+      due_date = datetime.strptime(str(edit_inv_data[3]),"%Y-%m-%d")
       inv_duedate_entry_1.delete(0, END)
-      inv_duedate_entry_1.insert(0, edit_inv_data[3])
+      inv_duedate_entry_1.insert(0, '{0}/{1}/{2:02}'.format(due_date.month,due_date.day,due_date.year % 100))
       inv_terms_combo_1.delete(0, END)
       inv_terms_combo_1.insert(0, edit_inv_data[42])
       inv_ref_entry_1.delete(0, END)
@@ -5351,22 +5936,6 @@ def mainpage():
     myNotebook.pack(expand = 1, fill ="both") 
 
 
-    def recur_check_1():
-      if checkrecStatus_1.get() == 0:
-        recur_period_entry_1['state'] = DISABLED
-        recur_month_combo_1['state'] = DISABLED
-        recur_nxt_inv_date_1['state'] = DISABLED
-        recur_stop_check_1['state'] = DISABLED
-        recur_stop_date_1['state'] = DISABLED
-        recur_recalc_1['state'] = DISABLED
-      else:
-        recur_period_entry_1['state'] = NORMAL
-        recur_month_combo_1['state'] = NORMAL
-        recur_nxt_inv_date_1['state'] = NORMAL
-        recur_stop_check_1['state'] = NORMAL
-        recur_stop_date_1['state'] = NORMAL
-        recur_recalc_1['state'] = NORMAL 
-
     sql_exn_1 = "SELECT extra_cost_name FROM extra_cost_name"
     fbcursor.execute(sql_exn_1)
     ex_data_1 = fbcursor.fetchall()
@@ -5437,13 +6006,45 @@ def mainpage():
     recur_labelframe_1 = LabelFrame(recurFrame,text="",font=("arial",15))
     recur_labelframe_1.place(x=1,y=1,width=735,height=170)
 
-    # def inv_stop_check_1():
-    #   if checkstopStatus_1.get() == 0:
-    #     recur_stop_date_1['state'] = NORMAL
-    #   else:
-    #     recur_stop_date_1['state'] = DISABLED
+    ########### check recurring ###############
+    def recur_check_1():
+      if checkrecStatus_1.get() == 0:
+        recur_period_entry_1['state'] = DISABLED
+        recur_month_combo_1['state'] = DISABLED
+        recur_nxt_inv_date_1['state'] = DISABLED
+        recur_stop_check_1['state'] = DISABLED
+        recur_stop_date_1['state'] = DISABLED
+        recur_recalc_1['state'] = DISABLED
+      else:
+        recur_period_entry_1['state'] = NORMAL
+        recur_month_combo_1['state'] = NORMAL
+        recur_nxt_inv_date_1['state'] = NORMAL
+        recur_stop_check_1['state'] = NORMAL
+        recur_stop_date_1['state'] = NORMAL
+        recur_recalc_1['state'] = NORMAL 
+
+
+    ################## recalculate recurring ################
+    def recur_recalculate_1():
+      recur_period = recur_period_entry_1.get()
+      recur_stop = recur_stop_date_1.get_date()
+      stop_date = datetime.strptime(str(recur_stop),"%Y-%m-%d")
+      if recur_month_combo_1.get() == "Month(s)":
+        n = stop_date + relativedelta(months=+int(recur_period))
+        nxt = n.date()
+        nxt_inv = datetime.strptime(str(nxt),"%Y-%m-%d")
+        recur_nxt_inv_date_1.delete(0,END)
+        recur_nxt_inv_date_1.insert(0,'{0}/{1}/{2:02}'.format(nxt_inv.month,nxt_inv.day,nxt_inv.year % 100))
+      else:
+        n = stop_date + relativedelta(days=+int(recur_period))
+        nxt = n.date()
+        nxt_inv = datetime.strptime(str(nxt),"%Y-%m-%d")
+        recur_nxt_inv_date_1.delete(0,END)
+        recur_nxt_inv_date_1.insert(0,'{0}/{1}/{2:02}'.format(nxt_inv.month,nxt_inv.day,nxt_inv.year % 100))
 
     mdata_1 = ["Month(s)","Day(s)"]
+
+
 
     checkrecStatus_1=IntVar()
     recur_check_btn_1 = Checkbutton(recur_labelframe_1,variable=checkrecStatus_1,text="Recurring",onvalue= 1,offvalue=0,command=recur_check_1)
@@ -5454,6 +6055,7 @@ def mainpage():
     recur_month_combo_1 = ttk.Combobox(recur_labelframe_1,values="",width=15,state=DISABLED)
     recur_month_combo_1.place(x=360,y=45)
     recur_month_combo_1['values'] = mdata_1
+    recur_month_combo_1.set(mdata_1[0])
     recur_nxt_inv_label_1 = Label(recur_labelframe_1,text="Next Invoice").place(x=280,y=70)
     recur_nxt_inv_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED)
     recur_nxt_inv_date_1.place(x=360,y=70)
@@ -5462,7 +6064,7 @@ def mainpage():
     recur_stop_check_1.place(x=225,y=95)
     recur_stop_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED)
     recur_stop_date_1.place(x=360,y=95)
-    recur_recalc_1 = Button(recur_labelframe_1,compound=LEFT,image=recalc,text="Recalculate",width=80,height=12,state=DISABLED)
+    recur_recalc_1 = Button(recur_labelframe_1,compound=LEFT,image=recalc,text="Recalculate",width=80,height=12,state=DISABLED,command=recur_recalculate_1)
     recur_recalc_1.place(x=540,y=70)
 
     pay_labelframe_1 = LabelFrame(payementFrame,text="",font=("arial",15))
@@ -5748,6 +6350,16 @@ def mainpage():
     never2_label_1.config(text=edit_inv_data[6])
     if edit_inv_data[48] == 1 or edit_inv_data[4] == "Void":
       if edit_inv_data[47] == 0:
+        recur_stop_date_1['state'] = NORMAL
+        recur_nxt_inv_date_1['state'] = NORMAL
+        stop = datetime.today().date()
+        stop_date = datetime.strptime(str(stop),"%Y-%m-%d").date()
+        recur_stop_date_1.delete(0,END)
+        recur_stop_date_1.insert(0,'{0}/{1}/{2:02}'.format(stop_date.month,stop_date.day,stop_date.year % 100))
+        n = stop_date + relativedelta(months=+1)
+        nxt_inv = datetime.strptime(str(n),"%Y-%m-%d")
+        recur_nxt_inv_date_1.delete(0,END)
+        recur_nxt_inv_date_1.insert(0,'{0}/{1}/{2:02}'.format(nxt_inv.month,nxt_inv.day,nxt_inv.year % 100))
         checkrecStatus_1.set(0)
         recur_check_btn_1['state'] = DISABLED
         recur_period_entry_1['state'] = DISABLED
@@ -5768,10 +6380,12 @@ def mainpage():
         recur_period_entry_1.insert(0, edit_inv_data[24])
         recur_month_combo_1.delete(0,END)
         recur_month_combo_1.insert(0,edit_inv_data[25])
+        nxt_inv = datetime.strptime(str(edit_inv_data[26]),"%Y-%m-%d")
         recur_nxt_inv_date_1.delete(0,END)
-        recur_nxt_inv_date_1.insert(0,edit_inv_data[26])
+        recur_nxt_inv_date_1.insert(0,'{0}/{1}/{2:02}'.format(nxt_inv.month,nxt_inv.day,nxt_inv.year % 100))
+        stop_inv = datetime.strptime(str(edit_inv_data[27]),"%Y-%m-%d")
         recur_stop_date_1.delete(0,END)
-        recur_stop_date_1.insert(0,edit_inv_data[27])
+        recur_stop_date_1.insert(0,'{0}/{1}/{2:02}'.format(stop_inv.month,stop_inv.day,stop_inv.year % 100))
         recur_check_btn_1['state'] = DISABLED
         recur_period_entry_1['state'] = DISABLED
         recur_month_combo_1['state'] = DISABLED
@@ -5781,6 +6395,16 @@ def mainpage():
         recur_recalc_1['state'] = DISABLED
     else:
       if edit_inv_data[47] == 0:
+        recur_stop_date_1['state'] = NORMAL
+        recur_nxt_inv_date_1['state'] = NORMAL
+        stop = datetime.today().date()
+        stop_date = datetime.strptime(str(stop),"%Y-%m-%d").date()
+        recur_stop_date_1.delete(0,END)
+        recur_stop_date_1.insert(0,'{0}/{1}/{2:02}'.format(stop_date.month,stop_date.day,stop_date.year % 100))
+        n = stop_date + relativedelta(months=+1)
+        nxt_inv = datetime.strptime(str(n),"%Y-%m-%d")
+        recur_nxt_inv_date_1.delete(0,END)
+        recur_nxt_inv_date_1.insert(0,'{0}/{1}/{2:02}'.format(nxt_inv.month,nxt_inv.day,nxt_inv.year % 100))
         checkrecStatus_1.set(0)
         recur_period_entry_1['state'] = DISABLED
         recur_month_combo_1['state'] = DISABLED
@@ -6155,285 +6779,6 @@ def mainpage():
         canbtn=Button(print1,compound = LEFT,image=cancel, text="Cancel", width=60).place(x=570, y=370)
         
 
-
-  def inv_send_mail_1(file=None):
-    # sender_mail = your_cemail_entry.get()
-    sender_mail = "infoxfbilling77@gmail.com"
-    # sender_password = your_cpass_entry.get()
-    sender_password = "dinkiurlziohgfok"
-
-    server = smtplib.SMTP('smtp.gmail.com', 587)
-    print("login successfull")
-    server.starttls()
-    print("login successfull2")
-    server.login(sender_mail,sender_password)
-    print("login successfull3")
-
-    carbon_info = email_carbon.get()
-    msg = MIMEMultipart()
-    msg['Subject'] = email_subject.get()
-    mail_content = email_ltr_scroll.get("1.0",'end-1c')
-    msg['From'] = email_from.get()
-    msg['To'] = email_to.get()
-
-    gettingimg = lstfrm.get()
-    lst_data = gettingimg[1:-1].split(',')
-    
-    msg.attach(MIMEText(mail_content, 'plain'))
-    
-    for i in lst_data:
-      if len(i.strip()[1:-1])>1:
-        with open('images/'+ i.strip()[1:-1], "rb") as attachment:
-            # MIME attachment is a binary file for that content type "application/octet-stream" is used
-          part = MIMEBase("application", "octet-stream")
-          part.set_payload(attachment.read())
-        # encode into base64 
-          encoders.encode_base64(part) 
-    
-          part.add_header('Content-Disposition', "attachment; filename= %s" % 'images/'+ i.strip()[1:-1]) 
-
-        # attach the instance 'part' to instance 'message' 
-          msg.attach(part)
-      # message_body = email_body.get()
-
-    server.sendmail(email_from.get(),email_to.get(),msg.as_string())
-    server.sendmail(email_from.get(), carbon_info,msg.as_string())
-
-    date = dt.datetime.now().date()
-    never1_label_1.config(text=date)
-    print("message sent")
-
-
-  #email
-        
-  def email_invoice_1():
-    mail_invo =Toplevel()
-    mail_invo.title("E-Mail Invoice List")
-    p2 = PhotoImage(file = "images/fbicon.png")
-    mail_invo.iconphoto(False, p2)
-    mail_invo.geometry("1030x490+150+120")
-  
-      
-    def inv_empsfile_image_1(event):
-      global yawn
-      for i in  attach_list.curselection():
-        print("hloo", attach_list.get(i))
-        yawn= attach_list.get(i)        
-        edit_window_img = Toplevel()
-        edit_window_img.title("View Image")
-        edit_window_img.geometry("700x500")
-        image = Image.open("images/"+yawn)
-        resize_image = image.resize((700, 500))
-        image = ImageTk.PhotoImage(resize_image)
-        psimage = Label(edit_window_img,image=image)
-        psimage.photo = image
-        psimage.pack()
-    
-    def inv_UploadAction_1(event=None):
-      global filenamez
-
-      filenamez = askopenfilename(filetypes=(("png file ",'.png'),("jpg file", ".jpg"), ('PDF', '.pdf',), ("All files", ".*"),))
-      shutil.copyfile(filenamez, os.getcwd()+'/images/'+filenamez.split('/')[-1])
-      attach_list.insert(0, filenamez.split('/')[-1])
-
-
-    def inv_deletefile_1():
-      inv_remove=attach_list.curselection()
-      yawn=attach_list.get(inv_remove) 
-      print(yawn)       
-      attach_list.delete(ACTIVE)
-
-    style = ttk.Style()
-    style.theme_use('default')
-    style.configure('TNotebook.Tab', background="#999999", padding=5)
-    email_Notebook = ttk.Notebook(mail_invo)
-    email_Frame = Frame(email_Notebook, height=500, width=1080)
-    account_Frame = Frame(email_Notebook, height=550, width=1080)
-    email_Notebook.add(email_Frame, text="E-mail")
-    email_Notebook.add(account_Frame, text="Account")
-    email_Notebook.place(x=0, y=0)
-    messagelbframe=LabelFrame(email_Frame,text="Message", height=450, width=730)
-    messagelbframe.place(x=5, y=5)
-    global email_to,email_subject,email_from,email_paasw,email_carbon,email_ltr_scroll,email_html_scroll,attach_list,lstfrm
-    email_to = StringVar()
-    email_subject = StringVar()
-    email_from = StringVar()
-    email_passw = StringVar()
-    email_carbon = StringVar()
-    email_to_addr_label=Label(messagelbframe, text="Email to address").place(x=5, y=5)
-    email_to_addr_entry=Entry(messagelbframe, width=50,textvariable=email_to)
-    email_to_addr_entry.place(x=120, y=5)
-    email_addr = inv_email_e5_1.get()
-    email_to_addr_entry.delete(0,END)
-    email_to_addr_entry.insert(0,email_addr)
-    send_email_btn=Button(messagelbframe, text="Send Email", width=10, height=1,command=inv_send_mail_1)
-    send_email_btn.place(x=600, y=10)
-    carbon_label=Label(messagelbframe, text="Carbon copy to").place(x=5, y=32)
-    carbon_entry=Entry(messagelbframe, width=50,textvariable=email_carbon)
-    carbon_entry.place(x=120, y=32)
-    stop_email_btn=Button(messagelbframe, text="Stop sending", width=10, height=1,state=DISABLED)
-    stop_email_btn.place(x=600, y=40)
-    subject_label=Label(messagelbframe, text="Subject").place(x=5, y=59)
-    subject_entry=Entry(messagelbframe, width=50,textvariable=email_subject)
-    subject_entry.place(x=120, y=59)
-    subject = inv_number_entry_1.get()
-    subject_entry.delete(0,END)
-    subject_entry.insert(0,"Invoice" + " " + "(" + subject + ")")
-
-    style = ttk.Style()
-    style.theme_use('default')
-    style.configure('TNotebook.Tab', background="#999999", width=20, padding=5)
-    mess_Notebook = ttk.Notebook(messagelbframe)
-    emailmessage_Frame = Frame(mess_Notebook,height=305, width=710)
-    htmlsourse_Frame = Frame(mess_Notebook, height=305, width=710)
-    mess_Notebook.add(emailmessage_Frame, text="E-mail message")
-    mess_Notebook.add(htmlsourse_Frame, text="Html sourse code")
-    mess_Notebook.place(x=5, y=90)
-
-    email_ltr_scroll=scrolledtext.ScrolledText(emailmessage_Frame, height=17, width=86, bg="white",undo=True)
-    email_ltr_scroll.place(x=0, y=28)
-
-    sel_all_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=selectall,command=lambda:email_ltr_scroll.event_generate('<Control a>'))
-    sel_all_btn.place(x=0, y=1)  
-    cut_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=cut,command=lambda :email_ltr_scroll.event_generate('<Control x>'))
-    cut_btn.place(x=36, y=1)
-    copy_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=copy,command=lambda :email_ltr_scroll.event_generate('<Control c>'))
-    copy_btn.place(x=73, y=1)
-    paste_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=paste,command=lambda :email_ltr_scroll.event_generate('<Control v>'))
-    paste_btn.place(x=105, y=1)
-    undo_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=undo,command=email_ltr_scroll.edit_undo)
-    undo_btn.place(x=140, y=1)
-    redo_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=redo,command=email_ltr_scroll.edit_redo)
-    redo_btn.place(x=175, y=1)
-
-    def bold_text():
-      bold_font = font.Font(email_ltr_scroll, email_ltr_scroll.cget("font"))
-      bold_font.configure(weight="bold")
-
-      email_ltr_scroll.tag_configure("bold", font=bold_font)
-
-      current_tags = email_ltr_scroll.tag_names("sel.first")
-
-      if "bold" in current_tags:
-        email_ltr_scroll.tag_remove("bold", "sel.first", "sel.last")
-      else:
-        email_ltr_scroll.tag_add("bold", "sel.first", "sel.last")
-    
-    bold_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=bold,command=bold_text)
-    bold_btn.place(x=210, y=1)
-
-    def italic_text():
-      italic_font = font.Font(email_ltr_scroll, email_ltr_scroll.cget("font"))
-      italic_font.configure(slant="italic")
-
-      email_ltr_scroll.tag_configure("italic", font=italic_font)
-
-      current_tags = email_ltr_scroll.tag_names("sel.first")
-
-      if "italic" in current_tags:
-        email_ltr_scroll.tag_remove("italic", "sel.first", "sel.last")
-      else:
-        email_ltr_scroll.tag_add("italic", "sel.first", "sel.last")
-    italic_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=italics,command=italic_text)
-    italic_btn.place(x=245, y=1)
-
-    def underline_text():
-      try:
-        if email_ltr_scroll.tag_nextrange('underline_selection', 'sel.first', 'sel.last') != ():
-            email_ltr_scroll.tag_remove('underline_selection', 'sel.first', 'sel.last')
-        else:
-            email_ltr_scroll.tag_add('underline_selection', 'sel.first', 'sel.last')
-            email_ltr_scroll.tag_configure('underline_selection', underline=True)
-      except TclError:
-          pass
-    underline_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=underline,command=underline_text)
-    underline_btn.place(x=280, y=1)
-
-    def align_left():
-      data = email_ltr_scroll.get(0.0,END)
-      email_ltr_scroll.tag_config('left',justify=LEFT)
-      email_ltr_scroll.delete(0.0,END)
-      email_ltr_scroll.insert(INSERT,data,'left')
-    align_lbtn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=left,command=align_left)
-    align_lbtn.place(x=315, y=1)
-
-    def align_right():
-      data = email_ltr_scroll.get(0.0,END)
-      email_ltr_scroll.tag_config('right',justify=RIGHT)
-      email_ltr_scroll.delete(0.0,END)
-      email_ltr_scroll.insert(INSERT,data,'right')
-    align_rbtn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=right,command=align_right)
-    align_rbtn.place(x=350, y=1)
-
-    def align_center():
-      data = email_ltr_scroll.get(0.0,END)
-      email_ltr_scroll.tag_config('center',justify=CENTER)
-      email_ltr_scroll.delete(0.0,END)
-      email_ltr_scroll.insert(INSERT,data,'center')
-    align_cbtn= Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=center,command=align_center)
-    align_cbtn.place(x=385, y=1)
-    hyper_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=hyperlink)
-    hyper_btn.place(x=420, y=1)
-    remove_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=remove,command=lambda :email_ltr_scroll.delete(0.0,END))
-    remove_btn.place(x=455, y=1)
-
-
-    def color_text():
-      color = colorchooser.askcolor()[1]
-      if color:
-        color_font = font.Font(email_ltr_scroll, email_ltr_scroll.cget("font"))
-
-        email_ltr_scroll.tag_configure("colored", font=color_font, foreground=color)
-
-        current_tags = email_ltr_scroll.tag_names("sel.first")
-
-        if "colored" in current_tags:
-          email_ltr_scroll.tag_remove("colored", "sel.first", "sel.last")
-        else:
-          email_ltr_scroll.tag_add("colored", "sel.first", "sel.last")
-    color_btn = Button(emailmessage_Frame, width=31, height=23,compound = LEFT,image=color,command=color_text)
-    color_btn.place(x=490, y=1)
-
-    fontsize_combo = ttk.Combobox(emailmessage_Frame, width=6, height=3)
-    fontsize_combo.place(x=600, y=5)
-    fontsize_combo['values'] = ('1','2','3','4','5','6','7')
-    fontsize_combo.current(0)
-    btn1=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=selectall).place(x=0, y=1)
-    btn2=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=cut).place(x=36, y=1)
-    btn3=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=copy).place(x=73, y=1)
-    btn4=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=paste).place(x=105, y=1)
-    email_html_scroll=scrolledtext.ScrolledText(htmlsourse_Frame,undo=True, height=350, width=710, bg="white")
-    email_html_scroll.place(x=0, y=28)
-    attachlbframe=LabelFrame(email_Frame,text="Attachment(s)", height=350, width=283)
-    attachlbframe.place(x=740, y=5)
-    lstfrm = StringVar()
-    attach_list=Listbox(attachlbframe, height=13, width=44,listvariable=lstfrm, bg="white")
-    attach_list.place(x=5, y=5)
-    attach_list.bind('<Double-Button-1>',inv_empsfile_image_1)
-    lbl_btn_info=Label(attachlbframe, text="Double click on attachment to view").place(x=30, y=230)
-    btn17=Button(attachlbframe, width=20, text="Add attacment file...",command=inv_UploadAction_1)
-    btn17.place(x=60, y=260)
-    btn18=Button(attachlbframe, width=20, text="Remove attacment",command=inv_deletefile_1)
-    btn18.place(x=60, y=295)
-    lbl_tt_info=Label(email_Frame, text="You can create predefined invoice, order, estimate\nand payment receipt email templates under Main\nmenu/Settings/E-Mail templates tab")
-    lbl_tt_info.place(x=740, y=370)
-
-    ready_frame=Frame(mail_invo, height=20, width=1080, bg="#b3b3b3").place(x=0,y=530)
-    
-    sendatalbframe = LabelFrame(account_Frame,text="E-Mail(Sender data)",height=270, width=600)
-    sendatalbframe.place(x=5, y=5)
-    your_cemail_label = Label(sendatalbframe, text="Your company email address").place(x=5, y=30)
-    your_cemail_entry = Entry(sendatalbframe, width=40)
-    your_cemail_entry.place(x=195, y=30)
-
-    your_cpass_label = Label(sendatalbframe, text="Your Password").place(x=5, y=60)
-    your_cpass_entry = Entry(sendatalbframe, width=40,show='*')
-    your_cpass_entry.place(x=195, y=60)
-
-
-
-
-
   #sms notification order
     
   def sms():
@@ -6575,6 +6920,305 @@ def mainpage():
       Button5.place(x=300,y=141)
 
 
+  ############## Email Invoice ###################
+
+  def inv_send_mail_main(file=None):
+    # sender_mail = your_cemail_entry.get()
+    sender_mail = "infoxfbilling77@gmail.com"
+    # sender_password = your_cpass_entry.get()
+    sender_password = "dinkiurlziohgfok"
+
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    print("login successfull")
+    server.starttls()
+    print("login successfull2")
+    server.login(sender_mail,sender_password)
+    print("login successfull3")
+
+    carbon_info = email_carbon.get()
+    msg = MIMEMultipart()
+    msg['Subject'] = email_subject.get()
+    mail_content = email_ltr_scroll.get("1.0",'end-1c')
+    msg['From'] = email_from.get()
+    msg['To'] = email_to.get()
+
+    gettingimg = lstfrm.get()
+    lst_data = gettingimg[1:-1].split(',')
+    
+    msg.attach(MIMEText(mail_content, 'plain'))
+    
+    for i in lst_data:
+      if len(i.strip()[1:-1])>1:
+        with open('images/'+ i.strip()[1:-1], "rb") as attachment:
+            # MIME attachment is a binary file for that content type "application/octet-stream" is used
+          part = MIMEBase("application", "octet-stream")
+          part.set_payload(attachment.read())
+        # encode into base64 
+          encoders.encode_base64(part) 
+    
+          part.add_header('Content-Disposition', "attachment; filename= %s" % 'images/'+ i.strip()[1:-1]) 
+
+        # attach the instance 'part' to instance 'message' 
+          msg.attach(part)
+      # message_body = email_body.get()
+
+    server.sendmail(email_from.get(),email_to.get(),msg.as_string())
+    server.sendmail(email_from.get(), carbon_info,msg.as_string())
+
+    date = dt.datetime.now().date()
+    upd_inv_sql = "UPDATE invoice SET emailon=%s WHERE invoice_number=%s"    
+    upd_inv_val = (date,inv_data[1],)
+    fbcursor.execute(upd_inv_sql,upd_inv_val)
+    fbilldb.commit()
+    print("message sent")
+
+    sql = "SELECT * FROM Invoice"
+    fbcursor.execute(sql)
+    invoice_records = fbcursor.fetchall()
+
+    for record in inv_tree.get_children():
+      inv_tree.delete(record)
+
+    count = 0
+    for i in invoice_records:
+      if True:
+        inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[20], i[4], i[5], i[6], i[7], i[8], i[9], i[10]))
+      else:
+        pass
+    count += 1
+
+
+  #email
+        
+  def email_invoice_main():
+    mail_invo =Toplevel()
+    mail_invo.title("E-Mail Invoice List")
+    p2 = PhotoImage(file = "images/fbicon.png")
+    mail_invo.iconphoto(False, p2)
+    mail_invo.geometry("1030x490+150+120")
+    global inv_data
+    inv_no = inv_tree.item(inv_tree.focus())["values"][1]
+    inv_sql = "SELECT * FROM invoice WHERE invoice_number=%s"
+    inv_val = (inv_no,)
+    fbcursor.execute(inv_sql,inv_val)
+    inv_data = fbcursor.fetchone()
+  
+      
+    def inv_empsfile_image_main(event):
+      global yawn
+      for i in  attach_list.curselection():
+        print("hloo", attach_list.get(i))
+        yawn= attach_list.get(i)        
+        edit_window_img = Toplevel()
+        edit_window_img.title("View Image")
+        edit_window_img.geometry("700x500")
+        image = Image.open("images/"+yawn)
+        resize_image = image.resize((700, 500))
+        image = ImageTk.PhotoImage(resize_image)
+        psimage = Label(edit_window_img,image=image)
+        psimage.photo = image
+        psimage.pack()
+    
+    def inv_UploadAction_main(event=None):
+      global filenamez
+
+      filenamez = askopenfilename(filetypes=(("png file ",'.png'),("jpg file", ".jpg"), ('PDF', '.pdf',), ("All files", ".*"),))
+      shutil.copyfile(filenamez, os.getcwd()+'/images/'+filenamez.split('/')[-1])
+      attach_list.insert(0, filenamez.split('/')[-1])
+
+
+    def inv_deletefile_main():
+      inv_remove=attach_list.curselection()
+      yawn=attach_list.get(inv_remove) 
+      print(yawn)       
+      attach_list.delete(ACTIVE)
+
+    style = ttk.Style()
+    style.theme_use('default')
+    style.configure('TNotebook.Tab', background="#999999", padding=5)
+    email_Notebook = ttk.Notebook(mail_invo)
+    email_Frame = Frame(email_Notebook, height=500, width=1080)
+    account_Frame = Frame(email_Notebook, height=550, width=1080)
+    email_Notebook.add(email_Frame, text="E-mail")
+    email_Notebook.add(account_Frame, text="Account")
+    email_Notebook.place(x=0, y=0)
+    messagelbframe=LabelFrame(email_Frame,text="Message", height=450, width=730)
+    messagelbframe.place(x=5, y=5)
+    global email_to,email_subject,email_from,email_paasw,email_carbon,email_ltr_scroll,email_html_scroll,attach_list,lstfrm
+    email_to = StringVar()
+    email_subject = StringVar()
+    email_from = StringVar()
+    email_passw = StringVar()
+    email_carbon = StringVar()
+    email_to_addr_label=Label(messagelbframe, text="Email to address").place(x=5, y=5)
+    email_to_addr_entry=Entry(messagelbframe, width=50,textvariable=email_to)
+    email_to_addr_entry.place(x=120, y=5)
+    email_to_addr_entry.delete(0,END)
+    email_to_addr_entry.insert(0,inv_data[22])
+    send_email_btn=Button(messagelbframe, text="Send Email", width=10, height=1,command=inv_send_mail_main)
+    send_email_btn.place(x=600, y=10)
+    carbon_label=Label(messagelbframe, text="Carbon copy to").place(x=5, y=32)
+    carbon_entry=Entry(messagelbframe, width=50,textvariable=email_carbon)
+    carbon_entry.place(x=120, y=32)
+    stop_email_btn=Button(messagelbframe, text="Stop sending", width=10, height=1,state=DISABLED)
+    stop_email_btn.place(x=600, y=40)
+    subject_label=Label(messagelbframe, text="Subject").place(x=5, y=59)
+    subject_entry=Entry(messagelbframe, width=50,textvariable=email_subject)
+    subject_entry.place(x=120, y=59)
+    subject_entry.delete(0,END)
+    subject_entry.insert(0,"Invoice" + " " + "(" + inv_data[1] + ")")
+
+    style = ttk.Style()
+    style.theme_use('default')
+    style.configure('TNotebook.Tab', background="#999999", width=20, padding=5)
+    mess_Notebook = ttk.Notebook(messagelbframe)
+    emailmessage_Frame = Frame(mess_Notebook,height=305, width=710)
+    htmlsourse_Frame = Frame(mess_Notebook, height=305, width=710)
+    mess_Notebook.add(emailmessage_Frame, text="E-mail message")
+    mess_Notebook.add(htmlsourse_Frame, text="Html sourse code")
+    mess_Notebook.place(x=5, y=90)
+
+    email_ltr_scroll=scrolledtext.ScrolledText(emailmessage_Frame, height=17, width=86, bg="white",undo=True)
+    email_ltr_scroll.place(x=0, y=28)
+
+    sel_all_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=selectall,command=lambda:email_ltr_scroll.event_generate('<Control a>'))
+    sel_all_btn.place(x=0, y=1)  
+    cut_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=cut,command=lambda :email_ltr_scroll.event_generate('<Control x>'))
+    cut_btn.place(x=36, y=1)
+    copy_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=copy,command=lambda :email_ltr_scroll.event_generate('<Control c>'))
+    copy_btn.place(x=73, y=1)
+    paste_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=paste,command=lambda :email_ltr_scroll.event_generate('<Control v>'))
+    paste_btn.place(x=105, y=1)
+    undo_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=undo,command=email_ltr_scroll.edit_undo)
+    undo_btn.place(x=140, y=1)
+    redo_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=redo,command=email_ltr_scroll.edit_redo)
+    redo_btn.place(x=175, y=1)
+
+    def bold_text():
+      bold_font = font.Font(email_ltr_scroll, email_ltr_scroll.cget("font"))
+      bold_font.configure(weight="bold")
+
+      email_ltr_scroll.tag_configure("bold", font=bold_font)
+
+      current_tags = email_ltr_scroll.tag_names("sel.first")
+
+      if "bold" in current_tags:
+        email_ltr_scroll.tag_remove("bold", "sel.first", "sel.last")
+      else:
+        email_ltr_scroll.tag_add("bold", "sel.first", "sel.last")
+    
+    bold_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=bold,command=bold_text)
+    bold_btn.place(x=210, y=1)
+
+    def italic_text():
+      italic_font = font.Font(email_ltr_scroll, email_ltr_scroll.cget("font"))
+      italic_font.configure(slant="italic")
+
+      email_ltr_scroll.tag_configure("italic", font=italic_font)
+
+      current_tags = email_ltr_scroll.tag_names("sel.first")
+
+      if "italic" in current_tags:
+        email_ltr_scroll.tag_remove("italic", "sel.first", "sel.last")
+      else:
+        email_ltr_scroll.tag_add("italic", "sel.first", "sel.last")
+    italic_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=italics,command=italic_text)
+    italic_btn.place(x=245, y=1)
+
+    def underline_text():
+      try:
+        if email_ltr_scroll.tag_nextrange('underline_selection', 'sel.first', 'sel.last') != ():
+            email_ltr_scroll.tag_remove('underline_selection', 'sel.first', 'sel.last')
+        else:
+            email_ltr_scroll.tag_add('underline_selection', 'sel.first', 'sel.last')
+            email_ltr_scroll.tag_configure('underline_selection', underline=True)
+      except TclError:
+          pass
+    underline_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=underline,command=underline_text)
+    underline_btn.place(x=280, y=1)
+
+    def align_left():
+      data = email_ltr_scroll.get(0.0,END)
+      email_ltr_scroll.tag_config('left',justify=LEFT)
+      email_ltr_scroll.delete(0.0,END)
+      email_ltr_scroll.insert(INSERT,data,'left')
+    align_lbtn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=left,command=align_left)
+    align_lbtn.place(x=315, y=1)
+
+    def align_right():
+      data = email_ltr_scroll.get(0.0,END)
+      email_ltr_scroll.tag_config('right',justify=RIGHT)
+      email_ltr_scroll.delete(0.0,END)
+      email_ltr_scroll.insert(INSERT,data,'right')
+    align_rbtn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=right,command=align_right)
+    align_rbtn.place(x=350, y=1)
+
+    def align_center():
+      data = email_ltr_scroll.get(0.0,END)
+      email_ltr_scroll.tag_config('center',justify=CENTER)
+      email_ltr_scroll.delete(0.0,END)
+      email_ltr_scroll.insert(INSERT,data,'center')
+    align_cbtn= Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=center,command=align_center)
+    align_cbtn.place(x=385, y=1)
+    hyper_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=hyperlink)
+    hyper_btn.place(x=420, y=1)
+    remove_btn = Button(emailmessage_Frame,width=31,height=23,compound = LEFT,image=remove,command=lambda :email_ltr_scroll.delete(0.0,END))
+    remove_btn.place(x=455, y=1)
+
+
+    def color_text():
+      color = colorchooser.askcolor()[1]
+      if color:
+        color_font = font.Font(email_ltr_scroll, email_ltr_scroll.cget("font"))
+
+        email_ltr_scroll.tag_configure("colored", font=color_font, foreground=color)
+
+        current_tags = email_ltr_scroll.tag_names("sel.first")
+
+        if "colored" in current_tags:
+          email_ltr_scroll.tag_remove("colored", "sel.first", "sel.last")
+        else:
+          email_ltr_scroll.tag_add("colored", "sel.first", "sel.last")
+    color_btn = Button(emailmessage_Frame, width=31, height=23,compound = LEFT,image=color,command=color_text)
+    color_btn.place(x=490, y=1)
+
+    fontsize_combo = ttk.Combobox(emailmessage_Frame, width=6, height=3)
+    fontsize_combo.place(x=600, y=5)
+    fontsize_combo['values'] = ('1','2','3','4','5','6','7')
+    fontsize_combo.current(0)
+    btn1=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=selectall).place(x=0, y=1)
+    btn2=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=cut).place(x=36, y=1)
+    btn3=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=copy).place(x=73, y=1)
+    btn4=Button(htmlsourse_Frame,width=31,height=23,compound = LEFT,image=paste).place(x=105, y=1)
+    email_html_scroll=scrolledtext.ScrolledText(htmlsourse_Frame,undo=True, height=350, width=710, bg="white")
+    email_html_scroll.place(x=0, y=28)
+    attachlbframe=LabelFrame(email_Frame,text="Attachment(s)", height=350, width=283)
+    attachlbframe.place(x=740, y=5)
+    lstfrm = StringVar()
+    attach_list=Listbox(attachlbframe, height=13, width=44,listvariable=lstfrm, bg="white")
+    attach_list.place(x=5, y=5)
+    attach_list.bind('<Double-Button-1>',inv_empsfile_image_main)
+    lbl_btn_info=Label(attachlbframe, text="Double click on attachment to view").place(x=30, y=230)
+    btn17=Button(attachlbframe, width=20, text="Add attacment file...",command=inv_UploadAction_main)
+    btn17.place(x=60, y=260)
+    btn18=Button(attachlbframe, width=20, text="Remove attacment",command=inv_deletefile_main)
+    btn18.place(x=60, y=295)
+    lbl_tt_info=Label(email_Frame, text="You can create predefined invoice, order, estimate\nand payment receipt email templates under Main\nmenu/Settings/E-Mail templates tab")
+    lbl_tt_info.place(x=740, y=370)
+
+    ready_frame=Frame(mail_invo, height=20, width=1080, bg="#b3b3b3").place(x=0,y=530)
+    
+    sendatalbframe = LabelFrame(account_Frame,text="E-Mail(Sender data)",height=270, width=600)
+    sendatalbframe.place(x=5, y=5)
+    your_cemail_label = Label(sendatalbframe, text="Your company email address").place(x=5, y=30)
+    your_cemail_entry = Entry(sendatalbframe, width=40)
+    your_cemail_entry.place(x=195, y=30)
+
+    your_cpass_label = Label(sendatalbframe, text="Your Password").place(x=5, y=60)
+    your_cpass_entry = Entry(sendatalbframe, width=40,show='*')
+    your_cpass_entry.place(x=195, y=60)
+
+
   inv_mainFrame=Frame(tab1, relief=GROOVE, bg="#f8f8f2")
   inv_mainFrame.pack(side="top", fill=BOTH)
 
@@ -6611,8 +7255,8 @@ def mainpage():
   w = Canvas(inv_midFrame, width=1, height=55, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  expenseLabel = Button(inv_midFrame,compound="top", text=" E-mail \nInvoice",relief=RAISED, image=photo6,bg="#f8f8f2", fg="black", height=55, bd=1, width=55,command=email_invoice_1)
-  expenseLabel.pack(side="left")
+  mail_invoice_main = Button(inv_midFrame,compound="top", text=" E-mail \nInvoice",relief=RAISED, image=photo6,bg="#f8f8f2", fg="black", height=55, bd=1, width=55,command=email_invoice_main)
+  mail_invoice_main.pack(side="left")
 
   smsLabel = Button(inv_midFrame,compound="top", text="Send SMS\nnotification",relief=RAISED, image=photo10,bg="#f8f8f2", fg="black", height=55, bd=1, width=55,command=sms)
   smsLabel.pack(side="left")
@@ -6730,7 +7374,7 @@ def mainpage():
       count = 0
       for i in invoice_records:
         if True:
-          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[20], i[6], i[7], i[8], i[9], i[10], i[11], i[12]))
+          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[20], i[4], i[5], i[6], i[7], i[8], i[9], i[10]))
         else:
           pass
       count += 1
