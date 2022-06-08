@@ -241,7 +241,7 @@ def mainpage():
       invoice_number = inv_number_entry.get()
       invodate = inv_date_entry.get_date()
       if checkvarStatus5.get() == 0:
-        pass
+        duedate = NULL
       else:
         duedate = inv_duedate_entry.get_date()
       term_of_payment = inv_terms_combo.get()
@@ -715,7 +715,7 @@ def mainpage():
           discount.config(text= str(dis_rate) + "" +"% Discount")
           discount1.config(text=round(discount_rate,2))
           sub_tot = round(((price + p1 + p2 + p3) - discount_rate),2)
-          sub1.config(text="$" + "" + str(sub_tot))
+          sub1.config(text=sub_tot)
           tax_1.config(text=round((tax1_rate + tax2_rate),2))
           tax_2.config(text=round((tax3_rate + tax4_rate),2))
           cost1.config(text=round(exc,2))
@@ -1296,7 +1296,7 @@ def mainpage():
         discount.config(text= str(dis_rate) + "" +"% Discount")
         discount1.config(text=round(discount_rate,2))
         sub_tot = round(((price + p1 + p2 + p3) - discount_rate),2)
-        sub1.config(text="$" + "" + str(sub_tot))
+        sub1.config(text=sub_tot)
         tax_1.config(text=round((tax1_rate + tax2_rate),2))
         tax_2.config(text=round((tax3_rate + tax4_rate),2))
         cost1.config(text=round(exc,2))
@@ -1398,7 +1398,7 @@ def mainpage():
         discount.config(text= str(dis_rate) + "" +"% Discount")
         discount1.config(text=round(discount_rate,2))
         sub_tot = round(((price + p1 + p2 + p3) - discount_rate),2)
-        sub1.config(text="$" + "" + str(sub_tot))
+        sub1.config(text=sub_tot)
         tax_1.config(text=round((tax1_rate + tax2_rate),2))
         tax_2.config(text=round((tax3_rate + tax4_rate),2))
         cost1.config(text=round(exc,2))
@@ -1430,7 +1430,7 @@ def mainpage():
       def markas_paid():
         invodate = inv_date_entry.get_date()
         if checkvarStatus5.get() == 0:
-          pass
+          duedate = NULL
         else:
           duedate = inv_duedate_entry.get_date()
         term_of_payment = inv_terms_combo.get()
@@ -1677,7 +1677,7 @@ def mainpage():
           discount.config(text= str(dis_rate) + "" +"% Discount")
           discount1.config(text=round(discount_rate,2))
           sub_tot = round(((price + p1 + p2 + p3) - discount_rate),2)
-          sub1.config(text="$" + "" + str(sub_tot))
+          sub1.config(text=sub_tot)
           tax_1.config(text=round((tax1_rate + tax2_rate),2))
           tax_2.config(text=round((tax3_rate + tax4_rate),2))
           cost1.config(text=round(exc,2))
@@ -2138,7 +2138,7 @@ def mainpage():
           invoice_number = inv_number_entry.get()
           invodate = inv_date_entry.get_date()
           if checkvarStatus5.get() == 0:
-            pass
+            duedate = NULL
           else:
             duedate = inv_duedate_entry.get_date()
           term_of_payment = inv_terms_combo.get()
@@ -2744,6 +2744,10 @@ def mainpage():
     labelframe.place(x=652,y=5,width=290,height=170)
 
 
+    comp_sql = "SELECT * FROM company"
+    fbcursor.execute(comp_sql,)
+    comp_data = fbcursor.fetchone()
+
     inv_number_label=Label(labelframe,text="Invoice#").place(x=5,y=5)
     inv_number_entry=Entry(labelframe,width=25)
     inv_number_entry.place(x=100,y=5,)
@@ -2792,14 +2796,37 @@ def mainpage():
       tdata.append(i[0])
 
     inv_date_label =Label(labelframe,text="Invoice date").place(x=5,y=33)
-    inv_date_entry =DateEntry(labelframe,width=15)
-    inv_date_entry.place(x=150,y=33)
+    if comp_data[10] == "mm-dd-yyyy":
+      inv_date_entry =DateEntry(labelframe,width=15,date_pattern="mm-dd-yyyy")
+      inv_duedate_entry=DateEntry(labelframe,width=15,date_pattern="mm-dd-yyyy")
+    elif comp_data[10] == "dd-mm-yyyy":
+      inv_date_entry =DateEntry(labelframe,width=15,date_pattern="dd-mm-yyyy")
+      inv_duedate_entry=DateEntry(labelframe,width=15,date_pattern="dd-mm-yyyy")
+    elif comp_data[10] == "yyyy.mm.dd":
+      inv_date_entry =DateEntry(labelframe,width=15,date_pattern="yyyy.mm.dd")
+      inv_duedate_entry=DateEntry(labelframe,width=15,date_pattern="yyyy.mm.dd")
+    elif comp_data[10] == "mm/dd/yyyy":
+      inv_date_entry =DateEntry(labelframe,width=15,date_pattern="mm/dd/yyyy")
+      inv_duedate_entry=DateEntry(labelframe,width=15,date_pattern="mm/dd/yyyy")
+    elif comp_data[10] == "dd/mm/yyyy":
+      inv_date_entry =DateEntry(labelframe,width=15,date_pattern="dd/mm/yyyy")
+      inv_duedate_entry=DateEntry(labelframe,width=15,date_pattern="dd/mm/yyyy")
+    elif comp_data[10] == "dd.mm.yyyy":
+      inv_date_entry =DateEntry(labelframe,width=15,date_pattern="dd.mm.yyyy")
+      inv_duedate_entry=DateEntry(labelframe,width=15,date_pattern="dd.mm.yyyy")
+    elif comp_data[10] == "yyyy/mm/dd":
+      inv_date_entry =DateEntry(labelframe,width=15,date_pattern="yyyy/mm/dd")
+      inv_duedate_entry =DateEntry(labelframe,width=15,date_pattern="yyyy/mm/dd")
+    else:
+      inv_date_entry =DateEntry(labelframe,width=15)
+      inv_duedate_entry =DateEntry(labelframe,width=15)
+    
     checkvarStatus5=IntVar()
     checkvarStatus5.set(1)
     inv_duedate_check=Checkbutton(labelframe,variable = checkvarStatus5,text="Due date",onvalue = 1,offvalue = 0,command=inv_due_check)
     inv_duedate_check.place(x=5,y=62)
-    inv_duedate_entry=DateEntry(labelframe,width=15)
     inv_duedate_entry.place(x=150,y=62)
+    inv_date_entry.place(x=150,y=33)
     inv_terms_label=Label(labelframe,text="Terms").place(x=5,y=92)
     inv_terms_combo=ttk.Combobox(labelframe, value="",width=23)
     inv_terms_combo.place(x=100,y=92)
@@ -2809,13 +2836,51 @@ def mainpage():
     inv_ref_entry=Entry(labelframe,width=25)
     inv_ref_entry.place(x=100,y=118)
 
+    current_date = datetime.today().date()
+    if comp_data[10] == "mm-dd-yyyy":
+      date = datetime.strftime(current_date,"%m-%d-%Y")
+      due_date = datetime.strftime(current_date,"%m-%d-%Y")
+    elif comp_data[10] == "dd-mm-yyyy":
+      date = datetime.strftime(current_date,"%d-%m-%Y")
+      due_date = datetime.strftime(current_date,"%d-%m-%Y")
+    elif comp_data[10] == "yyyy.mm.dd":
+      d = datetime.strftime(current_date,"%Y-%m-%d")
+      dt = datetime.strptime(d,"%Y-%m-%d")
+      date = '{0}.{1:02}.{2:02}'.format(dt.year,dt.month,dt.day)
+      due = datetime.strptime(str(current_date),"%Y-%m-%d")
+      due_date = '{0}.{1:02}.{2:02}'.format(due.year,due.month,due.day)
+    elif comp_data[10] == "mm/dd/yyyy":
+      date = datetime.strftime(current_date,"%m/%d/%Y")
+      due_date = datetime.strftime(current_date,"%m/%d/%Y")
+    elif comp_data[10] == "dd/mm/yyyy":
+      date = datetime.strftime(current_date,"%d/%m/%Y")
+      due_date = datetime.strftime(current_date,"%d/%m/%Y")
+    elif comp_data[10] == "dd.mm.yyyy":
+      d = datetime.strftime(current_date,"%Y-%m-%d")
+      dt = datetime.strptime(d,"%Y-%m-%d")
+      date = '{0}.{1:02}.{2:02}'.format(dt.day,dt.month,dt.year)
+      due = datetime.strptime(str(current_date),"%Y-%m-%d")
+      due_date = '{0}.{1:02}.{2:02}'.format(due.day,due.month,due.year)
+    elif comp_data[10] == "yyyy/mm/dd":
+      date = datetime.strftime(current_date,"%Y/%m/%d")
+      due_date = datetime.strftime(current_date,"%Y/%m/%d")
+    else:
+      d = datetime.strftime(current_date,"%Y-%m-%d")
+      dt = datetime.strptime(d,"%Y-%m-%d")
+      date = '{0}/{1:02}/{2:02}'.format(dt.month,dt.day,dt.year % 100)
+      due = datetime.strptime(str(current_date),"%Y-%m-%d")
+      due_date = '{0}/{1:02}/{2:02}'.format(due.month,due.day,due.year % 100)
+
+    inv_date_entry.delete(0, END)
+    inv_date_entry.insert(0, date)
+    inv_duedate_entry.delete(0, END)
+    inv_duedate_entry.insert(0, due_date)
+
     fir2Frame=Frame(pop, height=150,width=100,bg="#f5f3f2")
     fir2Frame.pack(side="top", fill=X)
     listFrame = Frame(fir2Frame, bg="white", height=140,borderwidth=5,  relief=RIDGE)
 
-    comp_sql = "SELECT * FROM company"
-    fbcursor.execute(comp_sql,)
-    comp_data = fbcursor.fetchone()
+  
     if comp_data[12] == "1":
       add_newline_tree=ttk.Treeview(listFrame)
       add_newline_tree["columns"]=["1","2","3","4","5","6","7"]
@@ -3032,7 +3097,76 @@ def mainpage():
         recur_nxt_inv_date.delete(0,END)
         recur_nxt_inv_date.insert(0,'{0}/{1}/{2:02}'.format(nxt_inv.month,nxt_inv.day,nxt_inv.year % 100))
 
+    stop = datetime.today().date()
+    if comp_data[10] == "mm-dd-yyyy":
+      recur_nxt_inv_date = DateEntry(recur_labelframe,width=20,date_pattern="mm-dd-yyyy")
+      recur_stop_date = DateEntry(recur_labelframe,width=20,date_pattern="mm-dd-yyyy")
+      stop_date = datetime.strftime(stop,"%m-%d-%Y")
+      stop_d = datetime.strptime(stop_date,"%m-%d-%Y")
+      n = stop_d + relativedelta(months=+1)
+      nxt_inv = datetime.strftime(n,"%m-%d-%Y")
+    elif comp_data[10] == "dd-mm-yyyy":
+      recur_nxt_inv_date = DateEntry(recur_labelframe,width=20,date_pattern="dd-mm-yyyy")
+      recur_stop_date = DateEntry(recur_labelframe,width=20,date_pattern="dd-mm-yyyy")
+      stop_date = datetime.strftime(stop,"%d-%m-%Y")
+      stop_d = datetime.strptime(stop_date,"%d-%m-%Y")
+      n = stop_d + relativedelta(months=+1)
+      nxt_inv = datetime.strftime(n,"%d-%m-%Y")
+    elif comp_data[10] == "yyyy.mm.dd":
+      recur_nxt_inv_date = DateEntry(recur_labelframe,width=20,date_pattern="yyyy.mm.dd")
+      recur_stop_date = DateEntry(recur_labelframe,width=20,date_pattern="yyyy.mm.dd")
+      s = datetime.strftime(stop,"%Y-%m-%d")
+      stop_d = datetime.strptime(s,"%Y-%m-%d")
+      stop_date = '{0}.{1:02}.{2:02}'.format(stop_d.year,stop_d.month,stop_d.day)
+      n = stop_d + relativedelta(months=+1)
+      nxt = datetime.strptime(str(n.date()),"%Y-%m-%d")
+      nxt_inv = '{0}.{1:02}.{2:02}'.format(nxt.year,nxt.month,nxt.day)
+    elif comp_data[10] == "mm/dd/yyyy":
+      recur_nxt_inv_date = DateEntry(recur_labelframe,width=20,date_pattern="mm/dd/yyyy")
+      recur_stop_date = DateEntry(recur_labelframe,width=20,date_pattern="mm/dd/yyyy")
+      stop_date = datetime.strftime(stop,"%m/%d/%Y")
+      stop_d = datetime.strptime(stop_date,"%m/%d/%Y")
+      n = stop_d + relativedelta(months=+1)
+      nxt_inv = datetime.strftime(n,"%m/%d/%Y")
+    elif comp_data[10] == "dd/mm/yyyy":
+      recur_nxt_inv_date = DateEntry(recur_labelframe,width=20,date_pattern="dd/mm/yyyy")
+      recur_stop_date = DateEntry(recur_labelframe,width=20,date_pattern="dd/mm/yyyy")
+      stop_date = datetime.strftime(stop,"%d/%m/%Y")
+      stop_d = datetime.strptime(stop_date,"%d/%m/%Y")
+      n = stop_d + relativedelta(months=+1)
+      nxt_inv = datetime.strftime(n,"%d/%m/%Y")
+    elif comp_data[10] == "dd.mm.yyyy":
+      recur_nxt_inv_date = DateEntry(recur_labelframe,width=20,date_pattern="dd.mm.yyyy")
+      recur_stop_date = DateEntry(recur_labelframe,width=20,date_pattern="dd.mm.yyyy")
+      s = datetime.strftime(stop,"%Y-%m-%d")
+      stop_d = datetime.strptime(s,"%Y-%m-%d")
+      stop_date = '{0:02}.{1:02}.{2:02}'.format(stop_d.day,stop_d.month,stop_d.year)
+      n = stop_d + relativedelta(months=+1)
+      nxt = datetime.strptime(str(n.date()),"%Y-%m-%d")
+      nxt_inv = '{0:02}.{1:02}.{2:02}'.format(nxt.day,nxt.month,nxt.year)
+    elif comp_data[10] == "yyyy/mm/dd":
+      recur_nxt_inv_date = DateEntry(recur_labelframe,width=20,date_pattern="yyyy/mm/dd")
+      recur_stop_date = DateEntry(recur_labelframe,width=20,date_pattern="yyyy/mm/dd")
+      stop_date = datetime.strftime(stop,"%Y/%m/%d")
+      stop_d = datetime.strptime(stop_date,"%Y/%m/%d")
+      n = stop_d + relativedelta(months=+1)
+      nxt_inv = datetime.strftime(n,"%Y/%m/%d")
+    else:
+      recur_nxt_inv_date = DateEntry(recur_labelframe,width=20)
+      recur_stop_date = DateEntry(recur_labelframe,width=20)
+      s = datetime.strftime(stop,"%Y-%m-%d")
+      stop_d = datetime.strptime(s,"%Y-%m-%d")
+      stop_date = '{0}/{1}/{2:02}'.format(stop_d.month,stop_d.day,stop_d.year % 100)
+      n = stop_d + relativedelta(months=+1)
+      nxt = datetime.strptime(str(n.date()),"%Y-%m-%d")
+      nxt_inv = '{0}/{1}/{2:02}'.format(nxt.month,nxt.day,nxt.year % 100)
 
+    recur_stop_date.delete(0,END)
+    recur_stop_date.insert(0,stop_date)
+    recur_nxt_inv_date.delete(0,END)
+    recur_nxt_inv_date.insert(0,nxt_inv)
+    recur_stop_date['state'] = DISABLED
+    recur_nxt_inv_date['state'] = DISABLED
     checkrecStatus=IntVar()
     recur_check_btn = Checkbutton(recur_labelframe,variable=checkrecStatus,text="Recurring",onvalue=1,offvalue=0,command=recur_check)
     recur_check_btn.place(x=25,y=20)
@@ -3044,28 +3178,13 @@ def mainpage():
     recur_month_combo['values'] = mdata
     recur_month_combo.set(mdata[0])
     recur_nxt_inv_label = Label(recur_labelframe,text="Next Invoice").place(x=280,y=70)
-    recur_nxt_inv_date = DateEntry(recur_labelframe,width=20,state=DISABLED)
-    recur_nxt_inv_date.place(x=360,y=70)
     checkstopStatus = IntVar()
     recur_stop_check = Checkbutton(recur_labelframe,variable=checkstopStatus,text="Stop recurring after",onvalue=1,offvalue=0,state=DISABLED)
     recur_stop_check.place(x=225,y=95)
-    recur_stop_date = DateEntry(recur_labelframe,width=20,state=DISABLED)
+    recur_nxt_inv_date.place(x=360,y=70)
     recur_stop_date.place(x=360,y=95)
     recur_recalc = Button(recur_labelframe,compound=LEFT,image=recalc,text="Recalculate",width=80,height=12,state=DISABLED,command=recur_recalculate)
     recur_recalc.place(x=540,y=70)
-
-    recur_stop_date['state'] = NORMAL
-    recur_nxt_inv_date['state'] = NORMAL
-    stop = datetime.today().date()
-    stop_date = datetime.strptime(str(stop),"%Y-%m-%d").date()
-    recur_stop_date.delete(0,END)
-    recur_stop_date.insert(0,'{0}/{1}/{2:02}'.format(stop_date.month,stop_date.day,stop_date.year % 100))
-    n = stop_date + relativedelta(months=+1)
-    nxt_inv = datetime.strptime(str(n),"%Y-%m-%d")
-    recur_nxt_inv_date.delete(0,END)
-    recur_nxt_inv_date.insert(0,'{0}/{1}/{2:02}'.format(nxt_inv.month,nxt_inv.day,nxt_inv.year % 100))
-    recur_stop_date['state'] = DISABLED
-    recur_nxt_inv_date['state'] = DISABLED
 
 
     pay_labelframe_1 = LabelFrame(payementFrame,text="",font=("arial",15))
@@ -3306,7 +3425,7 @@ def mainpage():
       invoice_number_1 = inv_number_entry_1.get()
       invodate_1 = inv_date_entry_1.get_date()
       if checkvarStatus5_1.get() == 0:
-        pass
+        duedate_1 = NULL
       else:
         duedate_1 = inv_duedate_entry_1.get_date()
       term_of_payment_1 = inv_terms_combo_1.get()
@@ -3337,11 +3456,13 @@ def mainpage():
         stop_recurring_1 = NULL
         recurring_period_1 = NULL
         recurring_period_month_1 = NULL
+        recurring_check_1 = 0
       else:
         next_invoice_1 = recur_nxt_inv_date_1.get_date()
         stop_recurring_1 = recur_stop_date_1.get_date()
         recurring_period_1 = recur_period_entry_1.get()
         recurring_period_month_1 = recur_month_combo_1.get()
+        recurring_check_1 = 1
       title_text_1 = title_txt_combo_1.get()
       header_text_1 = pageh_txt_combo_1.get()
       footer_text_1 = footer_txt_combo_1.get()
@@ -3398,8 +3519,8 @@ def mainpage():
         fbilldb.commit()
 
       
-      inv_sql='UPDATE invoice SET invodate=%s,duedate=%s,status=%s,emailon=%s,printon=%s,invoicetot=%s,totpaid=%s,balance=%s,extracostname=%s,extracost=%s,template=%s,salesper=%s,discourate=%s,tax1=%s,category=%s,businessname=%s,businessaddress=%s,shipname=%s,shipaddress=%s,cpemail=%s,cpmobileforsms=%s,recurring_period=%s,recurring_period_month=%s,next_invoice=%s,stop_recurring=%s,discount=%s,terms=%s,tax2=%s,quantity=%s,title_text=%s,header_text=%s,footer_text=%s,term_of_payment=%s,ref=%s,comments=%s,privatenotes=%s,paid_n_closed=%s WHERE invoice_number=%s' #adding values into db
-      inv_val=(invodate_1,duedate_1,status_1,emailon_1,printon_1,invoicetot_1,totpaid_1,balance_1,extracostname_1,extracost_1,template_1,salesper_1,discourate_1,tax1_01,category_1,businessname_1,businessaddress_1,shipname_1,shipaddress_1,cpemail_1,cpmobileforsms_1,recurring_period_1,recurring_period_month_1,next_invoice_1,stop_recurring_1,discount_1,terms_1,tax2_01,quantity_1,title_text_1,header_text_1,footer_text_1,term_of_payment_1,ref_1,comments_1,privatenotes_1,paid_n_closed,invoice_number_1,)
+      inv_sql='UPDATE invoice SET invodate=%s,duedate=%s,status=%s,emailon=%s,printon=%s,invoicetot=%s,totpaid=%s,balance=%s,extracostname=%s,extracost=%s,template=%s,salesper=%s,discourate=%s,tax1=%s,category=%s,businessname=%s,businessaddress=%s,shipname=%s,shipaddress=%s,cpemail=%s,cpmobileforsms=%s,recurring_period=%s,recurring_period_month=%s,next_invoice=%s,stop_recurring=%s,discount=%s,terms=%s,tax2=%s,quantity=%s,title_text=%s,header_text=%s,footer_text=%s,term_of_payment=%s,ref=%s,comments=%s,privatenotes=%s,recurring_check=%s,paid_n_closed=%s WHERE invoice_number=%s' #adding values into db
+      inv_val=(invodate_1,duedate_1,status_1,emailon_1,printon_1,invoicetot_1,totpaid_1,balance_1,extracostname_1,extracost_1,template_1,salesper_1,discourate_1,tax1_01,category_1,businessname_1,businessaddress_1,shipname_1,shipaddress_1,cpemail_1,cpmobileforsms_1,recurring_period_1,recurring_period_month_1,next_invoice_1,stop_recurring_1,discount_1,terms_1,tax2_01,quantity_1,title_text_1,header_text_1,footer_text_1,term_of_payment_1,ref_1,comments_1,privatenotes_1,recurring_check_1,paid_n_closed,invoice_number_1,)
       fbcursor.execute(inv_sql,inv_val)
       fbilldb.commit()
       pop_1.destroy()
@@ -3792,7 +3913,7 @@ def mainpage():
           discount_1.config(text= str(dis_rate) + "" +"% Discount")
           discount1_1.config(text=round(discount_rate,2))
           sub_tot = round(((price + p1 + p2 + p3) - discount_rate),2)
-          sub1_1.config(text="$" + "" + str(sub_tot))
+          sub1_1.config(text=sub_tot)
           tax1_1.config(text=round((tax1_rate + tax2_rate),2))
           tax2_1.config(text=round((tax3_rate + tax4_rate),2))
           cost1_1.config(text=round(exc,2))
@@ -4329,7 +4450,7 @@ def mainpage():
         discount_1.config(text= str(dis_rate) + "" +"% Discount")
         discount1_1.config(text=round(discount_rate,2))
         sub_tot = round(((price + p1 + p2 + p3) - discount_rate),2)
-        sub1_1.config(text="$" + "" + str(sub_tot))
+        sub1_1.config(text=sub_tot)
         tax1_1.config(text=round((tax1_rate + tax2_rate),2))
         tax2_1.config(text=round((tax3_rate + tax4_rate),2))
         cost1_1.config(text=round(exc,2))
@@ -4432,7 +4553,7 @@ def mainpage():
         discount_1.config(text= str(dis_rate) + "" +"% Discount")
         discount1_1.config(text=round(discount_rate,2))
         sub_tot = round(((price + p1 + p2 + p3) - discount_rate),2)
-        sub1_1.config(text="$" + "" + str(sub_tot))
+        sub1_1.config(text=sub_tot)
         tax1_1.config(text=round((tax1_rate + tax2_rate),2))
         tax2_1.config(text=round((tax3_rate + tax4_rate),2))
         cost1_1.config(text=round(exc,2))
@@ -4669,7 +4790,7 @@ def mainpage():
           discount_1.config(text= str(dis_rate) + "" +"% Discount")
           discount1_1.config(text=round(discount_rate,2))
           sub_tot = round(((price + p1 + p2 + p3) - discount_rate),2)
-          sub1_1.config(text="$" + "" + str(sub_tot))
+          sub1_1.config(text=sub_tot)
           tax1_1.config(text=round((tax1_rate + tax2_rate),2))
           tax2_1.config(text=round((tax3_rate + tax4_rate),2))
           cost1_1.config(text=round(exc,2))
@@ -5100,7 +5221,7 @@ def mainpage():
             invoice_number_1 = inv_number_entry_1.get()
             invodate_1 = inv_date_entry_1.get_date()
             if checkvarStatus5_1.get() == 0:
-              pass
+              duedate_1 = NULL
             else:
               duedate_1 = inv_duedate_entry_1.get_date()
             term_of_payment_1 = inv_terms_combo_1.get()
@@ -5738,6 +5859,10 @@ def mainpage():
     # fbcursor.execute("SELECT * FROM Invoice ORDER BY invoiceid DESC LIMIT 1")
     # inv_number_data_1 = fbcursor.fetchone()
 
+    comp_sql = "SELECT * FROM company"
+    fbcursor.execute(comp_sql,)
+    comp_data = fbcursor.fetchone()
+
     inv_number_label_1=Label(labelframe,text="Invoice#").place(x=5,y=5)
     inv_number_entry_1=Entry(labelframe,width=25)
     inv_number_entry_1.place(x=100,y=5,)
@@ -5765,12 +5890,34 @@ def mainpage():
       tdata_1.append(i[0])
 
     inv_date_label_1 =Label(labelframe,text="Invoice date").place(x=5,y=33)
-    inv_date_entry_1 =DateEntry(labelframe,width=15)
-    inv_date_entry_1.place(x=150,y=33)
+    if comp_data[10] == "mm-dd-yyyy":
+      inv_date_entry_1 =DateEntry(labelframe,width=15,date_pattern="mm-dd-yyyy")
+      inv_duedate_entry_1=DateEntry(labelframe,width=15,date_pattern="mm-dd-yyyy")
+    elif comp_data[10] == "dd-mm-yyyy":
+      inv_date_entry_1 =DateEntry(labelframe,width=15,date_pattern="dd-mm-yyyy")
+      inv_duedate_entry_1=DateEntry(labelframe,width=15,date_pattern="dd-mm-yyyy")
+    elif comp_data[10] == "yyyy.mm.dd":
+      inv_date_entry_1 =DateEntry(labelframe,width=15,date_pattern="yyyy.mm.dd")
+      inv_duedate_entry_1=DateEntry(labelframe,width=15,date_pattern="yyyy.mm.dd")
+    elif comp_data[10] == "mm/dd/yyyy":
+      inv_date_entry_1 =DateEntry(labelframe,width=15,date_pattern="mm/dd/yyyy")
+      inv_duedate_entry_1=DateEntry(labelframe,width=15,date_pattern="mm/dd/yyyy")
+    elif comp_data[10] == "dd/mm/yyyy":
+      inv_date_entry_1 =DateEntry(labelframe,width=15,date_pattern="dd/mm/yyyy")
+      inv_duedate_entry_1=DateEntry(labelframe,width=15,date_pattern="dd/mm/yyyy")
+    elif comp_data[10] == "dd.mm.yyyy":
+      inv_date_entry_1 =DateEntry(labelframe,width=15,date_pattern="dd.mm.yyyy")
+      inv_duedate_entry_1=DateEntry(labelframe,width=15,date_pattern="dd.mm.yyyy")
+    elif comp_data[10] == "yyyy/mm/dd":
+      inv_date_entry_1 =DateEntry(labelframe,width=15,date_pattern="yyyy/mm/dd")
+      inv_duedate_entry_1=DateEntry(labelframe,width=15,date_pattern="yyyy/mm/dd")
+    else:
+      inv_date_entry_1 =DateEntry(labelframe,width=15)
+      inv_duedate_entry_1=DateEntry(labelframe,width=15)
     checkvarStatus5_1=IntVar()
     inv_duedate_check_1=Checkbutton(labelframe,variable = checkvarStatus5_1,text="Due date",onvalue =1 ,offvalue = 0,command=inv_due_check_1)
     inv_duedate_check_1.place(x=5,y=62)
-    inv_duedate_entry_1=DateEntry(labelframe,width=15,state=DISABLED)
+    inv_date_entry_1.place(x=150,y=33)
     inv_duedate_entry_1.place(x=150,y=62)
     inv_terms_label_1=Label(labelframe,text="Terms").place(x=5,y=92)
     term = StringVar()
@@ -5783,42 +5930,194 @@ def mainpage():
     inv_ref_entry_1.place(x=100,y=118)
 
     if edit_inv_data[48] == 1 or edit_inv_data[4] == "Void":
-      date = datetime.strptime(str(edit_inv_data[2]),"%Y-%m-%d")
-      inv_date_entry_1.delete(0, END)
-      inv_date_entry_1.insert(0, '{0}/{1}/{2:02}'.format(date.month,date.day,date.year % 100))
-      if checkvarStatus5_1 is not None:
+      if edit_inv_data[3] is not None:
+        if comp_data[10] == "mm-dd-yyyy":
+          date = datetime.strftime(edit_inv_data[2],"%m-%d-%Y")
+          due_date = datetime.strftime(edit_inv_data[3],"%m-%d-%Y")
+        elif comp_data[10] == "dd-mm-yyyy":
+          date = datetime.strftime(edit_inv_data[2],"%d-%m-%Y")
+          due_date = datetime.strftime(edit_inv_data[3],"%d-%m-%Y")
+        elif comp_data[10] == "yyyy.mm.dd":
+          d = datetime.strftime(edit_inv_data[2],"%Y-%m-%d")
+          dt = datetime.strptime(d,"%Y-%m-%d")
+          date = '{0}.{1:02}.{2:02}'.format(dt.year,dt.month,dt.day)
+          due = datetime.strptime(str(edit_inv_data[3]),"%Y-%m-%d")
+          due_date = '{0}.{1:02}.{2:02}'.format(due.year,due.month,due.day)
+        elif comp_data[10] == "mm/dd/yyyy":
+          date = datetime.strftime(edit_inv_data[2],"%m/%d/%Y")
+          due_date = datetime.strftime(edit_inv_data[3],"%m/%d/%Y")
+        elif comp_data[10] == "dd/mm/yyyy":
+          date = datetime.strftime(edit_inv_data[2],"%d/%m/%Y")
+          due_date = datetime.strftime(edit_inv_data[3],"%d/%m/%Y")
+        elif comp_data[10] == "dd.mm.yyyy":
+          d = datetime.strftime(edit_inv_data[2],"%Y-%m-%d")
+          dt = datetime.strptime(d,"%Y-%m-%d")
+          date = '{0}.{1:02}.{2:02}'.format(dt.day,dt.month,dt.year)
+          due = datetime.strptime(str(edit_inv_data[3]),"%Y-%m-%d")
+          due_date = '{0}.{1:02}.{2:02}'.format(due.day,due.month,due.year)
+        elif comp_data[10] == "yyyy/mm/dd":
+          date = datetime.strftime(edit_inv_data[2],"%Y/%m/%d")
+          due_date = datetime.strftime(edit_inv_data[3],"%Y/%m/%d")
+        else:
+          d = datetime.strftime(edit_inv_data[2],"%Y-%m-%d")
+          dt = datetime.strptime(d,"%Y-%m-%d")
+          date = '{0}/{1:02}/{2:02}'.format(dt.month,dt.day,dt.year % 100)
+          due = datetime.strptime(str(edit_inv_data[3]),"%Y-%m-%d")
+          due_date = '{0}/{1:02}/{2:02}'.format(due.month,due.day,due.year % 100)
         checkvarStatus5_1.set(1)
+        inv_date_entry_1.delete(0, END)
+        inv_date_entry_1.insert(0, date)
+        inv_duedate_entry_1.delete(0, END)
+        inv_duedate_entry_1.insert(0, due_date)
+        inv_terms_combo_1.delete(0, END)
+        inv_terms_combo_1.insert(0, edit_inv_data[42])
+        inv_ref_entry_1.delete(0, END)
+        inv_ref_entry_1.insert(0, edit_inv_data[43])
+        inv_date_entry_1['state'] = DISABLED
+        inv_duedate_entry_1['state'] = DISABLED
+        inv_terms_combo_1['state'] = DISABLED
+        inv_ref_entry_1['state'] = DISABLED
+        inv_duedate_check_1['state'] = DISABLED
       else:
-        checkvarStatus5_1.set(1)
-      inv_duedate_entry_1['state'] = NORMAL
-      due_date = datetime.strptime(str(edit_inv_data[3]),"%Y-%m-%d")
-      inv_duedate_entry_1.delete(0, END)
-      inv_duedate_entry_1.insert(0, '{0}/{1}/{2:02}'.format(due_date.month,due_date.day,due_date.year % 100))
-      inv_terms_combo_1.delete(0, END)
-      inv_terms_combo_1.insert(0, edit_inv_data[42])
-      inv_ref_entry_1.delete(0, END)
-      inv_ref_entry_1.insert(0, edit_inv_data[43])
-      inv_date_entry_1['state'] = DISABLED
-      inv_duedate_entry_1['state'] = DISABLED
-      inv_terms_combo_1['state'] = DISABLED
-      inv_ref_entry_1['state'] = DISABLED
-      inv_duedate_check_1['state'] = DISABLED
+        current_date = datetime.today().date()
+        if comp_data[10] == "mm-dd-yyyy":
+          date = datetime.strftime(edit_inv_data[2],"%m-%d-%Y")
+          due_date = datetime.strftime(current_date,"%m-%d-%Y")
+        elif comp_data[10] == "dd-mm-yyyy":
+          date = datetime.strftime(edit_inv_data[2],"%d-%m-%Y")
+          due_date = datetime.strftime(current_date,"%d-%m-%Y")
+        elif comp_data[10] == "yyyy.mm.dd":
+          d = datetime.strftime(edit_inv_data[2],"%Y-%m-%d")
+          dt = datetime.strptime(d,"%Y-%m-%d")
+          date = '{0}.{1:02}.{2:02}'.format(dt.year,dt.month,dt.day)
+          due = datetime.strptime(str(current_date),"%Y-%m-%d")
+          due_date = '{0}.{1:02}.{2:02}'.format(due.year,due.month,due.day)
+        elif comp_data[10] == "mm/dd/yyyy":
+          date = datetime.strftime(edit_inv_data[2],"%m/%d/%Y")
+          due_date = datetime.strftime(current_date,"%m/%d/%Y")
+        elif comp_data[10] == "dd/mm/yyyy":
+          date = datetime.strftime(edit_inv_data[2],"%d/%m/%Y")
+          due_date = datetime.strftime(current_date,"%d/%m/%Y")
+        elif comp_data[10] == "dd.mm.yyyy":
+          d = datetime.strftime(edit_inv_data[2],"%Y-%m-%d")
+          dt = datetime.strptime(d,"%Y-%m-%d")
+          date = '{0}.{1:02}.{2:02}'.format(dt.day,dt.month,dt.year)
+          due = datetime.strptime(str(current_date),"%Y-%m-%d")
+          due_date = '{0}.{1:02}.{2:02}'.format(due.day,due.month,due.year)
+        elif comp_data[10] == "yyyy/mm/dd":
+          date = datetime.strftime(edit_inv_data[2],"%Y/%m/%d")
+          due_date = datetime.strftime(current_date,"%Y/%m/%d")
+        else:
+          d = datetime.strftime(edit_inv_data[2],"%Y-%m-%d")
+          dt = datetime.strptime(d,"%Y-%m-%d")
+          date = '{0}/{1:02}/{2:02}'.format(dt.month,dt.day,dt.year % 100)
+          due = datetime.strptime(str(current_date),"%Y-%m-%d")
+          due_date = '{0}/{1:02}/{2:02}'.format(due.month,due.day,due.year % 100)
+        
+        inv_date_entry_1.delete(0, END)
+        inv_date_entry_1.insert(0, date)
+        inv_duedate_entry_1.delete(0, END)
+        inv_duedate_entry_1.insert(0, due_date)
+        inv_terms_combo_1.delete(0, END)
+        inv_terms_combo_1.insert(0, edit_inv_data[42])
+        inv_ref_entry_1.delete(0, END)
+        inv_ref_entry_1.insert(0, edit_inv_data[43])
+        checkvarStatus5_1.set(0)
+        inv_date_entry_1['state'] = DISABLED
+        inv_duedate_entry_1['state'] = DISABLED
+        inv_terms_combo_1['state'] = DISABLED
+        inv_ref_entry_1['state'] = DISABLED
+        inv_duedate_check_1['state'] = DISABLED
     else:
-      date = datetime.strptime(str(edit_inv_data[2]),"%Y-%m-%d")
-      inv_date_entry_1.delete(0, END)
-      inv_date_entry_1.insert(0, '{0}/{1}/{2:02}'.format(date.month,date.day,date.year % 100))
-      if checkvarStatus5_1 is not None:
+      if edit_inv_data[3] is not None:
+        if comp_data[10] == "mm-dd-yyyy":
+          date = datetime.strftime(edit_inv_data[2],"%m-%d-%Y")
+          due_date = datetime.strftime(edit_inv_data[3],"%m-%d-%Y")
+        elif comp_data[10] == "dd-mm-yyyy":
+          date = datetime.strftime(edit_inv_data[2],"%d-%m-%Y")
+          due_date = datetime.strftime(edit_inv_data[3],"%d-%m-%Y")
+        elif comp_data[10] == "yyyy.mm.dd":
+          d = datetime.strftime(edit_inv_data[2],"%Y-%m-%d")
+          dt = datetime.strptime(d,"%Y-%m-%d")
+          date = '{0}.{1:02}.{2:02}'.format(dt.year,dt.month,dt.day)
+          due = datetime.strptime(str(edit_inv_data[3]),"%Y-%m-%d")
+          due_date = '{0}.{1:02}.{2:02}'.format(due.year,due.month,due.day)
+        elif comp_data[10] == "mm/dd/yyyy":
+          date = datetime.strftime(edit_inv_data[2],"%m/%d/%Y")
+          due_date = datetime.strftime(edit_inv_data[3],"%m/%d/%Y")
+        elif comp_data[10] == "dd/mm/yyyy":
+          date = datetime.strftime(edit_inv_data[2],"%d/%m/%Y")
+          due_date = datetime.strftime(edit_inv_data[3],"%d/%m/%Y")
+        elif comp_data[10] == "dd.mm.yyyy":
+          d = datetime.strftime(edit_inv_data[2],"%Y-%m-%d")
+          dt = datetime.strptime(d,"%Y-%m-%d")
+          date = '{0}.{1:02}.{2:02}'.format(dt.day,dt.month,dt.year)
+          due = datetime.strptime(str(edit_inv_data[3]),"%Y-%m-%d")
+          due_date = '{0}.{1:02}.{2:02}'.format(due.day,due.month,due.year)
+        elif comp_data[10] == "yyyy/mm/dd":
+          date = datetime.strftime(edit_inv_data[2],"%Y/%m/%d")
+          due_date = datetime.strftime(edit_inv_data[3],"%Y/%m/%d")
+        else:
+          d = datetime.strftime(edit_inv_data[2],"%Y-%m-%d")
+          dt = datetime.strptime(d,"%Y-%m-%d")
+          date = '{0}/{1:02}/{2:02}'.format(dt.month,dt.day,dt.year % 100)
+          due = datetime.strptime(str(edit_inv_data[3]),"%Y-%m-%d")
+          due_date = '{0}/{1:02}/{2:02}'.format(due.month,due.day,due.year % 100)
         checkvarStatus5_1.set(1)
+        inv_date_entry_1.delete(0, END)
+        inv_date_entry_1.insert(0, date)
+        inv_duedate_entry_1.delete(0, END)
+        inv_duedate_entry_1.insert(0, due_date)
+        inv_terms_combo_1.delete(0, END)
+        inv_terms_combo_1.insert(0, edit_inv_data[42])
+        inv_ref_entry_1.delete(0, END)
+        inv_ref_entry_1.insert(0, edit_inv_data[43])
       else:
-        checkvarStatus5_1.set(1)
-      inv_duedate_entry_1['state'] = NORMAL
-      due_date = datetime.strptime(str(edit_inv_data[3]),"%Y-%m-%d")
-      inv_duedate_entry_1.delete(0, END)
-      inv_duedate_entry_1.insert(0, '{0}/{1}/{2:02}'.format(due_date.month,due_date.day,due_date.year % 100))
-      inv_terms_combo_1.delete(0, END)
-      inv_terms_combo_1.insert(0, edit_inv_data[42])
-      inv_ref_entry_1.delete(0, END)
-      inv_ref_entry_1.insert(0, edit_inv_data[43])
+        current_date = datetime.today().date()
+        if comp_data[10] == "mm-dd-yyyy":
+          date = datetime.strftime(edit_inv_data[2],"%m-%d-%Y")
+          due_date = datetime.strftime(current_date,"%m-%d-%Y")
+        elif comp_data[10] == "dd-mm-yyyy":
+          date = datetime.strftime(edit_inv_data[2],"%d-%m-%Y")
+          due_date = datetime.strftime(current_date,"%d-%m-%Y")
+        elif comp_data[10] == "yyyy.mm.dd":
+          d = datetime.strftime(edit_inv_data[2],"%Y-%m-%d")
+          dt = datetime.strptime(d,"%Y-%m-%d")
+          date = '{0}.{1:02}.{2:02}'.format(dt.year,dt.month,dt.day)
+          due = datetime.strptime(str(current_date),"%Y-%m-%d")
+          due_date = '{0}.{1:02}.{2:02}'.format(due.year,due.month,due.day)
+        elif comp_data[10] == "mm/dd/yyyy":
+          date = datetime.strftime(edit_inv_data[2],"%m/%d/%Y")
+          due_date = datetime.strftime(current_date,"%m/%d/%Y")
+        elif comp_data[10] == "dd/mm/yyyy":
+          date = datetime.strftime(edit_inv_data[2],"%d/%m/%Y")
+          due_date = datetime.strftime(current_date,"%d/%m/%Y")
+        elif comp_data[10] == "dd.mm.yyyy":
+          d = datetime.strftime(edit_inv_data[2],"%Y-%m-%d")
+          dt = datetime.strptime(d,"%Y-%m-%d")
+          date = '{0}.{1:02}.{2:02}'.format(dt.day,dt.month,dt.year)
+          due = datetime.strptime(str(current_date),"%Y-%m-%d")
+          due_date = '{0}.{1:02}.{2:02}'.format(due.day,due.month,due.year)
+        elif comp_data[10] == "yyyy/mm/dd":
+          date = datetime.strftime(edit_inv_data[2],"%Y/%m/%d")
+          due_date = datetime.strftime(current_date,"%Y/%m/%d")
+        else:
+          d = datetime.strftime(edit_inv_data[2],"%Y-%m-%d")
+          dt = datetime.strptime(d,"%Y-%m-%d")
+          date = '{0}/{1:02}/{2:02}'.format(dt.month,dt.day,dt.year % 100)
+          due = datetime.strptime(str(current_date),"%Y-%m-%d")
+          due_date = '{0}/{1:02}/{2:02}'.format(due.month,due.day,due.year % 100)
+        
+        inv_date_entry_1.delete(0, END)
+        inv_date_entry_1.insert(0, date)
+        inv_duedate_entry_1.delete(0, END)
+        inv_duedate_entry_1.insert(0, due_date)
+        inv_terms_combo_1.delete(0, END)
+        inv_terms_combo_1.insert(0, edit_inv_data[42])
+        inv_ref_entry_1.delete(0, END)
+        inv_ref_entry_1.insert(0, edit_inv_data[43])
+        checkvarStatus5_1.set(0)
+        inv_duedate_entry_1['state'] = DISABLED
     
     
 
@@ -5826,9 +6125,6 @@ def mainpage():
     fir2Frame.pack(side="top", fill=X)
     listFrame = Frame(fir2Frame, bg="white", height=140,borderwidth=5,  relief=RIDGE)
 
-    comp_sql = "SELECT * FROM company"
-    fbcursor.execute(comp_sql,)
-    comp_data = fbcursor.fetchone()
     if comp_data[12] == "1":
       add_newline_tree_1=ttk.Treeview(listFrame)
       add_newline_tree_1["columns"]=["1","2","3","4","5","6","7"]
@@ -6057,12 +6353,35 @@ def mainpage():
     recur_month_combo_1['values'] = mdata_1
     recur_month_combo_1.set(mdata_1[0])
     recur_nxt_inv_label_1 = Label(recur_labelframe_1,text="Next Invoice").place(x=280,y=70)
-    recur_nxt_inv_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED)
-    recur_nxt_inv_date_1.place(x=360,y=70)
+    if comp_data[10] == "mm-dd-yyyy":
+      recur_nxt_inv_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED,date_pattern="mm-dd-yyyy")
+      recur_stop_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED,date_pattern="mm-dd-yyyy")
+    elif comp_data[10] == "dd-mm-yyyy":
+      recur_nxt_inv_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED,date_pattern="dd-mm-yyyy")
+      recur_stop_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED,date_pattern="dd-mm-yyyy")
+    elif comp_data[10] == "yyyy.mm.dd":
+      recur_nxt_inv_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED,date_pattern="yyyy.mm.dd")
+      recur_stop_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED,date_pattern="yyyy.mm.dd")
+    elif comp_data[10] == "mm/dd/yyyy":
+      recur_nxt_inv_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED,date_pattern="mm/dd/yyyy")
+      recur_stop_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED,date_pattern="mm/dd/yyyy")
+    elif comp_data[10] == "dd/mm/yyyy":
+      recur_nxt_inv_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED,date_pattern="dd/mm/yyyy")
+      recur_stop_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED,date_pattern="dd/mm/yyyy")
+    elif comp_data[10] == "dd.mm.yyyy":
+      recur_nxt_inv_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED,date_pattern="dd.mm.yyyy")
+      recur_stop_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED,date_pattern="dd.mm.yyyy")
+    elif comp_data[10] == "yyyy/mm/dd":
+      recur_nxt_inv_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED,date_pattern="yyyy/mm/dd")
+      recur_stop_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED,date_pattern="yyyy/mm/dd")
+    else:
+      recur_nxt_inv_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED)
+      recur_stop_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED)
+    
     checkstopStatus_1 = IntVar()
     recur_stop_check_1 = Checkbutton(recur_labelframe_1,variable=checkstopStatus_1,text="Stop recurring after",onvalue=1,offvalue=0,state=DISABLED)
     recur_stop_check_1.place(x=225,y=95)
-    recur_stop_date_1 = DateEntry(recur_labelframe_1,width=20,state=DISABLED)
+    recur_nxt_inv_date_1.place(x=360,y=70)
     recur_stop_date_1.place(x=360,y=95)
     recur_recalc_1 = Button(recur_labelframe_1,compound=LEFT,image=recalc,text="Recalculate",width=80,height=12,state=DISABLED,command=recur_recalculate_1)
     recur_recalc_1.place(x=540,y=70)
@@ -6298,6 +6617,46 @@ def mainpage():
       balance_1.place(x=0 ,y=124)
       balance1_1.place(x=130 ,y=124)
 
+    dis_symb_1 = Label(summaryfrme_1,text=comp_data[6])
+    sub_symb_1 = Label(summaryfrme_1,text=comp_data[6])
+    tax1_symb_1 = Label(summaryfrme_1,text=comp_data[6])
+    tax2_symb_1 = Label(summaryfrme_1,text=comp_data[6])
+    cost_symb_1 = Label(summaryfrme_1,text=comp_data[6])
+    invtot_symb_1 = Label(summaryfrme_1,text=comp_data[6])
+    total_symb_1 = Label(summaryfrme_1,text=comp_data[6])
+    bal_symb_1 = Label(summaryfrme_1,text=comp_data[6])
+    if not comp_data:
+      dis_symb_1.place(x=110,y=0)
+      sub_symb_1.place(x=110,y=21)
+      cost_symb_1.place(x=110,y=42)
+      invtot_symb_1.place(x=110,y=63)
+      total_symb_1.place(x=110,y=84)
+      bal_symb_1.place(x=110,y=105)
+    elif comp_data[12] == "1":
+      dis_symb_1.place(x=110,y=0)
+      sub_symb_1.place(x=110,y=21)
+      cost_symb_1.place(x=110,y=42)
+      invtot_symb_1.place(x=110,y=63)
+      total_symb_1.place(x=110,y=84)
+      bal_symb_1.place(x=110,y=105)
+    elif comp_data[12] == "2":
+      dis_symb_1.place(x=110,y=0)
+      sub_symb_1.place(x=110,y=21)
+      tax1_symb_1.place(x=110,y=42)
+      cost_symb_1.place(x=110,y=63)
+      invtot_symb_1.place(x=110,y=84)
+      total_symb_1.place(x=110,y=105)
+      bal_symb_1.place(x=110,y=126)
+    elif comp_data[12] == "3":
+      dis_symb_1.place(x=110,y=0)
+      sub_symb_1.place(x=110,y=18)
+      tax1_symb_1.place(x=110,y=35)
+      tax2_symb_1.place(x=110,y=52)
+      cost_symb_1.place(x=110,y=70)
+      invtot_symb_1.place(x=110,y=88)
+      total_symb_1.place(x=110,y=106)
+      bal_symb_1.place(x=110,y=124)
+
     fir5Frame=Frame(pop_1,height=38,width=210)
     fir5Frame.place(x=735,y=485)
     btndown_1=Button(fir5Frame, compound="left", text="Line Down")
@@ -6353,13 +6712,56 @@ def mainpage():
         recur_stop_date_1['state'] = NORMAL
         recur_nxt_inv_date_1['state'] = NORMAL
         stop = datetime.today().date()
-        stop_date = datetime.strptime(str(stop),"%Y-%m-%d").date()
+        if comp_data[10] == "mm-dd-yyyy":
+          stop_date = datetime.strftime(stop,"%m-%d-%Y")
+          stop_d = datetime.strptime(stop_date,"%m-%d-%Y")
+          n = stop_d + relativedelta(months=+1)
+          nxt_inv = datetime.strftime(n,"%m-%d-%Y")
+        elif comp_data[10] == "dd-mm-yyyy":
+          stop_date = datetime.strftime(stop,"%d-%m-%Y")
+          stop_d = datetime.strptime(stop_date,"%d-%m-%Y")
+          n = stop_d + relativedelta(months=+1)
+          nxt_inv = datetime.strftime(n,"%d-%m-%Y")
+        elif comp_data[10] == "yyyy.mm.dd":
+          s = datetime.strftime(stop,"%Y-%m-%d")
+          stop_d = datetime.strptime(s,"%Y-%m-%d")
+          stop_date = '{0}.{1:02}.{2:02}'.format(stop_d.year,stop_d.month,stop_d.day)
+          n = stop_d + relativedelta(months=+1)
+          nxt = datetime.strptime(str(n.date()),"%Y-%m-%d")
+          nxt_inv = '{0}.{1:02}.{2:02}'.format(nxt.year,nxt.month,nxt.day)
+        elif comp_data[10] == "mm/dd/yyyy":
+          stop_date = datetime.strftime(stop,"%m/%d/%Y")
+          stop_d = datetime.strptime(stop_date,"%m/%d/%Y")
+          n = stop_d + relativedelta(months=+1)
+          nxt_inv = datetime.strftime(n,"%m/%d/%Y")
+        elif comp_data[10] == "dd/mm/yyyy":
+          stop_date = datetime.strftime(stop,"%d/%m/%Y")
+          stop_d = datetime.strptime(stop_date,"%d/%m/%Y")
+          n = stop_d + relativedelta(months=+1)
+          nxt_inv = datetime.strftime(n,"%d/%m/%Y")
+        elif comp_data[10] == "dd.mm.yyyy":
+          s = datetime.strftime(stop,"%Y-%m-%d")
+          stop_d = datetime.strptime(s,"%Y-%m-%d")
+          stop_date = '{0:02}.{1:02}.{2:02}'.format(stop_d.day,stop_d.month,stop_d.year)
+          n = stop_d + relativedelta(months=+1)
+          nxt = datetime.strptime(str(n.date()),"%Y-%m-%d")
+          nxt_inv = '{0:02}.{1:02}.{2:02}'.format(nxt.day,nxt.month,nxt.year)
+        elif comp_data[10] =="yyyy/mm/dd":
+          stop_date = datetime.strftime(stop,"%Y/%m/%d")
+          stop_d = datetime.strptime(stop_date,"%Y/%m/%d")
+          n = stop_d + relativedelta(months=+1)
+          nxt_inv = datetime.strftime(n,"%Y/%m/%d")
+        else:
+          s = datetime.strftime(stop,"%Y-%m-%d")
+          stop_d = datetime.strptime(s,"%Y-%m-%d")
+          stop_date = '{0}/{1}/{2:02}'.format(stop_d.month,stop_d.day,stop_d.year % 100)
+          n = stop_d + relativedelta(months=+1)
+          nxt = datetime.strptime(str(n.date()),"%Y-%m-%d")
+          nxt_inv = '{0}/{1}/{2:02}'.format(nxt.month,nxt.day,nxt.year % 100)
         recur_stop_date_1.delete(0,END)
-        recur_stop_date_1.insert(0,'{0}/{1}/{2:02}'.format(stop_date.month,stop_date.day,stop_date.year % 100))
-        n = stop_date + relativedelta(months=+1)
-        nxt_inv = datetime.strptime(str(n),"%Y-%m-%d")
+        recur_stop_date_1.insert(0,stop_date)
         recur_nxt_inv_date_1.delete(0,END)
-        recur_nxt_inv_date_1.insert(0,'{0}/{1}/{2:02}'.format(nxt_inv.month,nxt_inv.day,nxt_inv.year % 100))
+        recur_nxt_inv_date_1.insert(0,nxt_inv)
         checkrecStatus_1.set(0)
         recur_check_btn_1['state'] = DISABLED
         recur_period_entry_1['state'] = DISABLED
@@ -6380,12 +6782,43 @@ def mainpage():
         recur_period_entry_1.insert(0, edit_inv_data[24])
         recur_month_combo_1.delete(0,END)
         recur_month_combo_1.insert(0,edit_inv_data[25])
-        nxt_inv = datetime.strptime(str(edit_inv_data[26]),"%Y-%m-%d")
-        recur_nxt_inv_date_1.delete(0,END)
-        recur_nxt_inv_date_1.insert(0,'{0}/{1}/{2:02}'.format(nxt_inv.month,nxt_inv.day,nxt_inv.year % 100))
-        stop_inv = datetime.strptime(str(edit_inv_data[27]),"%Y-%m-%d")
+        if comp_data[10] == "mm-dd-yyyy":
+          stop_date = datetime.strftime(edit_inv_data[27],"%m-%d-%Y")
+          nxt_inv = datetime.strftime(edit_inv_data[26],"%m-%d-%Y")
+        elif comp_data[10] == "dd-mm-yyyy":
+          stop_date = datetime.strftime(edit_inv_data[27],"%d-%m-%Y")
+          nxt_inv = datetime.strftime(edit_inv_data[26],"%d-%m-%Y")
+        elif comp_data[10] == "yyyy.mm.dd":
+          s = datetime.strftime(edit_inv_data[27],"%Y-%m-%d")
+          stop_d = datetime.strptime(s,"%Y-%m-%d")
+          stop_date = '{0}.{1:02}.{2:02}'.format(stop_d.year,stop_d.month,stop_d.day)
+          nxt = datetime.strptime(str(edit_inv_data[26]),"%Y-%m-%d")
+          nxt_inv = '{0}.{1:02}.{2:02}'.format(nxt.year,nxt.month,nxt.day)
+        elif comp_data[10] == "mm/dd/yyyy":
+          stop_date = datetime.strftime(edit_inv_data[27],"%m/%d/%Y")
+          nxt_inv = datetime.strftime(edit_inv_data[26],"%m/%d/%Y")
+        elif comp_data[10] == "dd/mm/yyyy":
+          stop_date = datetime.strftime(edit_inv_data[27],"%d/%m/%Y")
+          nxt_inv = datetime.strftime(edit_inv_data[26],"%d/%m/%Y")
+        elif comp_data[10] == "dd.mm.yyyy":
+          s = datetime.strftime(edit_inv_data[27],"%Y-%m-%d")
+          stop_d = datetime.strptime(s,"%Y-%m-%d")
+          stop_date = '{0:02}.{1:02}.{2:02}'.format(stop_d.day,stop_d.month,stop_d.year)
+          nxt = datetime.strptime(str(edit_inv_data[26]),"%Y-%m-%d")
+          nxt_inv = '{0:02}.{1:02}.{2:02}'.format(nxt.day,nxt.month,nxt.year)
+        elif comp_data[10] =="yyyy/mm/dd":
+          stop_date = datetime.strftime(edit_inv_data[27],"%Y/%m/%d")
+          nxt_inv = datetime.strftime(edit_inv_data[26],"%Y/%m/%d")
+        else:
+          s = datetime.strftime(edit_inv_data[27],"%Y-%m-%d")
+          stop_d = datetime.strptime(s,"%Y-%m-%d")
+          stop_date = '{0}/{1}/{2:02}'.format(stop_d.month,stop_d.day,stop_d.year % 100)
+          nxt = datetime.strptime(str(edit_inv_data[26]),"%Y-%m-%d")
+          nxt_inv = '{0}/{1}/{2:02}'.format(stop_d.month,stop_d.day,stop_d.year % 100)
         recur_stop_date_1.delete(0,END)
-        recur_stop_date_1.insert(0,'{0}/{1}/{2:02}'.format(stop_inv.month,stop_inv.day,stop_inv.year % 100))
+        recur_stop_date_1.insert(0,stop_date)
+        recur_nxt_inv_date_1.delete(0,END)
+        recur_nxt_inv_date_1.insert(0,nxt_inv)
         recur_check_btn_1['state'] = DISABLED
         recur_period_entry_1['state'] = DISABLED
         recur_month_combo_1['state'] = DISABLED
@@ -6398,13 +6831,56 @@ def mainpage():
         recur_stop_date_1['state'] = NORMAL
         recur_nxt_inv_date_1['state'] = NORMAL
         stop = datetime.today().date()
-        stop_date = datetime.strptime(str(stop),"%Y-%m-%d").date()
+        if comp_data[10] == "mm-dd-yyyy":
+          stop_date = datetime.strftime(stop,"%m-%d-%Y")
+          stop_d = datetime.strptime(stop_date,"%m-%d-%Y")
+          n = stop_d + relativedelta(months=+1)
+          nxt_inv = datetime.strftime(n,"%m-%d-%Y")
+        elif comp_data[10] == "dd-mm-yyyy":
+          stop_date = datetime.strftime(stop,"%d-%m-%Y")
+          stop_d = datetime.strptime(stop_date,"%d-%m-%Y")
+          n = stop_d + relativedelta(months=+1)
+          nxt_inv = datetime.strftime(n,"%d-%m-%Y")
+        elif comp_data[10] == "yyyy.mm.dd":
+          s = datetime.strftime(stop,"%Y-%m-%d")
+          stop_d = datetime.strptime(s,"%Y-%m-%d")
+          stop_date = '{0}.{1:02}.{2:02}'.format(stop_d.year,stop_d.month,stop_d.day)
+          n = stop_d + relativedelta(months=+1)
+          nxt = datetime.strptime(str(n.date()),"%Y-%m-%d")
+          nxt_inv = '{0}.{1:02}.{2:02}'.format(nxt.year,nxt.month,nxt.day)
+        elif comp_data[10] == "mm/dd/yyyy":
+          stop_date = datetime.strftime(stop,"%m/%d/%Y")
+          stop_d = datetime.strptime(stop_date,"%m/%d/%Y")
+          n = stop_d + relativedelta(months=+1)
+          nxt_inv = datetime.strftime(n,"%m/%d/%Y")
+        elif comp_data[10] == "dd/mm/yyyy":
+          stop_date = datetime.strftime(stop,"%d/%m/%Y")
+          stop_d = datetime.strptime(stop_date,"%d/%m/%Y")
+          n = stop_d + relativedelta(months=+1)
+          nxt_inv = datetime.strftime(n,"%d/%m/%Y")
+        elif comp_data[10] == "dd.mm.yyyy":
+          s = datetime.strftime(stop,"%Y-%m-%d")
+          stop_d = datetime.strptime(s,"%Y-%m-%d")
+          stop_date = '{0:02}.{1:02}.{2:02}'.format(stop_d.day,stop_d.month,stop_d.year)
+          n = stop_d + relativedelta(months=+1)
+          nxt = datetime.strptime(str(n.date()),"%Y-%m-%d")
+          nxt_inv = '{0:02}.{1:02}.{2:02}'.format(nxt.day,nxt.month,nxt.year)
+        elif comp_data[10] =="yyyy/mm/dd":
+          stop_date = datetime.strftime(stop,"%Y/%m/%d")
+          stop_d = datetime.strptime(stop_date,"%Y/%m/%d")
+          n = stop_d + relativedelta(months=+1)
+          nxt_inv = datetime.strftime(n,"%Y/%m/%d")
+        else:
+          s = datetime.strftime(stop,"%Y-%m-%d")
+          stop_d = datetime.strptime(s,"%Y-%m-%d")
+          stop_date = '{0}/{1}/{2:02}'.format(stop_d.month,stop_d.day,stop_d.year % 100)
+          n = stop_d + relativedelta(months=+1)
+          nxt = datetime.strptime(str(n.date()),"%Y-%m-%d")
+          nxt_inv = '{0}/{1}/{2:02}'.format(nxt.month,nxt.day,nxt.year % 100)
         recur_stop_date_1.delete(0,END)
-        recur_stop_date_1.insert(0,'{0}/{1}/{2:02}'.format(stop_date.month,stop_date.day,stop_date.year % 100))
-        n = stop_date + relativedelta(months=+1)
-        nxt_inv = datetime.strptime(str(n),"%Y-%m-%d")
+        recur_stop_date_1.insert(0,stop_date)
         recur_nxt_inv_date_1.delete(0,END)
-        recur_nxt_inv_date_1.insert(0,'{0}/{1}/{2:02}'.format(nxt_inv.month,nxt_inv.day,nxt_inv.year % 100))
+        recur_nxt_inv_date_1.insert(0,nxt_inv)
         checkrecStatus_1.set(0)
         recur_period_entry_1['state'] = DISABLED
         recur_month_combo_1['state'] = DISABLED
@@ -6424,10 +6900,43 @@ def mainpage():
         recur_period_entry_1.insert(0, edit_inv_data[24])
         recur_month_combo_1.delete(0,END)
         recur_month_combo_1.insert(0,edit_inv_data[25])
-        recur_nxt_inv_date_1.delete(0,END)
-        recur_nxt_inv_date_1.insert(0,edit_inv_data[26])
+        if comp_data[10] == "mm-dd-yyyy":
+          stop_date = datetime.strftime(edit_inv_data[27],"%m-%d-%Y")
+          nxt_inv = datetime.strftime(edit_inv_data[26],"%m-%d-%Y")
+        elif comp_data[10] == "dd-mm-yyyy":
+          stop_date = datetime.strftime(edit_inv_data[27],"%d-%m-%Y")
+          nxt_inv = datetime.strftime(edit_inv_data[26],"%d-%m-%Y")
+        elif comp_data[10] == "yyyy.mm.dd":
+          s = datetime.strftime(edit_inv_data[27],"%Y-%m-%d")
+          stop_d = datetime.strptime(s,"%Y-%m-%d")
+          stop_date = '{0}.{1:02}.{2:02}'.format(stop_d.year,stop_d.month,stop_d.day)
+          nxt = datetime.strptime(str(edit_inv_data[26]),"%Y-%m-%d")
+          nxt_inv = '{0}.{1:02}.{2:02}'.format(nxt.year,nxt.month,nxt.day)
+        elif comp_data[10] == "mm/dd/yyyy":
+          stop_date = datetime.strftime(edit_inv_data[27],"%m/%d/%Y")
+          nxt_inv = datetime.strftime(edit_inv_data[26],"%m/%d/%Y")
+        elif comp_data[10] == "dd/mm/yyyy":
+          stop_date = datetime.strftime(edit_inv_data[27],"%d/%m/%Y")
+          nxt_inv = datetime.strftime(edit_inv_data[26],"%d/%m/%Y")
+        elif comp_data[10] == "dd.mm.yyyy":
+          s = datetime.strftime(edit_inv_data[27],"%Y-%m-%d")
+          stop_d = datetime.strptime(s,"%Y-%m-%d")
+          stop_date = '{0:02}.{1:02}.{2:02}'.format(stop_d.day,stop_d.month,stop_d.year)
+          nxt = datetime.strptime(str(edit_inv_data[26]),"%Y-%m-%d")
+          nxt_inv = '{0:02}.{1:02}.{2:02}'.format(nxt.day,nxt.month,nxt.year)
+        elif comp_data[10] =="yyyy/mm/dd":
+          stop_date = datetime.strftime(edit_inv_data[27],"%Y/%m/%d")
+          nxt_inv = datetime.strftime(edit_inv_data[26],"%Y/%m/%d")
+        else:
+          s = datetime.strftime(edit_inv_data[27],"%Y-%m-%d")
+          stop_d = datetime.strptime(s,"%Y-%m-%d")
+          stop_date = '{0}/{1}/{2:02}'.format(stop_d.month,stop_d.day,stop_d.year % 100)
+          nxt = datetime.strptime(str(edit_inv_data[26]),"%Y-%m-%d")
+          nxt_inv = '{0}/{1}/{2:02}'.format(stop_d.month,stop_d.day,stop_d.year % 100)
         recur_stop_date_1.delete(0,END)
-        recur_stop_date_1.insert(0,edit_inv_data[27])
+        recur_stop_date_1.insert(0,stop_date)
+        recur_nxt_inv_date_1.delete(0,END)
+        recur_nxt_inv_date_1.insert(0,nxt_inv)
 
 
     pay_sql = "SELECT * FROM payments WHERE invoice_number=%s"
@@ -6602,7 +7111,7 @@ def mainpage():
         discount_1.config(text= str(dis_rate) + "" +"% Discount")
         discount1_1.config(text=round(discount_rate,2))
         sub_tot = round(((price + p1 + p2 + p3) - discount_rate),2)
-        sub1_1.config(text="$" + "" + str(sub_tot))
+        sub1_1.config(text=sub_tot)
         tax1_1.config(text=round((tax1_rate + tax2_rate),2))
         tax2_1.config(text=round((tax3_rate + tax4_rate),2))
         cost1_1.config(text=round(exc,2))
@@ -7284,13 +7793,17 @@ def mainpage():
 
   # Refresh Invoice
   def refresh_invoice():
+    sql = "SELECT * FROM Invoice"
+    fbcursor.execute(sql)
+    invoice_records = fbcursor.fetchall()
+
     for record in inv_tree.get_children():
       inv_tree.delete(record)
-    fbcursor.execute('SELECT * FROM invoice')
+
     count = 0
-    for i in fbcursor:
+    for i in invoice_records:
       if True:
-        inv_tree.insert(parent='',index='end',iid=i,text='',value=('',i[1], i[2], i[3], i[20], i[6], i[7], i[8], i[9], i[10], i[11], i[12]))
+        inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[20], i[4], i[5], i[6], i[7], i[8], i[9], i[10]))
       else:
         pass
     count += 1
@@ -8706,11 +9219,11 @@ def mainpage():
       exd._set_text(exd._date.strftime('%m-%d-%Y'))
     elif dafget == "dd-mm-yyyy":
       exd._set_text(exd._date.strftime('%d-%m-%Y'))
-    elif dafget == "yyy.mm.dd":
+    elif dafget == "yyyy.mm.dd":
       exd._set_text(exd._date.strftime('%Y.%m.%d'))
     elif dafget == "mm/dd/yyyy":
       exd._set_text(exd._date.strftime('%m/%d/%Y'))
-    elif dafget == "dd/mm/yyy":
+    elif dafget == "dd/mm/yyyy":
       exd._set_text(exd._date.strftime('%d/%m/%Y'))
     elif dafget == "dd.mm.yyyy":
       exd._set_text(exd._date.strftime('%d.%m.%Y'))
@@ -8720,7 +9233,7 @@ def mainpage():
   
   comdaf = StringVar()
   daf = ttk.Combobox(secondtab,textvariable=comdaf)
-  daf["values"] = ("Default",'mm-dd-yyyy','dd-mm-yyyy','yyy.mm.dd','mm/dd/yyyy','dd/mm/yyy','dd.mm.yyyy','yyyy/  mm/dd')
+  daf["values"] = ("Default",'mm-dd-yyyy','dd-mm-yyyy','yyyy.mm.dd','mm/dd/yyyy','dd/mm/yyyy','dd.mm.yyyy','yyyy/mm/dd')
   daf.bind("<<ComboboxSelected>>",daffun)
   if not sectab:
     pass
