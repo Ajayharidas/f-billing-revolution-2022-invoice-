@@ -1130,123 +1130,469 @@ def mainpage():
       prev_invo.title("Preview Invoice")
       p2 = PhotoImage(file = "images/fbicon.png")
       prev_invo.iconphoto(False, p2)
-      prev_invo.geometry("1300x670+30+30")
+      prev_invo.geometry("1360x730+0+0")
       temp_type = template_entry.get()
       if temp_type == 'Professional 1 (logo on left side)':
-        #print('hai')
-        # frame = Frame(thirdtab, width=953, height=300)
-        # frame.pack(expand=True, fill=BOTH)
-        # frame.place(x=247,y=90)
-        canvas=Canvas(prev_invo, bg='grey', width=953, height=300, scrollregion=(0,0,700,700))
+        frame = Frame(prev_invo, width=953, height=300)
+        frame.pack(expand=True, fill=BOTH)
+        frame.place(x=5,y=30)
+        canvas=Canvas(frame, bg='grey', width=953, height=300, scrollregion=(0,0,700,1200))
         
-        vertibar=Scrollbar(prev_invo, orient=VERTICAL)
+        vertibar=Scrollbar(frame, orient=VERTICAL)
         vertibar.pack(side=RIGHT,fill=Y)
         vertibar.config(command=canvas.yview)
         
-        canvas.config(width=953,height=300)
+        canvas.config(width=1315,height=640)
         canvas.config(yscrollcommand=vertibar.set)
         canvas.pack(expand=True,side=LEFT,fill=BOTH)
-        canvas.create_rectangle(100, 10, 850, 687 , outline='yellow',fill='white')
-        canvas.create_text(500, 50, text="Title text goes here...", fill="black", font=('Helvetica 10'))
-        canvas.create_text(285, 110, text="Your Company Logo", fill="black", font=('Helvetica 18 bold'))
+        canvas.create_rectangle(235, 25, 1035, 1430 , outline='yellow',fill='white')
+        # canvas.create_text(500, 50, text="Title text goes here...", fill="black", font=('Helvetica 10'))
+        # canvas.create_text(285, 110, text="Your Company Logo", fill="black", font=('Helvetica 18 bold'))
+
+        try:
+          image = Image.open("images/"+comp_data[13])
+          resize_image = image.resize((250, 125))
+          logo_img = ImageTk.PhotoImage(resize_image)
+          b2 = Label(canvas,image=logo_img, height=125, width=250,)
+          b2.photo = logo_img
+          canvas.create_window(395, 155,window=b2)
+        except:
+          pass
         
-        canvas.create_text(195, 150, text="Invoice#", fill="black", font=('Helvetica 11'))
-        canvas.create_text(205, 170, text="Invoicedate", fill="black", font=('Helvetica 11'))
-        canvas.create_text(200, 190, text="Due date", fill="black", font=('Helvetica 11'))
-        canvas.create_text(191, 210, text="Terms", fill="black", font=('Helvetica 11'))
-        canvas.create_text(205, 230, text="Invoice ref.#", fill="black", font=('Helvetica 11'))
-        canvas.create_text(350, 150, text="INV1/2022", fill="black", font=('Helvetica 11'))
-        canvas.create_text(350, 170, text="03-05-2022", fill="black", font=('Helvetica 11'))
-        canvas.create_text(350, 190, text="18-05-2022", fill="black", font=('Helvetica 11'))
-        canvas.create_text(340, 210, text="NET 15", fill="black", font=('Helvetica 11'))   
+        canvas.create_text(295, 250, text="Invoice#", fill="black", font=('Helvetica 11'))
+        canvas.create_text(305, 270, text="Invoicedate", fill="black", font=('Helvetica 11'))
+        canvas.create_text(298, 290, text="Due date", fill="black", font=('Helvetica 11'))
+        canvas.create_text(289, 310, text="Terms", fill="black", font=('Helvetica 11'))
+        canvas.create_text(308, 330, text="Invoice ref.#", fill="black", font=('Helvetica 11'))
+        canvas.create_text(436, 250, text=inv_number_entry.get(), fill="black", font=('Helvetica 11'))
+        canvas.create_text(450, 270, text=inv_date_entry.get_date(), fill="black", font=('Helvetica 11'))
+        canvas.create_text(450, 290, text=inv_duedate_entry.get_date(), fill="black", font=('Helvetica 11'))
+        canvas.create_text(446, 310, text=inv_terms_combo.get(), fill="black", font=('Helvetica 11'))   
+        canvas.create_text(426, 330, text=inv_ref_entry.get(), fill="black", font=('Helvetica 11'))   
         
-        canvas.create_text(720, 80, text="Your Company Name", fill="black", font=('Helvetica 12 '))
-        canvas.create_text(750, 110, text="Address line 1", fill="black", font=('Helvetica 10'))
-        canvas.create_text(750, 125, text="Address line 2", fill="black", font=('Helvetica 10'))
-        canvas.create_text(750, 140, text="Address line 3", fill="black", font=('Helvetica 10'))
-        canvas.create_text(750, 155, text="Address line 4", fill="black", font=('Helvetica 10'))
-        canvas.create_text(745, 170, text="Phone: 555-5555", fill="black", font=('Helvetica 10'))
-        canvas.create_text(745, 185, text="Sales tax reg No.", fill="black", font=('Helvetica 10'))
-        canvas.create_text(750, 205, text="Invoice", fill="black", font=('Helvetica 14 bold'))
-        canvas.create_text(746, 225, text="TAX EXEMPTED", fill="black", font=('Helvetica 10'))
+        canvas.create_text(910, 110, text=comp_data[1], fill="black", font=('Helvetica 12 '))
+        comp_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=5,fg= "black",bg="white",cursor="arrow",bd=0,)
+        comp_addr_canvas.insert("1.0",comp_data[2])
+        comp_addr_canvas.tag_configure("tag_name", justify='right')
+        comp_addr_canvas.tag_add("tag_name", "1.0", "end")
+        comp_addr_canvas.config(state=DISABLED)
+        canvas.create_window(892, 165,window=comp_addr_canvas)
+        inv_stax_canvas = Label(canvas, font=('Helvetica 10 '),width=30,bg="white")
+        inv_stax_canvas.config(text=comp_data[4],anchor="e")
+        canvas.create_window(875, 220,window=inv_stax_canvas)
+        canvas.create_text(961, 255, text="Invoice", fill="black", font=('Helvetica 14 bold'))
+        canvas.create_text(945, 285, text="TAX EXEMPTED", fill="black", font=('Helvetica 10'))
         
-        canvas.create_text(210, 260, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
-        canvas.create_text(203, 280, text="John Doe", fill="black", font=('Helvetica 10 '))
-        canvas.create_text(246, 295, text="381 South Bedford Road", fill="black", font=('Helvetica 10'))
-        canvas.create_text(255, 310, text="Bedford Corners, NY 10549", fill="black", font=('Helvetica 10'))
-        canvas.create_text(215, 325, text="United States", fill="black", font=('Helvetica 10'))
-        canvas.create_text(550, 260, text="Ship to", fill="black", font=('Helvetica 10 underline'))
-        canvas.create_text(556, 280, text="John Doe", fill="black", font=('Helvetica 10 '))
-        canvas.create_text(598, 295, text="381 South Bedford Road", fill="black", font=('Helvetica 10'))
-        canvas.create_text(608, 310, text="Bedford Corners, NY 10549", fill="black", font=('Helvetica 10'))
-        canvas.create_text(568, 325, text="United States", fill="black", font=('Helvetica 10'))
+        canvas.create_text(310, 370, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
+        inv_canv_name = Label(canvas,font=('Helvetica 10 '),width=30)
+        inv_canv_name.config(text=inv_combo_e1.get(),anchor="w",bg="white")
+        canvas.create_window(404, 395,window=inv_canv_name)
+        inv_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
+        bg="white",cursor="arrow")
+        inv_addr_canvas.insert("1.0",inv_addr_e2.get("1.0",END))
+        inv_addr_canvas.config(state=DISABLED)
+        canvas.create_window(390, 442, window=inv_addr_canvas)
+        canvas.create_text(650, 370, text="Ship to", fill="black", font=('Helvetica 10 underline'))
+        inv_ship_canv_lbl = Label(canvas, font=('Helvetica 10 '),width=30)
+        inv_ship_canv_lbl.config(text=inv_shipto_e3.get(),anchor="w",bg="white")
+        canvas.create_window(751, 395, window=inv_ship_canv_lbl)
+        inv_ship_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
+        bg="white",cursor="arrow")
+        inv_ship_addr_canvas.insert("1.0",inv_addr_e4.get("1.0",END))
+        inv_ship_addr_canvas.config(state=DISABLED)
+        canvas.create_window(736, 442,window=inv_ship_addr_canvas)
+        
         s = ttk.Style()
-        s.configure('Treeview.Heading', background=''+ template_entry.get(),State='DISABLE')
-        tree=ttk.Treeview(canvas, column=("c1", "c2","c3", "c4", "c5"), show='headings',height= 0, style='mystyle.Treeview')
-        tree.column("# 1", anchor=E, stretch=NO, width=100)
-        tree.heading("# 1", text="ID/SKU")
-        tree.column("# 2", anchor=E, stretch=NO, width=350)
-        tree.heading("# 2", text="Product/Service - Description")
-        tree.column("# 3", anchor=E, stretch=NO, width=80)
-        tree.heading("# 3", text="Quantity")
-        tree.column("# 4", anchor=E, stretch=NO, width=90)
-        tree.heading("# 4", text="Unit Price")
-        tree.column("# 5", anchor=E, stretch=NO, width=80)
-        tree.heading("# 5", text="Price")
+        s.configure('Treeview.Heading', background=comp_data[30],State='DISABLE')
+        inv_prev_tree = ttk.Treeview(canvas,height=12,style='mystyle.Treeview')
+        inv_prev_tree["columns"] = ["1","2","3","4","5"]
+        inv_prev_tree.column("#0",width=1)
+        inv_prev_tree.column("1",width=100,anchor=CENTER)
+        inv_prev_tree.column("2",width=343,anchor=CENTER)
+        inv_prev_tree.column("3",width=80,anchor=CENTER)
+        inv_prev_tree.column("4",width=90,anchor=CENTER)
+        inv_prev_tree.column("5",width=80,anchor=CENTER)
+        inv_prev_tree.heading("#0",text="")
+        inv_prev_tree.heading("1",text="ID/SKU")
+        inv_prev_tree.heading("2",text="Product/Service - Description")
+        inv_prev_tree.heading("3",text="Quantity")
+        inv_prev_tree.heading("4",text="Unit Price")
+        inv_prev_tree.heading("5",text="Price")
+        window = canvas.create_window(285, 462, anchor="nw", window=inv_prev_tree)
+
+        currency_sql = "SELECT currencysign,currsignplace FROM company"
+        fbcursor.execute(currency_sql,)
+        currency_symb = fbcursor.fetchone()
         
-        window = canvas.create_window(120, 340, anchor="nw", window=tree)
-        canvas.create_line(120, 390, 820, 390 )
-        canvas.create_line(120, 340, 120, 365 )
-        canvas.create_line(120, 365, 120, 390 )
-        canvas.create_line(820, 340, 820, 540 )
-        canvas.create_line(740, 340, 740, 540 )
-        canvas.create_line(570, 340, 570, 540 )
-        canvas.create_line(570, 415, 820, 415 )
-        canvas.create_line(570, 440, 820, 440 )
-        canvas.create_line(570, 465, 820, 465 )
-        canvas.create_line(570, 490, 820, 490 )
-        canvas.create_line(570, 515, 820, 515 )
-        canvas.create_line(650, 340, 650, 390 )
-        canvas.create_line(220, 340, 220, 390 )
-        canvas.create_line(570, 540, 820, 540 )
-        canvas.create_text(165, 372, text="PROD-0001", fill="black", font=('Helvetica 10'))
-        canvas.create_text(370, 372, text="Example product - Description text...", fill="black", font=('Helvetica 10'))
-        canvas.create_text(610, 372, text="1", fill="black", font=('Helvetica 10'))
-        canvas.create_text(710, 372, text="$200.00", fill="black", font=('Helvetica 10'))
-        canvas.create_text(790, 372, text="$200.00", fill="black", font=('Helvetica 10'))
-        canvas.create_text(650, 404, text="Subtotal", fill="black", font=('Helvetica 10'))
-        canvas.create_text(790, 404, text="$200.00", fill="black", font=('Helvetica 10'))
-        canvas.create_text(650, 428, text="TAX1", fill="black", font=('Helvetica 10'))
-        canvas.create_text(792, 428, text="$18.00", fill="black", font=('Helvetica 10'))
-        canvas.create_text(650, 454, text="Shipping and handling", fill="black", font=('Helvetica 10'))
-        canvas.create_text(792, 454, text="$20.00", fill="black", font=('Helvetica 10'))
-        canvas.create_text(790, 479, text="$238.00", fill="black", font=('Helvetica 10 bold'))
-        canvas.create_text(650, 479, text="Estimate total", fill="black", font=('Helvetica 10 bold'))
-        canvas.create_text(790, 502, text="$100.00", fill="black", font=('Helvetica 10'))
-        canvas.create_text(650, 502, text="Total Paid", fill="black", font=('Helvetica 10'))
-        canvas.create_text(790, 526, text="$138.00", fill="black", font=('Helvetica 10'))
-        canvas.create_text(650, 526, text="Balance", fill="black", font=('Helvetica 10'))
-        canvas.create_text(275, 550, text="Multiline comment text goes here..", fill="black", font=('Helvetica 10'))
-        canvas.create_text(182, 560, text="...", fill="black", font=('Helvetica 10'))
-        canvas.create_text(182, 570, text="...", fill="black", font=('Helvetica 10'))
-        canvas.create_text(182, 580, text="...", fill="black", font=('Helvetica 10'))
+        for record in add_newline_tree.get_children():
+          prev_data = list(add_newline_tree.item(record,'values'))
+          if not comp_data:
+            inv_prev_tree.insert(parent='', index='end',text='', values=(prev_data[0],prev_data[1],prev_data[4],prev_data[3],prev_data[6]))
+          elif comp_data[12] == "1":
+            inv_prev_tree.insert(parent='', index='end',text='', values=(prev_data[0],prev_data[1],prev_data[4],prev_data[3],prev_data[6]))
+          elif comp_data[12] == "2":
+            inv_prev_tree.insert(parent='', index='end',text='', values=(prev_data[0],prev_data[1],prev_data[4],prev_data[3],prev_data[7]))
+          elif comp_data[12] == "3":
+            inv_prev_tree.insert(parent='', index='end',text='', values=(prev_data[0],prev_data[1],prev_data[4],prev_data[3],prev_data[8]))
         
-        canvas.create_text(500, 600, text="Terms and Conditions", fill="black", font=('Helvetica 10'))
-        canvas.create_line(150, 620, 795, 620)
+
+        if not comp_data:
+          canvas.create_line(980, 723, 980, 873 )
+          canvas.create_line(720, 723, 720, 873 )
+          canvas.create_line(860, 723, 860, 873 )#1st
+          canvas.create_line(980, 723, 720, 723 )
+          canvas.create_line(980, 748, 720, 748 )
+          canvas.create_line(980, 773, 720, 773 ) 
+          canvas.create_line(980, 798, 720, 798 )
+          canvas.create_line(980, 823, 720, 823 )
+          canvas.create_line(980, 848, 720, 848 )
+          canvas.create_line(980, 873, 720, 873 )
+          
+          
+          canvas.create_text(780, 735, text=discount.cget("text"), fill="black", font=('Helvetica 10'))
+          canvas.create_text(900, 735, text=currency_symb[0]+str(discount1.cget("text")), fill="black", font=('Helvetica 10'))
+
+          canvas.create_text(780, 760, text="Subtotal", fill="black", font=('Helvetica 10'))
+          canvas.create_text(900, 760, text=currency_symb[0]+str(sub1.cget("text")), fill="black", font=('Helvetica 10'))
+
+          canvas.create_text(900, 785, text=currency_symb[0]+str(cost1.cget("text")), fill="black", font=('Helvetica 10'))
+          canvas.create_text(780, 785, text=ex_costn_combo.get(), fill="black", font=('Helvetica 10 '))
+
+          canvas.create_text(900, 810, text=currency_symb[0]+str(invoicetot1.cget("text")), fill="black", font=('Helvetica 10 bold'))
+          canvas.create_text(780, 810, text="Invoice Total", fill="black", font=('Helvetica 10 bold'))
+
+          canvas.create_text(900, 835, text=currency_symb[0]+str(total1.cget("text")), fill="black", font=('Helvetica 10 bold'))
+          canvas.create_text(780, 835, text="Total Paid", fill="black", font=('Helvetica 10 bold'))
+
+          canvas.create_text(900, 860, text=currency_symb[0]+str(balance1.cget("text")), fill="black", font=('Helvetica 10 bold'))
+          canvas.create_text(780, 860, text="Balance", fill="black", font=('Helvetica 10 bold'))
+        elif comp_data[12] == "1":
+          canvas.create_line(980, 723, 980, 873 )
+          canvas.create_line(720, 723, 720, 873 )
+          canvas.create_line(860, 723, 860, 873 )#1st
+          canvas.create_line(980, 723, 720, 723 )
+          canvas.create_line(980, 748, 720, 748 )
+          canvas.create_line(980, 773, 720, 773 ) 
+          canvas.create_line(980, 798, 720, 798 )
+          canvas.create_line(980, 823, 720, 823 )
+          canvas.create_line(980, 848, 720, 848 )
+          canvas.create_line(980, 873, 720, 873 )
+
+          if currency_symb[1] == "before amount":
+            canvas.create_text(780, 735, text=discount.cget("text"), fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 735, text=currency_symb[0]+str(discount1.cget("text")), fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 760, text="Subtotal", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 760, text=currency_symb[0]+str(sub1.cget("text")), fill="black", font=('Helvetica 10'))
+  
+            canvas.create_text(900, 785, text=currency_symb[0]+str(cost1.cget("text")), fill="black", font=('Helvetica 10'))
+            canvas.create_text(780, 785, text=ex_costn_combo.get(), fill="black", font=('Helvetica 10 '))
+  
+            canvas.create_text(900, 810, text=currency_symb[0]+str(invoicetot1.cget("text")), fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 810, text="Invoice Total", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 835, text=currency_symb[0]+str(total1.cget("text")), fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 835, text="Total Paid", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 860, text=currency_symb[0]+str(balance1.cget("text")), fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 860, text="Balance", fill="black", font=('Helvetica 10 bold'))
+          elif currency_symb[1] == "before amount with space":
+            canvas.create_text(780, 735, text=discount.cget("text"), fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 735, text=currency_symb[0] + " " + str(discount1.cget("text")), fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 760, text="Subtotal", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 760, text=currency_symb[0] + " " + str(sub1.cget("text")), fill="black", font=('Helvetica 10'))
+  
+            canvas.create_text(900, 785, text=currency_symb[0] + " " + str(cost1.cget("text")), fill="black", font=('Helvetica 10'))
+            canvas.create_text(780, 785, text=ex_costn_combo.get(), fill="black", font=('Helvetica 10 '))
+  
+            canvas.create_text(900, 810, text=currency_symb[0] + " " + str(invoicetot1.cget("text")), fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 810, text="Invoice Total", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 835, text=currency_symb[0] + " " + str(total1.cget("text")), fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 835, text="Total Paid", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 860, text=currency_symb[0] + " " + str(balance1.cget("text")), fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 860, text="Balance", fill="black", font=('Helvetica 10 bold'))
+          elif currency_symb[1] == "after amount":
+            canvas.create_text(780, 735, text=discount.cget("text"), fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 735, text=str(discount1.cget("text"))+currency_symb[0], fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 760, text="Subtotal", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 760, text=str(sub1.cget("text"))+currency_symb[0], fill="black", font=('Helvetica 10'))
+  
+            canvas.create_text(900, 785, text=str(cost1.cget("text"))+currency_symb[0], fill="black", font=('Helvetica 10'))
+            canvas.create_text(780, 785, text=ex_costn_combo.get(), fill="black", font=('Helvetica 10 '))
+  
+            canvas.create_text(900, 810, text=str(invoicetot1.cget("text"))+currency_symb[0], fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 810, text="Invoice Total", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 835, text=str(total1.cget("text"))+currency_symb[0], fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 835, text="Total Paid", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 860, text=str(balance1.cget("text"))+currency_symb[0], fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 860, text="Balance", fill="black", font=('Helvetica 10 bold'))
+
+          elif currency_symb[1] == "after amount with space":
+            canvas.create_text(780, 735, text=discount.cget("text"), fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 735, text=str(discount1.cget("text"))+ " " +currency_symb[0], fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 760, text="Subtotal", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 760, text=str(sub1.cget("text"))+ " " +currency_symb[0], fill="black", font=('Helvetica 10'))
+  
+            canvas.create_text(900, 785, text=str(cost1.cget("text"))+ " " +currency_symb[0], fill="black", font=('Helvetica 10'))
+            canvas.create_text(780, 785, text=ex_costn_combo.get(), fill="black", font=('Helvetica 10 '))
+  
+            canvas.create_text(900, 810, text=str(invoicetot1.cget("text"))+ " " +currency_symb[0], fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 810, text="Invoice Total", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 835, text=str(total1.cget("text"))+ " " +currency_symb[0], fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 835, text="Total Paid", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 860, text=str(balance1.cget("text"))+ " " +currency_symb[0], fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 860, text="Balance", fill="black", font=('Helvetica 10 bold'))
+
+        elif comp_data[12] == "2":
+          canvas.create_line(980, 723, 980, 898 )
+          canvas.create_line(720, 723, 720, 898 )
+          canvas.create_line(860, 723, 860, 898 )#1st
+          canvas.create_line(980, 723, 720, 723 )
+          canvas.create_line(980, 748, 720, 748 )
+          canvas.create_line(980, 773, 720, 773 ) 
+          canvas.create_line(980, 798, 720, 798 )
+          canvas.create_line(980, 823, 720, 823 )
+          canvas.create_line(980, 848, 720, 848 )
+          canvas.create_line(980, 873, 720, 873 )
+          canvas.create_line(980, 898, 720, 898 )
+
+          if currency_symb[1] == "before amount":
+            canvas.create_text(780, 735, text=discount.cget("text"), fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 735, text=currency_symb[0]+str(discount1.cget("text")), fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 760, text="Subtotal", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 760, text=currency_symb[0]+str(sub1.cget("text")), fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 785, text="TAX1", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 785, text=currency_symb[0]+str(tax_1.cget("text")), fill="black", font=('Helvetica 10'))
+  
+            canvas.create_text(900, 810, text=currency_symb[0]+str(cost1.cget("text")), fill="black", font=('Helvetica 10'))
+            canvas.create_text(780, 810, text=ex_costn_combo.get(), fill="black", font=('Helvetica 10 '))
+  
+            canvas.create_text(900, 835, text=currency_symb[0]+str(invoicetot1.cget("text")), fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 835, text="Invoice Total", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 860, text=currency_symb[0]+str(total1.cget("text")), fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 860, text="Total Paid", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 885, text=currency_symb[0]+str(balance1.cget("text")), fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 885, text="Balance", fill="black", font=('Helvetica 10 bold'))
+          elif currency_symb[1] == "before amount with space":
+            canvas.create_text(780, 735, text=discount.cget("text"), fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 735, text=currency_symb[0] + " " + str(discount1.cget("text")), fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 760, text="Subtotal", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 760, text=currency_symb[0] + " " + str(sub1.cget("text")), fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 785, text="TAX1", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 785, text=currency_symb[0] + " " + str(tax_1.cget("text")), fill="black", font=('Helvetica 10'))
+  
+            canvas.create_text(900, 810, text=currency_symb[0] + " " + str(cost1.cget("text")), fill="black", font=('Helvetica 10'))
+            canvas.create_text(780, 810, text=ex_costn_combo.get(), fill="black", font=('Helvetica 10 '))
+  
+            canvas.create_text(900, 835, text=currency_symb[0] + " " + str(invoicetot1.cget("text")), fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 835, text="Invoice Total", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 860, text=currency_symb[0] + " " + str(total1.cget("text")), fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 860, text="Total Paid", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 885, text=currency_symb[0] + " " + str(balance1.cget("text")), fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 885, text="Balance", fill="black", font=('Helvetica 10 bold'))
+          elif currency_symb[1] == "after amount":
+            canvas.create_text(780, 735, text=discount.cget("text"), fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 735, text=str(discount1.cget("text"))+currency_symb[0], fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 760, text="Subtotal", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 760, text=str(sub1.cget("text"))+currency_symb[0], fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 785, text="TAX1", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 785, text=str(tax_1.cget("text"))+currency_symb[0], fill="black", font=('Helvetica 10'))
+  
+            canvas.create_text(900, 810, text=str(cost1.cget("text"))+currency_symb[0], fill="black", font=('Helvetica 10'))
+            canvas.create_text(780, 810, text=ex_costn_combo.get(), fill="black", font=('Helvetica 10 '))
+  
+            canvas.create_text(900, 835, text=str(invoicetot1.cget("text"))+currency_symb[0], fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 835, text="Invoice Total", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 860, text=str(total1.cget("text"))+currency_symb[0], fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 860, text="Total Paid", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 885, text=str(balance1.cget("text"))+currency_symb[0], fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 885, text="Balance", fill="black", font=('Helvetica 10 bold'))
+
+          elif currency_symb[1] == "after amount with space":
+            canvas.create_text(780, 735, text=discount.cget("text"), fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 735, text=str(discount1.cget("text"))+ " " +currency_symb[0], fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 760, text="Subtotal", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 760, text=str(sub1.cget("text"))+ " " +currency_symb[0], fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 785, text="TAX1", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 785, text=str(tax_1.cget("text"))+ " " +currency_symb[0], fill="black", font=('Helvetica 10'))
+  
+            canvas.create_text(900, 810, text=str(cost1.cget("text"))+ " " +currency_symb[0], fill="black", font=('Helvetica 10'))
+            canvas.create_text(780, 810, text=ex_costn_combo.get(), fill="black", font=('Helvetica 10 '))
+  
+            canvas.create_text(900, 835, text=str(invoicetot1.cget("text"))+ " " +currency_symb[0], fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 835, text="Invoice Total", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 860, text=str(total1.cget("text"))+ " " +currency_symb[0], fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 860, text="Total Paid", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 885, text=str(balance1.cget("text"))+ " " +currency_symb[0], fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 885, text="Balance", fill="black", font=('Helvetica 10 bold'))
+        elif comp_data[12] == "3":
+          canvas.create_line(980, 723, 980, 923 )
+          canvas.create_line(720, 723, 720, 923 )
+          canvas.create_line(860, 723, 860, 923 )#1st
+          canvas.create_line(980, 723, 720, 723 )
+          canvas.create_line(980, 748, 720, 748 )
+          canvas.create_line(980, 773, 720, 773 ) 
+          canvas.create_line(980, 798, 720, 798 )
+          canvas.create_line(980, 823, 720, 823 )
+          canvas.create_line(980, 848, 720, 848 )
+          canvas.create_line(980, 873, 720, 873 )
+          canvas.create_line(980, 898, 720, 898 )
+          canvas.create_line(980, 923, 720, 923 )
+            
+          if currency_symb[1] == "before amount":
+            canvas.create_text(780, 735, text=discount.cget("text"), fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 735, text=currency_symb[0]+str(discount1.cget("text")), fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 760, text="Subtotal", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 760, text=currency_symb[0]+str(sub1.cget("text")), fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 785, text="TAX1", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 785, text=currency_symb[0]+str(tax_1.cget("text")), fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 810, text="TAX2", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 810, text=currency_symb[0]+str(tax_2.cget("text")), fill="black", font=('Helvetica 10'))
+  
+            canvas.create_text(900, 835, text=currency_symb[0]+str(cost1.cget("text")), fill="black", font=('Helvetica 10'))
+            canvas.create_text(780, 835, text=ex_costn_combo.get(), fill="black", font=('Helvetica 10 '))
+  
+            canvas.create_text(900, 860, text=currency_symb[0]+str(invoicetot1.cget("text")), fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 860, text="Invoice Total", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 885, text=currency_symb[0]+str(total1.cget("text")), fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 885, text="Total Paid", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 910, text=currency_symb[0]+str(balance1.cget("text")), fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 910, text="Balance", fill="black", font=('Helvetica 10 bold'))
+          elif currency_symb[1] == "before amount with space":
+            canvas.create_text(780, 735, text=discount.cget("text"), fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 735, text=currency_symb[0] + " " + str(discount1.cget("text")), fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 760, text="Subtotal", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 760, text=currency_symb[0] + " " + str(sub1.cget("text")), fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 785, text="TAX1", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 785, text=currency_symb[0] + " " + str(tax_1.cget("text")), fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 810, text="TAX2", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 810, text=currency_symb[0] + " " + str(tax_2.cget("text")), fill="black", font=('Helvetica 10'))
+  
+            canvas.create_text(900, 835, text=currency_symb[0] + " " + str(cost1.cget("text")), fill="black", font=('Helvetica 10'))
+            canvas.create_text(780, 835, text=ex_costn_combo.get(), fill="black", font=('Helvetica 10 '))
+  
+            canvas.create_text(900, 860, text=currency_symb[0] + " " + str(invoicetot1.cget("text")), fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 860, text="Invoice Total", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 885, text=currency_symb[0] + " " + str(total1.cget("text")), fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 885, text="Total Paid", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 910, text=currency_symb[0] + " " + str(balance1.cget("text")), fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 910, text="Balance", fill="black", font=('Helvetica 10 bold'))
+          elif currency_symb[1] == "after amount":
+            canvas.create_text(780, 735, text=discount.cget("text"), fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 735, text=str(discount1.cget("text"))+currency_symb[0], fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 760, text="Subtotal", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 760, text=str(sub1.cget("text"))+currency_symb[0], fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 785, text="TAX1", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 785, text=str(tax_1.cget("text"))+currency_symb[0], fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 810, text="TAX2", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 810, text=str(tax_2.cget("text"))+currency_symb[0], fill="black", font=('Helvetica 10'))
+  
+            canvas.create_text(900, 835, text=str(cost1.cget("text"))+currency_symb[0], fill="black", font=('Helvetica 10'))
+            canvas.create_text(780, 835, text=ex_costn_combo.get(), fill="black", font=('Helvetica 10 '))
+  
+            canvas.create_text(900, 860, text=str(invoicetot1.cget("text"))+currency_symb[0], fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 860, text="Invoice Total", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 885, text=str(total1.cget("text"))+currency_symb[0], fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 885, text="Total Paid", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 910, text=str(balance1.cget("text"))+currency_symb[0], fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 910, text="Balance", fill="black", font=('Helvetica 10 bold'))
+
+          elif currency_symb[1] == "after amount with space":
+            canvas.create_text(780, 735, text=discount.cget("text"), fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 735, text=str(discount1.cget("text"))+ " " +currency_symb[0], fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 760, text="Subtotal", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 760, text=str(sub1.cget("text"))+ " " +currency_symb[0], fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 785, text="TAX1", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 785, text=str(tax_1.cget("text"))+ " " +currency_symb[0], fill="black", font=('Helvetica 10'))
+
+            canvas.create_text(780, 810, text="TAX2", fill="black", font=('Helvetica 10'))
+            canvas.create_text(900, 810, text=str(tax_2.cget("text"))+ " " +currency_symb[0], fill="black", font=('Helvetica 10'))
+  
+            canvas.create_text(900, 835, text=str(cost1.cget("text"))+ " " +currency_symb[0], fill="black", font=('Helvetica 10'))
+            canvas.create_text(780, 835, text=ex_costn_combo.get(), fill="black", font=('Helvetica 10 '))
+  
+            canvas.create_text(900, 860, text=str(invoicetot1.cget("text"))+ " " +currency_symb[0], fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 860, text="Invoice Total", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 885, text=str(total1.cget("text"))+ " " +currency_symb[0], fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 885, text="Total Paid", fill="black", font=('Helvetica 10 bold'))
+
+            canvas.create_text(900, 910, text=str(balance1.cget("text"))+ " " +currency_symb[0], fill="black", font=('Helvetica 10 bold'))
+            canvas.create_text(780, 910, text="Balance", fill="black", font=('Helvetica 10 bold'))
+
+        inv_prev_comments = Text(canvas,font=('Helvetica 10'),width=100,height=10,fg= "black",
+        bg="white",cursor="arrow",bd=0)
+        inv_prev_comments.insert("1.0",comment_txt.get("1.0",END))
+        inv_prev_comments.config(state=DISABLED)
+        canvas.create_window(635, 980,window=inv_prev_comments)
         
-        canvas.create_text(280, 640, text= "", fill="black", font=('Helvetica 10'))
-        canvas.create_text(280, 655, text="Page footer text goes here...", fill="black", font=('Helvetica 10'))
-        canvas.create_text(720, 655, text="Page 1 of 1", fill="black", font=('Helvetica 10'))
-        print('hai')
+        canvas.create_text(635, 1050, text="Terms and Conditions", fill="black", font=('Helvetica 10'))
+        canvas.create_line(290, 1070, 982, 1070)
+        
+        inv_prev_terms = Text(canvas,font=('Helvetica 10'),width=100,height=4,fg= "black",bg="white",cursor="arrow",bd=0)
+        inv_prev_terms.insert("1.0",term_txt.get("1.0",END))
+        inv_prev_terms.tag_configure("tag_name", justify='left')
+        inv_prev_terms.tag_add("tag_name", "1.0", "end")
+        inv_prev_terms.config(state=DISABLED)
+        canvas.create_window(642, 1110,window=inv_prev_terms)
+        canvas.create_text(330, 1170, text="Sale Person:", fill="black", font=('Helvetica 10'))
+        inv_prev_salesp = Label(canvas, font=('Helvetica 10 '),width=30)
+        inv_prev_salesp.config(text=sales_per_entry.get(),anchor="w",bg="white")
+        canvas.create_window(502, 1170, window = inv_prev_salesp)
+
+        canvas.create_text(375, 1190, text="Page footer text goes here...", fill="black", font=('Helvetica 10'))
+        canvas.create_text(950, 1190, text="Page 1 of 1", fill="black", font=('Helvetica 10'))
     #----------------Professional 2 (logo on right side)------------------
       elif temp_type == 'Professional 2 (logo on right side)':
-        # frame = Frame(prev_invo, width=953, height=300)
-        # frame.pack(expand=True, fill=BOTH)
-        # frame.place(x=247,y=90)
+        frame = Frame(prev_invo, width=953, height=300)
+        frame.pack(expand=True, fill=BOTH)
+        frame.place(x=247,y=90)
         
-        canvas=Canvas(prev_invo, bg='grey', width=953, height=300, scrollregion=(0,0,700,700))
+        canvas=Canvas(frame, bg='grey', width=953, height=300, scrollregion=(0,0,700,700))
         
-        vertibar=Scrollbar(prev_invo, orient=VERTICAL)
+        vertibar=Scrollbar(frame, orient=VERTICAL)
         vertibar.pack(side=RIGHT,fill=Y)
         vertibar.config(command=canvas.yview)
         canvas.config(width=953,height=300)
@@ -1342,12 +1688,11 @@ def mainpage():
         canvas.create_text(720, 655, text="Page 1 of 1", fill="black", font=('Helvetica 10'))
     #----------------Simplified 1 (logo on left side)------------------ 
       elif temp_type == 'Simplified 1 (logo on left side)':
-        print('hello')
-        # frame = Frame(thirdtab, width=953, height=300)
-        # frame.pack(expand=True, fill=BOTH)
-        # frame.place(x=247,y=90)
-        canvas=Canvas(prev_invo, bg='grey', width=953, height=300, scrollregion=(0,0,700,700))
-        vertibar=Scrollbar(prev_invo, orient=VERTICAL)
+        frame = Frame(prev_invo, width=953, height=300)
+        frame.pack(expand=True, fill=BOTH)
+        frame.place(x=247,y=90)
+        canvas=Canvas(frame, bg='grey', width=953, height=300, scrollregion=(0,0,700,700))
+        vertibar=Scrollbar(frame, orient=VERTICAL)
         vertibar.pack(side=RIGHT,fill=Y)
         vertibar.config(command=canvas.yview)
         canvas.config(width=953,height=300)
@@ -1433,11 +1778,11 @@ def mainpage():
         canvas.create_text(720, 655, text="Page 1 of 1", fill="black", font=('Helvetica 10'))
     #----------------Simplified 2 (logo on right side)------------------ 
       elif temp_type == 'Simplified 2 (logo on right side)':
-        # frame = Frame(thirdtab, width=953, height=300)
-        # frame.pack(expand=True, fill=BOTH)
-        # frame.place(x=247,y=90)
-        canvas=Canvas(prev_invo, bg='grey', width=953, height=300, scrollregion=(0,0,700,700))
-        vertibar=Scrollbar(prev_invo, orient=VERTICAL)
+        frame = Frame(prev_invo, width=953, height=300)
+        frame.pack(expand=True, fill=BOTH)
+        frame.place(x=247,y=90)
+        canvas=Canvas(frame, bg='grey', width=953, height=300, scrollregion=(0,0,700,700))
+        vertibar=Scrollbar(frame, orient=VERTICAL)
         vertibar.pack(side=RIGHT,fill=Y)
         vertibar.config(command=canvas.yview)
         canvas.config(width=953,height=300)
@@ -1522,13 +1867,13 @@ def mainpage():
         canvas.create_text(720, 655, text="Page 1 of 1", fill="black", font=('Helvetica 10'))
     #----------------Business Classic------------------ 
       elif temp_type == 'Business Classic':
-        # frame = Frame(thirdtab, width=953, height=300)
-        # frame.pack(expand=True, fill=BOTH)
-        # frame.place(x=247,y=90)
+        frame = Frame(prev_invo, width=953, height=300)
+        frame.pack(expand=True, fill=BOTH)
+        frame.place(x=247,y=90)
         
-        canvas=Canvas(prev_invo, bg='grey', width=953, height=300, scrollregion=(0,0,700,700))
+        canvas=Canvas(frame, bg='grey', width=953, height=300, scrollregion=(0,0,700,700))
         
-        vertibar=Scrollbar(prev_invo, orient=VERTICAL)
+        vertibar=Scrollbar(frame, orient=VERTICAL)
         vertibar.pack(side=RIGHT,fill=Y)
         vertibar.config(command=canvas.yview)
         canvas.config(width=953,height=300)
@@ -8923,18 +9268,17 @@ def mainpage():
       date_sql = "SELECT * FROM invoice"
       fbcursor.execute(date_sql,)
       date_data = fbcursor.fetchall()
-
+      
       for date in date_data:
         start_date = inv_datefrom_entry.get_date()
         end_date = inv_dateto_entry.get_date()
-        if (date[2] >= start_date) and (date[2] <= end_date):
-          inv_tree.insert(parent='',index='end',iid=date,text='',values=('',date[1], date[2], date[3], date[20], date[4], date[5], date[6], date[7], date[8], date[9], date[10]))
+        if date[2] >= start_date and date[2] <= end_date:
+          print(date[2])
+          inv_tree.insert(parent='',index='end',text='',values=('',date[1], date[2], date[3], date[20], date[4], date[5], date[6], date[7], date[8], date[9], date[10]))
         else:
           for record in inv_tree.get_children():
             inv_tree.delete(record)
-
-
-
+            
         if comp_data[10] == "mm-dd-yyyy":
           s = datetime.strftime(start_date,"%m-%d-%Y")
           e = datetime.strftime(end_date,"%m-%d-%Y")
