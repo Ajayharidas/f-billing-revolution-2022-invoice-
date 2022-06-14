@@ -56,6 +56,15 @@ import json
 from pathlib import Path
 from tkinter import font as tkFont
 from _tkinter import TclError
+from reportlab.lib import colors
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase import pdfmetrics
+from reportlab.platypus import SimpleDocTemplate,Table,TableStyle
+from reportlab.lib.pagesizes import letter
+import win32api
+from textwrap import wrap
+
+
 
 fbilldb = mysql.connector.connect(
     host="localhost", user="root", password="", database="fbillingsintgrtd", port="3306"
@@ -250,6 +259,7 @@ def mainpage():
       emailon = never1_label.cget("text")
       printon = never2_label.cget("text")
       # smson = 
+      subtotal = sub1.cget("text")
       invoicetot = invoicetot1.cget("text")
       totpaid = total1.cget("text")
       balance = balance1.cget("text")
@@ -322,8 +332,8 @@ def mainpage():
         fbilldb.commit()
 
       
-      inv_sql='INSERT INTO Invoice (invoice_number,invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
-      inv_val=(invoice_number,invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check,)
+      inv_sql='INSERT INTO Invoice (invoice_number,invodate,duedate,status,emailon,printon,subtotal,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
+      inv_val=(invoice_number,invodate,duedate,status,emailon,printon,subtotal,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check,)
       fbcursor.execute(inv_sql,inv_val)
       fbilldb.commit()
       pop.destroy()
@@ -439,13 +449,13 @@ def mainpage():
       #add new customer
       def inv_create_newcustomer():
         global checkvar1,checkvar2,cust_id,bus_name,bus_address,cat,ship_name,ship_address,cont_person,cont_email,cont_tel,cont_fax,cont_mob,shipcont_person,shipcont_email,shipcont_tel,shipcont_fax,cont_country,cont_city,cont_notes
-        ven=Toplevel(inv_midFrame)
-        ven.title("Add new vendor")
-        ven.geometry("930x650+240+10")
+        vendor=Toplevel(inv_midFrame)
+        vendor.title("Add new vendor")
+        vendor.geometry("930x650+240+10")
         checkvar1=IntVar()
         checkvar2=IntVar()
         radio=IntVar()
-        create_cust_frame=Frame(ven, bg="#f5f3f2", height=650)
+        create_cust_frame=Frame(vendor, bg="#f5f3f2", height=650)
         create_cust_frame.pack(side="top", fill="both")
         labelframe1 = LabelFrame(create_cust_frame,text="Customer",bg="#f5f3f2",font=("arial",15))
         labelframe1.place(x=10,y=5,width=910,height=600)
@@ -525,9 +535,8 @@ def mainpage():
         labelframe9.place(x=480,y=430,width=420,height=150)
         cont_notes = Entry(labelframe9).place(x=10,y=10,height=100,width=390)
 
-        btn1=Button(ven,width=60,height=10,bg="#f5f3f2",compound = LEFT,image=tick ,text="OK").place(x=20, y=615)
-        btn2=Button(ven,width=60,height=10,bg="#f5f3f2",compound = LEFT,image=cancel,text="Cancel").place(x=800, y=615)
-      
+        btn1=Button(vendor,width=60,height=10,bg="#f5f3f2",compound = LEFT,image=tick ,text="OK").place(x=20, y=615)
+        btn2=Button(vendor,width=60,height=10,bg="#f5f3f2",compound = LEFT,image=cancel,text="Cancel").place(x=800, y=615)
       
 
 
@@ -587,6 +596,7 @@ def mainpage():
       cust_fil_cat_list.bind('<<ListboxSelect>>',list_filter_customer)
 
 
+
       scrollbar = Scrollbar(customer_selection)
       scrollbar.place(x=640, y=45, height=560)
       scrollbar.config( command=select_cust_tree.yview )
@@ -594,7 +604,8 @@ def mainpage():
       ok_btn=Button(customer_selection,compound = LEFT,image=tick ,text="ok", width=60,command=cust_tree_fetch).place(x=15, y=610)
       edit_btn=Button(customer_selection,compound = LEFT,image=tick,text="Edit selected customer", width=150,command=inv_create_newcustomer).place(x=250, y=610)
       add_btn=Button(customer_selection,compound = LEFT,image=tick, text="Add new customer", width=150,command=inv_create_newcustomer).place(x=435, y=610)
-      cancel_btn=Button(customer_selection,compound = LEFT,image=cancel ,text="Cancel", width=60).place(x=740, y=610)   
+      cust_cancel_btn=Button(customer_selection,compound = LEFT,image=cancel ,text="Cancel", width=60,command=lambda:customer_selection.destroy())
+      cust_cancel_btn.place(x=740, y=610)   
 
 
 
@@ -828,38 +839,148 @@ def mainpage():
 
         def filter_product():
           if product_filter_entry.get() == '':
-            sql = "SELECT * FROM Productservice"
-            fbcursor.execute(sql)
-            product_details = fbcursor.fetchall()
             for record in product_sel_tree.get_children():
               product_sel_tree.delete(record)
 
-            count = 0
+            countp = 0
+            sql = 'SELECT * FROM Productservice'
+            fbcursor.execute(sql)
+            product_details = fbcursor.fetchall()
             for p in product_details:
-              if True:
-                product_sel_tree.insert(parent='',index='end',iid=p,text='',values=(p[0],p[4],p[7],p[12],p[13]))
+              if p[12] == '1':
+                serv_or_not = '🗹'
               else:
-                pass
-            count += 1
+                serv_or_not = ''
+              currency_sql = "SELECT currencysign,currsignplace FROM company"
+              fbcursor.execute(currency_sql,)
+              currency_symb = fbcursor.fetchone()
+              if not currency_symb: 
+                if p[13] > p[14]:
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('green',))
+                  countp += 1              
+                elif p[12] == '1':
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('blue',))
+                  countp += 1
+                else:
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('red',))
+                  countp += 1
+                      
+              elif currency_symb[1] == "before amount":
+                if p[13] > p[14]:
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('green',))
+                  countp += 1
+                elif p[12] == '1':
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('blue',))
+                  countp += 1
+                else:
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('red',))
+                  countp += 1
+
+              elif currency_symb[1] == "before amount with space":
+                if p[13] > p[14]:
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('green',))
+                  countp += 1
+                elif p[12] == '1':
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('blue',))
+                  countp += 1
+                else:
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('red',))
+                  countp += 1
+
+              elif currency_symb[1] == "after amount":
+                if p[13] > p[14]:
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                  countp += 1
+                elif p[12] == '1':
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                  countp += 1
+                else:
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                  countp += 1
+
+              elif currency_symb[1] == "after amount with space":
+                if p[13] > p[14]:
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                  countp += 1
+                elif p[12] == '1':
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                  countp += 1
+                else:
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                  countp += 1
 
           else:
             filter = product_filter_entry.get()
             for record in product_sel_tree.get_children():
               product_sel_tree.delete(record)
-            
+      
+            countp = 0
             sql = "SELECT * FROM Productservice WHERE name=%s"
             val = (filter, )
             fbcursor.execute(sql, val)
-            records = fbcursor.fetchall()
-      
-        
-            count=0
-            for i in records:
-              if True:
-                product_sel_tree.insert(parent='', index='end', iid=i, text='', values=(i[0],i[4],i[10],i[8]))  
+            product_details = fbcursor.fetchall()
+            for p in product_details:
+              if p[12] == '1':
+                serv_or_not = '🗹'
               else:
-                pass
-            count += 1
+                serv_or_not = ''
+              currency_sql = "SELECT currencysign,currsignplace FROM company"
+              fbcursor.execute(currency_sql,)
+              currency_symb = fbcursor.fetchone()
+              if not currency_symb: 
+                if p[13] > p[14]:
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('green',))
+                  countp += 1              
+                elif p[12] == '1':
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('blue',))
+                  countp += 1
+                else:
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('red',))
+                  countp += 1
+                      
+              elif currency_symb[1] == "before amount":
+                if p[13] > p[14]:
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('green',))
+                  countp += 1
+                elif p[12] == '1':
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('blue',))
+                  countp += 1
+                else:
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('red',))
+                  countp += 1
+
+              elif currency_symb[1] == "before amount with space":
+                if p[13] > p[14]:
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('green',))
+                  countp += 1
+                elif p[12] == '1':
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('blue',))
+                  countp += 1
+                else:
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('red',))
+                  countp += 1
+
+              elif currency_symb[1] == "after amount":
+                if p[13] > p[14]:
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                  countp += 1
+                elif p[12] == '1':
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                  countp += 1
+                else:
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                  countp += 1
+
+              elif currency_symb[1] == "after amount with space":
+                if p[13] > p[14]:
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                  countp += 1
+                elif p[12] == '1':
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                  countp += 1
+                else:
+                  product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                  countp += 1
 
 
 
@@ -896,8 +1017,8 @@ def mainpage():
         innerFrame = Frame(tab1,bg="#f5f3f2", relief=GROOVE)
         innerFrame.pack(side="top",fill=BOTH)
 
-        Customerlabelframe = LabelFrame(innerFrame,text="Product/Service",width=580,height=485)
-        Customerlabelframe.pack(side="top",fill=BOTH,padx=10)
+        Customerlabelframe = LabelFrame(innerFrame,text="Product/Service",width=580,height=455)
+        Customerlabelframe.pack(side="top",fill=BOTH,padx=10,pady=24)
 
         add_pro_code_label=Label(Customerlabelframe,text="Code or SKU:",fg="blue",pady=10,padx=10)
         add_pro_code_label.place(x=20,y=0)
@@ -919,12 +1040,12 @@ def mainpage():
         add_pro_cat=Label(Customerlabelframe,text="Category:",pady=5,padx=10)
         add_pro_cat.place(x=20,y=40)
         n = StringVar()
-        add_pro_country = ttk.Combobox(Customerlabelframe, width = 40, textvariable = n )
+        add_pro_category = ttk.Combobox(Customerlabelframe, width = 40, textvariable = n )
         
-        add_pro_country['values'] = ('Default',' India',' China',' Australia',' Nigeria',' Malaysia',' Italy',' Turkey',)
+        add_pro_category['values'] = ('Default',)
         
-        add_pro_country.place(x=120,y=45)
-        add_pro_country.current(0)
+        add_pro_category.place(x=120,y=45)
+        add_pro_category.current(0)
 
 
         add_pro_name_label=Label(Customerlabelframe,text="Name :",fg="blue",pady=5,padx=10)
@@ -1011,7 +1132,7 @@ def mainpage():
 
         def add_new_product():
           sku = add_pro_code_entry.get()
-          category = add_pro_country.get()
+          category = add_pro_category.get()
           name = add_pro_name_entry.get()
           description = add_pro_des_entry.get()
           unitprice = add_pro_unit_entry.get()
@@ -1037,10 +1158,10 @@ def mainpage():
           top.destroy()
 
         add_pro_ok_btn = Button(innerFrame,compound = LEFT,image=tick , text ="Ok",width=60,command=add_new_product)
-        add_pro_ok_btn.pack(side=LEFT)
+        add_pro_ok_btn.place(x=10,y=483)
 
         add_pro_cancel_btn = Button(innerFrame,compound = LEFT,image=cancel ,text="Cancel",width=60,command=cancel_add)
-        add_pro_cancel_btn.pack(side=RIGHT)
+        add_pro_cancel_btn.place(x=580,y=483)
 
         imageFrame = Frame(tab2, relief=GROOVE,height=580)
         imageFrame.pack(side="top",fill=BOTH)
@@ -1068,45 +1189,221 @@ def mainpage():
         selected_indices = pro_fil_cat_list.curselection()
         selected_filter = ",".join([pro_fil_cat_list.get(i) for i in selected_indices])
 
-        if selected_filter == "               View all Products/Services" or selected_filter == "               Default":
+        if selected_filter == "               View all Products/Services":
+          for record in product_sel_tree.get_children():
+            product_sel_tree.delete(record)
+          countp = 0
           pro_ser_sql = "SELECT * FROM Productservice"
           fbcursor.execute(pro_ser_sql)
           pro_ser_data = fbcursor.fetchall()
+          for p in pro_ser_data:
+            if p[12] == '1':
+              serv_or_not = '🗹'
+            else:
+              serv_or_not = ''
+            currency_sql = "SELECT currencysign,currsignplace FROM company"
+            fbcursor.execute(currency_sql,)
+            currency_symb = fbcursor.fetchone()
+            if not currency_symb: 
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1              
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+                    
+            elif currency_symb[1] == "before amount":
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "before amount with space":
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "after amount":
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "after amount with space":
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+        elif selected_filter == "               View all Products":
           for record in product_sel_tree.get_children():
             product_sel_tree.delete(record)
-          count_ps = 0
-          for i in pro_ser_data:
-            product_sel_tree.insert(parent='',index='end',iid=i,text='',values=(i[2],i[4],i[7],i[12],i[13]))
-          count_ps += 1
-        elif selected_filter == "               View all Products":
+          countp = 0
           pro_sql = "SELECT * FROM Productservice WHERE serviceornot=%s"
           pro_val = ('0',)
           fbcursor.execute(pro_sql,pro_val)
           pro_data = fbcursor.fetchall()
+          for p in pro_data:
+            if p[12] == '1':
+              serv_or_not = '🗹'
+            else:
+              serv_or_not = ''
+            currency_sql = "SELECT currencysign,currsignplace FROM company"
+            fbcursor.execute(currency_sql,)
+            currency_symb = fbcursor.fetchone()
+            if not currency_symb: 
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1              
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+                    
+            elif currency_symb[1] == "before amount":
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "before amount with space":
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "after amount":
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "after amount with space":
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+        elif selected_filter == "               View all Services":
           for record in product_sel_tree.get_children():
             product_sel_tree.delete(record)
-          count_p = 0
-          for i in pro_data:
-            product_sel_tree.insert(parent='', index='end', iid=i, text='', values=(i[2],i[4],i[7],i[12],i[13]))
-          count_p += 1
-        elif selected_filter == "               View all Services":
+          countp = 0
           ser_sql = "SELECT * FROM Productservice WHERE serviceornot=%s"
           ser_val = ('1',)
           fbcursor.execute(ser_sql,ser_val)
           ser_data = fbcursor.fetchall()
-          for record in product_sel_tree.get_children():
-            product_sel_tree.delete(record)
-          count_s = 0
-          for i in ser_data:
-            product_sel_tree.insert(parent='', index='end', iid=i, text='', values=(i[2],i[4],i[7],i[12],i[13]))
-          count_s += 1
+          for p in ser_data:
+            if p[12] == '1':
+              serv_or_not = '🗹'
+            else:
+              serv_or_not = ''
+            currency_sql = "SELECT currencysign,currsignplace FROM company"
+            fbcursor.execute(currency_sql,)
+            currency_symb = fbcursor.fetchone()
+            if not currency_symb: 
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1              
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+                    
+            elif currency_symb[1] == "before amount":
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "before amount with space":
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "after amount":
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "after amount with space":
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                countp += 1
 
 
       pro_fil_cat_list = Listbox(inv_newline_sel,height=34,width=40,bg="white",activestyle="dotbox",fg="black",highlightbackground="white")
       pro_fil_cat_list.insert(0,"               View all Products/Services")
       pro_fil_cat_list.insert(1,"               View all Products")
       pro_fil_cat_list.insert(2,"               View all Services")
-      pro_fil_cat_list.insert(3,"               Default")
       pro_fil_cat_list.place(x=660,y=63)
       pro_fil_cat_list.bind('<<ListboxSelect>>',list_filter_product)
 
@@ -1148,8 +1445,9 @@ def mainpage():
           canvas.config(yscrollcommand=vertibar.set)
           canvas.pack(expand=True,side=LEFT,fill=BOTH)
           canvas.create_rectangle(235, 25, 1035, 1430 , outline='yellow',fill='white')
-          # canvas.create_text(500, 50, text="Title text goes here...", fill="black", font=('Helvetica 10'))
-          # canvas.create_text(285, 110, text="Your Company Logo", fill="black", font=('Helvetica 18 bold'))
+          inv_title_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_title_canvas.config(text=title_txt_combo.get(),anchor="center",bg="white")
+          canvas.create_window(637, 50,window=inv_title_canvas)
 
           try:
             image = Image.open("images/"+comp_data[13])
@@ -1178,7 +1476,7 @@ def mainpage():
           inv_ref_canvas.config(text=inv_ref_entry.get(),anchor="w")
           canvas.create_window(548, 330,window=inv_ref_canvas) 
           
-          canvas.create_text(900, 110, text=comp_data[1], fill="black", font=('Helvetica 12 '))
+          canvas.create_text(896, 110, text=comp_data[1], fill="black", font=('Helvetica 12 bold'))
           comp_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=5,fg= "black",bg="white",cursor="arrow",bd=0,)
           comp_addr_canvas.insert("1.0",comp_data[2])
           comp_addr_canvas.tag_configure("tag_name", justify='right')
@@ -1191,24 +1489,28 @@ def mainpage():
           canvas.create_text(951, 255, text="Invoice", fill="black", font=('Helvetica 14 bold'))
           canvas.create_text(935, 285, text="TAX EXEMPTED", fill="black", font=('Helvetica 10'))
           
-          canvas.create_text(325, 370, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
+          canvas.create_text(325, 360, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
           inv_canv_name = Label(canvas,font=('Helvetica 10 '),width=30)
           inv_canv_name.config(text=inv_combo_e1.get(),anchor="w",bg="white")
-          canvas.create_window(419, 395,window=inv_canv_name)
+          canvas.create_window(419, 380,window=inv_canv_name)
           inv_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
           bg="white",cursor="arrow")
           inv_addr_canvas.insert("1.0",inv_addr_e2.get("1.0",END))
           inv_addr_canvas.config(state=DISABLED)
-          canvas.create_window(405, 442, window=inv_addr_canvas)
-          canvas.create_text(650, 370, text="Ship to", fill="black", font=('Helvetica 10 underline'))
+          canvas.create_window(405, 425, window=inv_addr_canvas)
+          canvas.create_text(650, 360, text="Ship to", fill="black", font=('Helvetica 10 underline'))
           inv_ship_canv_lbl = Label(canvas, font=('Helvetica 10 '),width=30)
           inv_ship_canv_lbl.config(text=inv_shipto_e3.get(),anchor="w",bg="white")
-          canvas.create_window(751, 395, window=inv_ship_canv_lbl)
+          canvas.create_window(751, 380, window=inv_ship_canv_lbl)
           inv_ship_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
           bg="white",cursor="arrow")
           inv_ship_addr_canvas.insert("1.0",inv_addr_e4.get("1.0",END))
           inv_ship_addr_canvas.config(state=DISABLED)
-          canvas.create_window(736, 442,window=inv_ship_addr_canvas)
+          canvas.create_window(736, 425,window=inv_ship_addr_canvas)
+
+          inv_header_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_header_canvas.config(text=pageh_txt_combo.get(),anchor="center",bg="white")
+          canvas.create_window(637, 452,window=inv_header_canvas)
           
           s = ttk.Style()
           s.configure('Treeview.Heading', background='',State='DISABLE')
@@ -2066,14 +2368,14 @@ def mainpage():
           inv_prev_terms.tag_configure("tag_name", justify='left')
           inv_prev_terms.tag_add("tag_name", "1.0", "end")
           inv_prev_terms.config(state=DISABLED)
-          canvas.create_window(642, 1130,window=inv_prev_terms)
-          canvas.create_text(330, 1170, text="Sale Person:", fill="black", font=('Helvetica 10'))
+          canvas.create_window(642, 1125,window=inv_prev_terms)
+          canvas.create_text(330, 1165, text="Sale Person:", fill="black", font=('Helvetica 10'))
           inv_prev_salesp = Label(canvas, font=('Helvetica 10 '),width=30)
           inv_prev_salesp.config(text=sales_per_entry.get(),anchor="w",bg="white")
-          canvas.create_window(502, 1170, window = inv_prev_salesp)
-
-          canvas.create_text(375, 1190, text="Page footer text goes here...", fill="black", font=('Helvetica 10'))
-          canvas.create_text(950, 1190, text="Page 1 of 1", fill="black", font=('Helvetica 10'))
+          canvas.create_window(502, 1165, window = inv_prev_salesp)
+          inv_footer_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_footer_canvas.config(text=footer_txt_combo.get(),anchor="w",bg="white")
+          canvas.create_window(413, 1185,window=inv_footer_canvas)
       #----------------Professional 2 (logo on right side)------------------
         elif temp_type == 'Professional 2 (logo on right side)':
           frame = Frame(prev_invo, width=953, height=300)
@@ -2089,8 +2391,9 @@ def mainpage():
           canvas.config(yscrollcommand=vertibar.set)
           canvas.pack(expand=True,side=LEFT,fill=BOTH)
           canvas.create_rectangle(235, 25, 1035, 1430 , outline='yellow',fill='white')
-          # canvas.create_text(500, 50, text="Title text goes here...", fill="black", font=('Helvetica 10'))
-          # canvas.create_text(285, 110, text="Your Company Logo", fill="black", font=('Helvetica 18 bold'))
+          inv_title_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_title_canvas.config(text=title_txt_combo.get(),anchor="center",bg="white")
+          canvas.create_window(637, 50,window=inv_title_canvas)
 
           try:
             image = Image.open("images/"+comp_data[13])
@@ -2119,7 +2422,7 @@ def mainpage():
           inv_ref_canvas.config(text=inv_ref_entry.get(),anchor="w")
           canvas.create_window(918, 330,window=inv_ref_canvas)
           
-          canvas.create_text(375, 110, text=comp_data[1], fill="black", font=('Helvetica 12 '))
+          canvas.create_text(379, 110, text=comp_data[1], fill="black", font=('Helvetica 12 bold'))
           comp_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=5,fg= "black",bg="white",cursor="arrow",bd=0,)
           comp_addr_canvas.insert("1.0",comp_data[2])
           comp_addr_canvas.tag_configure("tag_name", justify='left')
@@ -2132,24 +2435,28 @@ def mainpage():
           canvas.create_text(320, 255, text="Invoice", fill="black", font=('Helvetica 14 bold'))
           canvas.create_text(335, 285, text="TAX EXEMPTED", fill="black", font=('Helvetica 10'))
           
-          canvas.create_text(315, 370, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
+          canvas.create_text(315, 350, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
           inv_canv_name = Label(canvas,font=('Helvetica 10 '),width=30)
           inv_canv_name.config(text=inv_combo_e1.get(),anchor="w",bg="white")
-          canvas.create_window(409, 395,window=inv_canv_name)
+          canvas.create_window(409, 370,window=inv_canv_name)
           inv_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
           bg="white",cursor="arrow")
           inv_addr_canvas.insert("1.0",inv_addr_e2.get("1.0",END))
           inv_addr_canvas.config(state=DISABLED)
-          canvas.create_window(395, 442, window=inv_addr_canvas)
-          canvas.create_text(650, 370, text="Ship to", fill="black", font=('Helvetica 10 underline'))
+          canvas.create_window(395, 415, window=inv_addr_canvas)
+          canvas.create_text(650, 350, text="Ship to", fill="black", font=('Helvetica 10 underline'))
           inv_ship_canv_lbl = Label(canvas, font=('Helvetica 10 '),width=30)
           inv_ship_canv_lbl.config(text=inv_shipto_e3.get(),anchor="w",bg="white")
-          canvas.create_window(751, 395, window=inv_ship_canv_lbl)
+          canvas.create_window(751, 370, window=inv_ship_canv_lbl)
           inv_ship_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
           bg="white",cursor="arrow")
           inv_ship_addr_canvas.insert("1.0",inv_addr_e4.get("1.0",END))
           inv_ship_addr_canvas.config(state=DISABLED)
-          canvas.create_window(736, 442,window=inv_ship_addr_canvas)
+          canvas.create_window(736, 415,window=inv_ship_addr_canvas)
+
+          inv_header_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_header_canvas.config(text=pageh_txt_combo.get(),anchor="center",bg="white")
+          canvas.create_window(637, 452,window=inv_header_canvas)
           
           s = ttk.Style()
           s.configure('Treeview.Heading', background='',State='DISABLE')
@@ -3007,14 +3314,14 @@ def mainpage():
           inv_prev_terms.tag_configure("tag_name", justify='left')
           inv_prev_terms.tag_add("tag_name", "1.0", "end")
           inv_prev_terms.config(state=DISABLED)
-          canvas.create_window(642, 1130,window=inv_prev_terms)
-          canvas.create_text(330, 1170, text="Sale Person:", fill="black", font=('Helvetica 10'))
+          canvas.create_window(642, 1125,window=inv_prev_terms)
+          canvas.create_text(330, 1165, text="Sale Person:", fill="black", font=('Helvetica 10'))
           inv_prev_salesp = Label(canvas, font=('Helvetica 10 '),width=30)
           inv_prev_salesp.config(text=sales_per_entry.get(),anchor="w",bg="white")
-          canvas.create_window(502, 1170, window = inv_prev_salesp)
-
-          canvas.create_text(375, 1190, text="Page footer text goes here...", fill="black", font=('Helvetica 10'))
-          canvas.create_text(950, 1190, text="Page 1 of 1", fill="black", font=('Helvetica 10'))
+          canvas.create_window(502, 1165, window = inv_prev_salesp)
+          inv_footer_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_footer_canvas.config(text=footer_txt_combo.get(),anchor="w",bg="white")
+          canvas.create_window(413, 1185,window=inv_footer_canvas)
       #----------------Simplified 1 (logo on left side)------------------ 
         elif temp_type == 'Simplified 1 (logo on left side)':
           frame = Frame(prev_invo, width=953, height=300)
@@ -3030,8 +3337,9 @@ def mainpage():
           canvas.config(yscrollcommand=vertibar.set)
           canvas.pack(expand=True,side=LEFT,fill=BOTH)
           canvas.create_rectangle(235, 25, 1035, 1430 , outline='yellow',fill='white')
-          # canvas.create_text(500, 50, text="Title text goes here...", fill="black", font=('Helvetica 10'))
-          # canvas.create_text(285, 110, text="Your Company Logo", fill="black", font=('Helvetica 18 bold'))
+          inv_title_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_title_canvas.config(text=title_txt_combo.get(),anchor="center",bg="white")
+          canvas.create_window(637, 50,window=inv_title_canvas)
 
           try:
             image = Image.open("images/"+comp_data[13])
@@ -3060,7 +3368,7 @@ def mainpage():
           inv_ref_canvas.config(text=inv_ref_entry.get(),anchor="w")
           canvas.create_window(548, 330,window=inv_ref_canvas)   
           
-          canvas.create_text(900, 110, text=comp_data[1], fill="black", font=('Helvetica 12 '))
+          canvas.create_text(896, 110, text=comp_data[1], fill="black", font=('Helvetica 12 bold'))
           comp_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=5,fg= "black",bg="white",cursor="arrow",bd=0,)
           comp_addr_canvas.insert("1.0",comp_data[2])
           comp_addr_canvas.tag_configure("tag_name", justify='right')
@@ -3073,24 +3381,28 @@ def mainpage():
           canvas.create_text(951, 255, text="Invoice", fill="black", font=('Helvetica 14 bold'))
           canvas.create_text(935, 285, text="TAX EXEMPTED", fill="black", font=('Helvetica 10'))
           
-          canvas.create_text(325, 370, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
+          canvas.create_text(325, 360, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
           inv_canv_name = Label(canvas,font=('Helvetica 10 '),width=30)
           inv_canv_name.config(text=inv_combo_e1.get(),anchor="w",bg="white")
-          canvas.create_window(419, 395,window=inv_canv_name)
+          canvas.create_window(419, 380,window=inv_canv_name)
           inv_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
           bg="white",cursor="arrow")
           inv_addr_canvas.insert("1.0",inv_addr_e2.get("1.0",END))
           inv_addr_canvas.config(state=DISABLED)
-          canvas.create_window(405, 442, window=inv_addr_canvas)
-          canvas.create_text(650, 370, text="Ship to", fill="black", font=('Helvetica 10 underline'))
+          canvas.create_window(405, 425, window=inv_addr_canvas)
+          canvas.create_text(650, 360, text="Ship to", fill="black", font=('Helvetica 10 underline'))
           inv_ship_canv_lbl = Label(canvas, font=('Helvetica 10 '),width=30)
           inv_ship_canv_lbl.config(text=inv_shipto_e3.get(),anchor="w",bg="white")
-          canvas.create_window(751, 395, window=inv_ship_canv_lbl)
+          canvas.create_window(751, 380, window=inv_ship_canv_lbl)
           inv_ship_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
           bg="white",cursor="arrow")
           inv_ship_addr_canvas.insert("1.0",inv_addr_e4.get("1.0",END))
           inv_ship_addr_canvas.config(state=DISABLED)
-          canvas.create_window(736, 442,window=inv_ship_addr_canvas)
+          canvas.create_window(736, 425,window=inv_ship_addr_canvas)
+
+          inv_header_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_header_canvas.config(text=pageh_txt_combo.get(),anchor="center",bg="white")
+          canvas.create_window(637, 452,window=inv_header_canvas)
           
           s = ttk.Style()
           s.configure('Treeview.Heading', background='',State='DISABLE')
@@ -3944,14 +4256,14 @@ def mainpage():
           inv_prev_terms.tag_configure("tag_name", justify='left')
           inv_prev_terms.tag_add("tag_name", "1.0", "end")
           inv_prev_terms.config(state=DISABLED)
-          canvas.create_window(642, 1130,window=inv_prev_terms)
-          canvas.create_text(330, 1170, text="Sale Person:", fill="black", font=('Helvetica 10'))
+          canvas.create_window(642, 1125,window=inv_prev_terms)
+          canvas.create_text(330, 1165, text="Sale Person:", fill="black", font=('Helvetica 10'))
           inv_prev_salesp = Label(canvas, font=('Helvetica 10 '),width=30)
           inv_prev_salesp.config(text=sales_per_entry.get(),anchor="w",bg="white")
-          canvas.create_window(502, 1170, window = inv_prev_salesp)
-
-          canvas.create_text(375, 1190, text="Page footer text goes here...", fill="black", font=('Helvetica 10'))
-          canvas.create_text(950, 1190, text="Page 1 of 1", fill="black", font=('Helvetica 10'))
+          canvas.create_window(502, 1165, window = inv_prev_salesp)
+          inv_footer_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_footer_canvas.config(text=footer_txt_combo.get(),anchor="w",bg="white")
+          canvas.create_window(413, 1185,window=inv_footer_canvas)
       #----------------Simplified 2 (logo on right side)------------------ 
         elif temp_type == 'Simplified 2 (logo on right side)':
           frame = Frame(prev_invo, width=953, height=300)
@@ -3967,8 +4279,9 @@ def mainpage():
           canvas.config(yscrollcommand=vertibar.set)
           canvas.pack(expand=True,side=LEFT,fill=BOTH)
           canvas.create_rectangle(235, 25, 1035, 1430 , outline='yellow',fill='white')
-          # canvas.create_text(500, 50, text="Title text goes here...", fill="black", font=('Helvetica 10'))
-          # canvas.create_text(285, 110, text="Your Company Logo", fill="black", font=('Helvetica 18 bold'))
+          inv_title_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_title_canvas.config(text=title_txt_combo.get(),anchor="center",bg="white")
+          canvas.create_window(637, 50,window=inv_title_canvas)
 
           try:
             image = Image.open("images/"+comp_data[13])
@@ -3997,7 +4310,7 @@ def mainpage():
           inv_ref_canvas.config(text=inv_ref_entry.get(),anchor="w")
           canvas.create_window(918, 330,window=inv_ref_canvas)   
           
-          canvas.create_text(375, 110, text=comp_data[1], fill="black", font=('Helvetica 12 '))
+          canvas.create_text(379, 110, text=comp_data[1], fill="black", font=('Helvetica 12 bold'))
           comp_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=5,fg= "black",bg="white",cursor="arrow",bd=0,)
           comp_addr_canvas.insert("1.0",comp_data[2])
           comp_addr_canvas.tag_configure("tag_name", justify='left')
@@ -4010,24 +4323,28 @@ def mainpage():
           canvas.create_text(320, 255, text="Invoice", fill="black", font=('Helvetica 14 bold'))
           canvas.create_text(335, 285, text="TAX EXEMPTED", fill="black", font=('Helvetica 10'))
           
-          canvas.create_text(315, 370, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
+          canvas.create_text(315, 350, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
           inv_canv_name = Label(canvas,font=('Helvetica 10 '),width=30)
           inv_canv_name.config(text=inv_combo_e1.get(),anchor="w",bg="white")
-          canvas.create_window(409, 395,window=inv_canv_name)
+          canvas.create_window(409, 370,window=inv_canv_name)
           inv_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
           bg="white",cursor="arrow")
           inv_addr_canvas.insert("1.0",inv_addr_e2.get("1.0",END))
           inv_addr_canvas.config(state=DISABLED)
-          canvas.create_window(395, 442, window=inv_addr_canvas)
-          canvas.create_text(650, 370, text="Ship to", fill="black", font=('Helvetica 10 underline'))
+          canvas.create_window(395, 415, window=inv_addr_canvas)
+          canvas.create_text(650, 350, text="Ship to", fill="black", font=('Helvetica 10 underline'))
           inv_ship_canv_lbl = Label(canvas, font=('Helvetica 10 '),width=30)
           inv_ship_canv_lbl.config(text=inv_shipto_e3.get(),anchor="w",bg="white")
-          canvas.create_window(751, 395, window=inv_ship_canv_lbl)
+          canvas.create_window(751, 370, window=inv_ship_canv_lbl)
           inv_ship_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
           bg="white",cursor="arrow")
           inv_ship_addr_canvas.insert("1.0",inv_addr_e4.get("1.0",END))
           inv_ship_addr_canvas.config(state=DISABLED)
-          canvas.create_window(736, 442,window=inv_ship_addr_canvas)
+          canvas.create_window(736, 415,window=inv_ship_addr_canvas)
+
+          inv_header_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_header_canvas.config(text=pageh_txt_combo.get(),anchor="center",bg="white")
+          canvas.create_window(637, 452,window=inv_header_canvas)
           
           s = ttk.Style()
           s.configure('Treeview.Heading', background='',State='DISABLE')
@@ -4881,14 +5198,14 @@ def mainpage():
           inv_prev_terms.tag_configure("tag_name", justify='left')
           inv_prev_terms.tag_add("tag_name", "1.0", "end")
           inv_prev_terms.config(state=DISABLED)
-          canvas.create_window(642, 1130,window=inv_prev_terms)
-          canvas.create_text(330, 1170, text="Sale Person:", fill="black", font=('Helvetica 10'))
+          canvas.create_window(642, 1125,window=inv_prev_terms)
+          canvas.create_text(330, 1165, text="Sale Person:", fill="black", font=('Helvetica 10'))
           inv_prev_salesp = Label(canvas, font=('Helvetica 10 '),width=30)
           inv_prev_salesp.config(text=sales_per_entry.get(),anchor="w",bg="white")
-          canvas.create_window(502, 1170, window = inv_prev_salesp)
-
-          canvas.create_text(375, 1190, text="Page footer text goes here...", fill="black", font=('Helvetica 10'))
-          canvas.create_text(950, 1190, text="Page 1 of 1", fill="black", font=('Helvetica 10'))
+          canvas.create_window(502, 1165, window = inv_prev_salesp)
+          inv_footer_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_footer_canvas.config(text=footer_txt_combo.get(),anchor="w",bg="white")
+          canvas.create_window(413, 1185,window=inv_footer_canvas)
       #----------------Business Classic------------------ 
         elif temp_type == 'Business Classic':
           frame = Frame(prev_invo, width=953, height=300)
@@ -4904,8 +5221,11 @@ def mainpage():
           canvas.config(yscrollcommand=vertibar.set)
           canvas.pack(expand=True,side=LEFT,fill=BOTH)
           canvas.create_rectangle(235, 25, 1080, 1430 , outline='yellow',fill='white')
-          # canvas.create_text(500, 50, text="Title text goes here...", fill="black", font=('Helvetica 10'))
+          inv_title_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_title_canvas.config(text=title_txt_combo.get(),anchor="center",bg="white")
+          canvas.create_window(657, 50,window=inv_title_canvas)
           canvas.create_line(290, 70, 1025, 70, fill='orange')
+
           try:
             image = Image.open("images/"+comp_data[13])
             resize_image = image.resize((250, 125))
@@ -4915,7 +5235,7 @@ def mainpage():
             canvas.create_window(417, 155,window=b2)
           except:
             pass
-          canvas.create_text(625, 110, text=comp_data[1], fill="black", font=('Helvetica 10'))
+          canvas.create_text(629, 110, text=comp_data[1], fill="black", font=('Helvetica 10 bold'))
           comp_addr_canvas = Text(canvas,font=('Helvetica 10'),width=21,height=5,fg= "black",bg="white",cursor="arrow",bd=0,)
           comp_addr_canvas.insert("1.0",comp_data[2])
           comp_addr_canvas.tag_configure("tag_name", justify='left')
@@ -4952,11 +5272,10 @@ def mainpage():
           inv_ref_canvas = Label(canvas,font=('Helvetica 10'),width=25,bg='white')
           inv_ref_canvas.config(text=inv_ref_entry.get(),anchor="w")
           canvas.create_window(963, 270,window=inv_ref_canvas)
-          # canvas.create_text(890, 190, text=inv_number_entry.get(), fill="black", font=('Helvetica 10'))
-          # canvas.create_text(900, 210, text=inv_date_entry.get_date(), fill="black", font=('Helvetica 10'))
-          # canvas.create_text(900, 230, text=inv_duedate_entry.get_date(), fill="black", font=('Helvetica 10'))
-          # canvas.create_text(898, 250, text=inv_terms_combo.get(), fill="black", font=('Helvetica 10'))   
-          # canvas.create_text(890, 270, text=inv_ref_entry.get(), fill="black", font=('Helvetica 10'))  
+
+          inv_header_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_header_canvas.config(text=pageh_txt_combo.get(),anchor="center",bg="white")
+          canvas.create_window(657, 290,window=inv_header_canvas)
 
 
           s = ttk.Style()
@@ -5812,16 +6131,163 @@ def mainpage():
           inv_prev_terms.tag_configure("tag_name", justify='left')
           inv_prev_terms.tag_add("tag_name", "1.0", "end")
           inv_prev_terms.config(state=DISABLED)
-          canvas.create_window(661, 1130,window=inv_prev_terms)
-          canvas.create_text(330, 1170, text="Sale Person:", fill="black", font=('Helvetica 10'))
+          canvas.create_window(661, 1125,window=inv_prev_terms)
+          canvas.create_text(330, 1165, text="Sale Person:", fill="black", font=('Helvetica 10'))
           inv_prev_salesp = Label(canvas, font=('Helvetica 10 '),width=30)
           inv_prev_salesp.config(text=sales_per_entry.get(),anchor="w",bg="white")
-          canvas.create_window(502, 1170, window = inv_prev_salesp)
-
-          canvas.create_text(375, 1190, text="Page footer text goes here...", fill="black", font=('Helvetica 10'))
-          canvas.create_text(1000, 1190, text="Page 1 of 1", fill="black", font=('Helvetica 10'))
+          canvas.create_window(502, 1165, window = inv_prev_salesp)
+          inv_footer_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_footer_canvas.config(text=footer_txt_combo.get(),anchor="w",bg="white")
+          canvas.create_window(413, 1185,window=inv_footer_canvas)
         else:
             pass
+
+
+########################### Print Invoice #######################
+    def printinvoice():
+      from reportlab.pdfgen import canvas 
+      pdf = canvas.Canvas("Invoice/Invoice_Report.pdf", pagesize=letter)
+      
+      # Professional 1 (logo on left side)
+      pdf.setFont('Helvetica',12)
+      pdf.drawString(450,745, comp_data[1])
+      text=comp_data[2]
+      wraped_text="\n".join(wrap(text,30))
+      htg=wraped_text.split('\n')
+          
+      vg=len(htg)
+      if vg>0:
+        pdf.drawString(450,730,htg[0])
+        if vg>1:
+          pdf.drawString(450,715,htg[1])
+          if vg>2:
+            pdf.drawString(450,700,htg[2])
+            if vg>3:
+              pdf.drawString(450,685,htg[3])
+            else:
+              pass
+          else:
+            pass
+        else:
+          pass
+      else:
+        pass
+
+      pdf.drawString(450,670, comp_data[4])
+      
+  
+      pdf.save()
+      win32api.ShellExecute(0,"","Invoice\Invoice_Report.pdf",None,".",0)
+
+      # def property1():
+      #   propert=Toplevel()
+      #   propert.title("Microsoft Print To PDF Advanced Document Settings")
+      #   propert.geometry("670x500+240+150")
+
+      #   def property2():
+      #     propert1=Toplevel()
+      #     propert1.title("Microsoft Print To PDF Advanced Document Settings")
+      #     propert1.geometry("670x500+240+150")
+
+      #     name=Label(propert1, text="Microsoft Print To PDF Advanced Document Settings").place(x=10, y=5)
+      #     paper=Label(propert1, text="Paper/Output").place(x=30, y=35)
+      #     size=Label(propert1, text="Paper size").place(x=55, y=65)
+      #     n = StringVar()
+      #     search = ttk.Combobox(propert1, width = 15, textvariable = n )
+      #     search['values'] = ('letter')
+      #     search.place(x=150,y=65)
+      #     search.current(0)
+      #     copy=Label(propert1, text="Copy count:").place(x=55, y=95)
+
+      #     okbtn=Button(propert1,compound = LEFT,image=tick , text="Ok", width=60).place(x=460, y=450)
+      #     canbtn=Button(propert1,compound = LEFT,image=cancel, text="Cancel", width=60).place(x=570, y=450)
+          
+          
+
+
+      #   style = ttk.Style()
+      #   style.theme_use('default')
+      #   style.configure('TNotebook.Tab', background="#999999", padding=5)
+      #   property_Notebook = ttk.Notebook(propert)
+      #   property_Frame = Frame(property_Notebook, height=500, width=670)
+      #   property_Notebook.add(property_Frame, text="Layout")
+      #   property_Notebook.place(x=0, y=0)
+
+      #   name=Label(property_Frame, text="Orientation:").place(x=10, y=5)
+      #   n = StringVar()
+      #   search = ttk.Combobox(property_Frame, width = 23, textvariable = n )
+      #   search['values'] = ('Portrait')
+      #   search.place(x=10,y=25)
+      #   search.current(0)
+
+      #   text=Text(property_Frame,width=50).place(x=250, y=5,height=350)
+
+      #   btn=Button(property_Frame, text="Advanced",command=property2).place(x=550, y=380)
+      #   btn=Button(property_Frame,compound = LEFT,image=tick  ,text="OK", width=60,).place(x=430, y=420)
+      #   btn=Button(property_Frame,compound = LEFT,image=cancel , text="Cancel", width=60,).place(x=550, y=420)     
+
+
+        
+      # if(False):
+      #     messagebox.showwarning("FBilling Revelution 2020", "Customer is required, Please select customer for this invoice\nbefore printing")
+      # elif(False):
+      #     messagebox.showinfo("FBilling Revelution 2020", "Print job has been completed.")
+      # else:
+      #     print1=Toplevel()
+      #     print1.title("Print")
+      #     print1.geometry("670x400+240+150")
+          
+      #     printerframe=LabelFrame(print1, text="Printer", height=80, width=650)
+      #     printerframe.place(x=7, y=5)      
+      #     name=Label(printerframe, text="Name:").place(x=10, y=5)
+      #     e1= ttk.Combobox(printerframe, width=40).place(x=70, y=5)
+      #     where=Label(printerframe, text="Where:").place(x=10, y=30)
+      #     printocheckvar=IntVar()
+      #     printochkbtn=Checkbutton(printerframe,text="Print to file",variable=printocheckvar,onvalue=1,offvalue=0,height=1,width=10)
+      #     printochkbtn.place(x=450, y=30)
+      #     btn=Button(printerframe, text="Properties", width=10,command=property1).place(x=540, y=5)
+
+      #     pageslblframe=LabelFrame(print1, text="Pages", height=140, width=320)
+      #     pageslblframe.place(x=10, y=90)
+      #     radvar=IntVar()
+      #     radioall=Radiobutton(pageslblframe, text="All", variable=radvar, value="1").place(x=10, y=5)
+      #     radiocpage=Radiobutton(pageslblframe, text="Current Page", variable=radvar, value="2").place(x=10, y=25)
+      #     radiopages=Radiobutton(pageslblframe, text="Pages: ", variable=radvar, value="3").place(x=10, y=45)
+      #     pagecountentry = Entry(pageslblframe, width=23).place(x=80, y=47)
+      #     pageinfolabl=Label(pageslblframe, text="Enter page numbers and/or page ranges\nseperated by commas. For example:1,3,5-12")
+      #     pageinfolabl.place(x=5, y=75)
+
+      #     copylblframe=LabelFrame(print1, text="Copies", height=140, width=320)
+      #     copylblframe.place(x=335, y=90)
+      #     nolabl=Label(copylblframe, text="Number of copies").place(x=5, y=5)      
+      #     noentry = Entry(copylblframe, width=18).place(x=130, y=5)      
+      #     one=Frame(copylblframe, width=30, height=40, bg="black").place(x=20, y=40)     
+      #     two=Frame(copylblframe, width=30, height=40, bg="grey").place(x=15, y=45)     
+      #     three=Frame(copylblframe, width=30, height=40, bg="white").place(x=10, y=50)      
+      #     four=Frame(copylblframe, width=30, height=40, bg="black").place(x=80, y=40)      
+      #     fiv=Frame(copylblframe, width=30, height=40, bg="grey").place(x=75, y=45)      
+      #     six=Frame(copylblframe, width=30, height=40, bg="white").place(x=70, y=50)      
+      #     collatecheckvar=IntVar()
+      #     collatechkbtn=Checkbutton(copylblframe,text="Collate",variable=collatecheckvar,onvalue=1,offvalue=0,height=1,width=10)
+      #     collatechkbtn.place(x=130, y=70)
+
+      #     othrlblframe=LabelFrame(print1, text="Other", height=120, width=320)
+      #     othrlblframe.place(x=10, y=235)
+      #     printlb=Label(othrlblframe, text="Print").place(x=5, y=0)
+      #     dropprint = ttk.Combobox(othrlblframe, width=23).place(x=80, y=0)
+      #     orderlb=Label(othrlblframe, text="Order").place(x=5, y=25)
+      #     dropord = ttk.Combobox(othrlblframe, width=23).place(x=80, y=25)
+      #     duplexlb=Label(othrlblframe, text="Duplex").place(x=5, y=50)
+      #     droplex = ttk.Combobox(othrlblframe, width=23).place(x=80, y=50)
+
+      #     prmodelblframe=LabelFrame(print1, text="Print mode", height=120, width=320)
+      #     prmodelblframe.place(x=335, y=235)
+      #     dropscal = ttk.Combobox(prmodelblframe, width=30).place(x=5, y=5)
+      #     poslb=Label(prmodelblframe, text="Print on sheet").place(x=5, y=35)
+      #     droppos = ttk.Combobox(prmodelblframe, width=10).place(x=155, y=35)
+
+      #     okbtn=Button(print1,compound = LEFT,image=tick , text="Ok", width=60).place(x=460, y=370)
+      #     canbtn=Button(print1,compound = LEFT,image=cancel, text="Cancel", width=60).place(x=570, y=370)
 
 
     
@@ -6135,6 +6601,7 @@ def mainpage():
         emailon = never1_label.cget("text")
         printon = never2_label.cget("text")
         # smson = 
+        subtotal = sub1.cget("text")
         invoicetot = invoicetot1.cget("text")
         totpaid = total1.cget("text")
         balance = balance1.cget("text")
@@ -6208,8 +6675,8 @@ def mainpage():
           fbilldb.commit()
 
         
-        inv_sql='INSERT INTO Invoice (invoice_number,invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check,paid_n_closed) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
-        inv_val=(invoice_number,invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check,paid_n_closed,)
+        inv_sql='INSERT INTO Invoice (invoice_number,invodate,duedate,status,emailon,printon,subtotal,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check,paid_n_closed) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
+        inv_val=(invoice_number,invodate,duedate,status,emailon,printon,subtotal,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check,paid_n_closed,)
         fbcursor.execute(inv_sql,inv_val)
         fbilldb.commit()
 
@@ -6843,6 +7310,7 @@ def mainpage():
           emailon = never1_label.cget("text")
           printon = never2_label.cget("text")
           # smson = 
+          subtotal = 0
           invoicetot = 0
           totpaid = 0
           balance = 0
@@ -6920,15 +7388,15 @@ def mainpage():
               fbcursor.execute(file_sql,file_val)
               fbilldb.commit()
 
-            inv_sql='INSERT INTO Invoice (invoice_number,invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check,paid_n_closed) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
-            inv_val=(invoice_number,invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check,paid_n_closed,)
+            inv_sql='INSERT INTO Invoice (invoice_number,invodate,duedate,status,emailon,printon,subtotal,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check,paid_n_closed) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
+            inv_val=(invoice_number,invodate,duedate,status,emailon,printon,subtotal,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check,paid_n_closed,)
             fbcursor.execute(inv_sql,inv_val)
             fbilldb.commit()
           elif paidinv_data[48] == 1:
             status = draft_label.cget("text")
 
-            inv_sql = "UPDATE invoice SET status=%s,invoicetot=%s,totpaid=%s,balance=%s WHERE invoice_number=%s"
-            inv_val = (status,invoicetot,totpaid,balance,paidinv_data[1],)
+            inv_sql = "UPDATE invoice SET status=%s,subtotal=%s,invoicetot=%s,totpaid=%s,balance=%s WHERE invoice_number=%s"
+            inv_val = (status,subtotal,invoicetot,totpaid,balance,paidinv_data[1],)
             fbcursor.execute(inv_sql,inv_val)
             fbilldb.commit()
           else:
@@ -6970,8 +7438,8 @@ def mainpage():
               fbcursor.execute(file_sql,file_val)
               fbilldb.commit()
 
-            inv_sql='UPDATE invoice SET invodate=%s,duedate=%s,status=%s,emailon=%s,printon=%s,invoicetot=%s,totpaid=%s,balance=%s,extracostname=%s,extracost=%s,template=%s,salesper=%s,discourate=%s,tax1=%s,category=%s,businessname=%s,businessaddress=%s,shipname=%s,shipaddress=%s,cpemail=%s,cpmobileforsms=%s,recurring_period=%s,recurring_period_month=%s,next_invoice=%s,stop_recurring=%s,discount=%s,terms=%s,tax2=%s,quantity=%s,title_text=%s,header_text=%s,footer_text=%s,term_of_payment=%s,ref=%s,comments=%s,privatenotes=%s,recurring_check=%s WHERE invoice_number=%s' #adding values into db
-            inv_val=(invodate,duedate,status,emailon,printon,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check,invoice_number,)
+            inv_sql='UPDATE invoice SET invodate=%s,duedate=%s,status=%s,emailon=%s,printon=%s,subtotal=%s,invoicetot=%s,totpaid=%s,balance=%s,extracostname=%s,extracost=%s,template=%s,salesper=%s,discourate=%s,tax1=%s,category=%s,businessname=%s,businessaddress=%s,shipname=%s,shipaddress=%s,cpemail=%s,cpmobileforsms=%s,recurring_period=%s,recurring_period_month=%s,next_invoice=%s,stop_recurring=%s,discount=%s,terms=%s,tax2=%s,quantity=%s,title_text=%s,header_text=%s,footer_text=%s,term_of_payment=%s,ref=%s,comments=%s,privatenotes=%s,recurring_check=%s WHERE invoice_number=%s' #adding values into db
+            inv_val=(invodate,duedate,status,emailon,printon,subtotal,invoicetot,totpaid,balance,extracostname,extracost,template,salesper,discourate,tax1,category,businessname,businessaddress,shipname,shipaddress,cpemail,cpmobileforsms,recurring_period,recurring_period_month,next_invoice,stop_recurring,discount,terms,tax2,quantity,title_text,header_text,footer_text,term_of_payment,ref,comments,privatenotes,recurring_check,invoice_number,)
             fbcursor.execute(inv_sql,inv_val)
             fbilldb.commit()
         else:
@@ -7340,7 +7808,7 @@ def mainpage():
     prev_invoice= Button(inv_first_frame,compound="top", text="Preview\nInvoice",relief=RAISED, image=photo4,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=previewline)
     prev_invoice.pack(side="left", pady=3, ipadx=4)
 
-    print_invoice= Button(inv_first_frame,compound="top", text="Print \nInvoice",relief=RAISED, image=photo5,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=printsele)
+    print_invoice= Button(inv_first_frame,compound="top", text="Print \nInvoice",relief=RAISED, image=photo5,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=printinvoice)
     print_invoice.pack(side="left", pady=3, ipadx=4)
 
     w = Canvas(inv_first_frame, width=1, height=65, bg="#b3b3b3", bd=0)
@@ -8234,6 +8702,7 @@ def mainpage():
       emailon_1 = never1_label_1.cget("text")
       printon_1 = never2_label_1.cget("text")
       # smson = 
+      subtotal_1 = sub1_1.cget("text")
       invoicetot_1 = invoicetot1_1.cget("text")
       totpaid_1 = total1_1.cget("text")
       balance_1 = balance1_1.cget("text")
@@ -8319,8 +8788,8 @@ def mainpage():
         fbilldb.commit()
 
       
-      inv_sql='UPDATE invoice SET invodate=%s,duedate=%s,status=%s,emailon=%s,printon=%s,invoicetot=%s,totpaid=%s,balance=%s,extracostname=%s,extracost=%s,template=%s,salesper=%s,discourate=%s,tax1=%s,category=%s,businessname=%s,businessaddress=%s,shipname=%s,shipaddress=%s,cpemail=%s,cpmobileforsms=%s,recurring_period=%s,recurring_period_month=%s,next_invoice=%s,stop_recurring=%s,discount=%s,terms=%s,tax2=%s,quantity=%s,title_text=%s,header_text=%s,footer_text=%s,term_of_payment=%s,ref=%s,comments=%s,privatenotes=%s,recurring_check=%s,paid_n_closed=%s WHERE invoice_number=%s' #adding values into db
-      inv_val=(invodate_1,duedate_1,status_1,emailon_1,printon_1,invoicetot_1,totpaid_1,balance_1,extracostname_1,extracost_1,template_1,salesper_1,discourate_1,tax1_01,category_1,businessname_1,businessaddress_1,shipname_1,shipaddress_1,cpemail_1,cpmobileforsms_1,recurring_period_1,recurring_period_month_1,next_invoice_1,stop_recurring_1,discount_1,terms_1,tax2_01,quantity_1,title_text_1,header_text_1,footer_text_1,term_of_payment_1,ref_1,comments_1,privatenotes_1,recurring_check_1,paid_n_closed,invoice_number_1,)
+      inv_sql='UPDATE invoice SET invodate=%s,duedate=%s,status=%s,emailon=%s,printon=%s,subtotal=%s,invoicetot=%s,totpaid=%s,balance=%s,extracostname=%s,extracost=%s,template=%s,salesper=%s,discourate=%s,tax1=%s,category=%s,businessname=%s,businessaddress=%s,shipname=%s,shipaddress=%s,cpemail=%s,cpmobileforsms=%s,recurring_period=%s,recurring_period_month=%s,next_invoice=%s,stop_recurring=%s,discount=%s,terms=%s,tax2=%s,quantity=%s,title_text=%s,header_text=%s,footer_text=%s,term_of_payment=%s,ref=%s,comments=%s,privatenotes=%s,recurring_check=%s,paid_n_closed=%s WHERE invoice_number=%s' #adding values into db
+      inv_val=(invodate_1,duedate_1,status_1,emailon_1,printon_1,subtotal_1,invoicetot_1,totpaid_1,balance_1,extracostname_1,extracost_1,template_1,salesper_1,discourate_1,tax1_01,category_1,businessname_1,businessaddress_1,shipname_1,shipaddress_1,cpemail_1,cpmobileforsms_1,recurring_period_1,recurring_period_month_1,next_invoice_1,stop_recurring_1,discount_1,terms_1,tax2_01,quantity_1,title_text_1,header_text_1,footer_text_1,term_of_payment_1,ref_1,comments_1,privatenotes_1,recurring_check_1,paid_n_closed,invoice_number_1,)
       fbcursor.execute(inv_sql,inv_val)
       fbilldb.commit()
       pop_1.destroy()
@@ -8750,56 +9219,224 @@ def mainpage():
         product_sel_tree_1.heading("3",text="Unit price")
         product_sel_tree_1.heading("4",text="Service")
         product_sel_tree_1.heading("5",text="Stock")
+        product_sel_tree_1.tag_configure('green', foreground='green')
+        product_sel_tree_1.tag_configure('red', foreground='red')
+        product_sel_tree_1.tag_configure('blue', foreground='blue')
         product_sel_tree_1.place(x=5, y=45)
 
-        sql = "SELECT * FROM Productservice"
+        countp = 0
+        sql = 'SELECT * FROM Productservice'
         fbcursor.execute(sql)
         product_details = fbcursor.fetchall()
-
-        count = 0
         for p in product_details:
-          if True:
-            product_sel_tree_1.insert(parent='',index='end',iid=p,text='',values=(p[0],p[4],p[7],p[12],p[13]))
+          if p[12] == '1':
+            serv_or_not = '🗹'
           else:
-            pass
-        count += 1
+            serv_or_not = ''
+          currency_sql = "SELECT currencysign,currsignplace FROM company"
+          fbcursor.execute(currency_sql,)
+          currency_symb = fbcursor.fetchone()
+          if not currency_symb: 
+            if p[13] > p[14]:
+              product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('green',))
+              countp += 1              
+            elif p[12] == '1':
+              product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('blue',))
+              countp += 1
+            else:
+              product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('red',))
+              countp += 1
+                  
+          elif currency_symb[1] == "before amount":
+            if p[13] > p[14]:
+              product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('green',))
+              countp += 1
+            elif p[12] == '1':
+              product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('blue',))
+              countp += 1
+            else:
+              product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('red',))
+              countp += 1
+
+          elif currency_symb[1] == "before amount with space":
+            if p[13] > p[14]:
+              product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('green',))
+              countp += 1
+            elif p[12] == '1':
+              product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('blue',))
+              countp += 1
+            else:
+              product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('red',))
+              countp += 1
+
+          elif currency_symb[1] == "after amount":
+            if p[13] > p[14]:
+              product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+              countp += 1
+            elif p[12] == '1':
+              product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+              countp += 1
+            else:
+              product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+              countp += 1
+
+          elif currency_symb[1] == "after amount with space":
+            if p[13] > p[14]:
+              product_sel_tree_1.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+              countp += 1
+            elif p[12] == '1':
+              product_sel_tree_1.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+              countp += 1
+            else:
+              product_sel_tree_1.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+              countp += 1
 
         #filter product
 
         def filter_product_1():
           if product_filter_entry_1.get() == '':
-            sql = "SELECT * FROM Productservice"
-            fbcursor.execute(sql)
-            product_details = fbcursor.fetchall()
             for record in product_sel_tree_1.get_children():
               product_sel_tree_1.delete(record)
 
-            count = 0
+            countp = 0
+            sql = 'SELECT * FROM Productservice'
+            fbcursor.execute(sql)
+            product_details = fbcursor.fetchall()
             for p in product_details:
-              if True:
-                product_sel_tree_1.insert(parent='',index='end',iid=p,text='',values=(p[0],p[4],p[7],p[12],p[13]))
+              if p[12] == '1':
+                serv_or_not = '🗹'
               else:
-                pass
-            count += 1
+                serv_or_not = ''
+              currency_sql = "SELECT currencysign,currsignplace FROM company"
+              fbcursor.execute(currency_sql,)
+              currency_symb = fbcursor.fetchone()
+              if not currency_symb: 
+                if p[13] > p[14]:
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('green',))
+                  countp += 1              
+                elif p[12] == '1':
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('blue',))
+                  countp += 1
+                else:
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('red',))
+                  countp += 1
+                      
+              elif currency_symb[1] == "before amount":
+                if p[13] > p[14]:
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('green',))
+                  countp += 1
+                elif p[12] == '1':
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('blue',))
+                  countp += 1
+                else:
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('red',))
+                  countp += 1
+
+              elif currency_symb[1] == "before amount with space":
+                if p[13] > p[14]:
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('green',))
+                  countp += 1
+                elif p[12] == '1':
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('blue',))
+                  countp += 1
+                else:
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('red',))
+                  countp += 1
+
+              elif currency_symb[1] == "after amount":
+                if p[13] > p[14]:
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                  countp += 1
+                elif p[12] == '1':
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                  countp += 1
+                else:
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                  countp += 1
+
+              elif currency_symb[1] == "after amount with space":
+                if p[13] > p[14]:
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                  countp += 1
+                elif p[12] == '1':
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                  countp += 1
+                else:
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                  countp += 1
 
           else:
             filter = product_filter_entry_1.get()
             for record in product_sel_tree_1.get_children():
               product_sel_tree_1.delete(record)
             
+            countp = 0
             sql = "SELECT * FROM Productservice WHERE name=%s"
             val = (filter, )
             fbcursor.execute(sql, val)
-            records = fbcursor.fetchall()
-      
-        
-            count=0
-            for i in records:
-              if True:
-                product_sel_tree_1.insert(parent='', index='end', iid=i, text='', values=(i[0],i[4],i[10],i[8]))  
+            product_details = fbcursor.fetchall()
+            for p in product_details:
+              if p[12] == '1':
+                serv_or_not = '🗹'
               else:
-                pass
-            count += 1
+                serv_or_not = ''
+              currency_sql = "SELECT currencysign,currsignplace FROM company"
+              fbcursor.execute(currency_sql,)
+              currency_symb = fbcursor.fetchone()
+              if not currency_symb: 
+                if p[13] > p[14]:
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('green',))
+                  countp += 1              
+                elif p[12] == '1':
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('blue',))
+                  countp += 1
+                else:
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('red',))
+                  countp += 1
+                      
+              elif currency_symb[1] == "before amount":
+                if p[13] > p[14]:
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('green',))
+                  countp += 1
+                elif p[12] == '1':
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('blue',))
+                  countp += 1
+                else:
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('red',))
+                  countp += 1
+
+              elif currency_symb[1] == "before amount with space":
+                if p[13] > p[14]:
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('green',))
+                  countp += 1
+                elif p[12] == '1':
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('blue',))
+                  countp += 1
+                else:
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('red',))
+                  countp += 1
+
+              elif currency_symb[1] == "after amount":
+                if p[13] > p[14]:
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                  countp += 1
+                elif p[12] == '1':
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                  countp += 1
+                else:
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                  countp += 1
+
+              elif currency_symb[1] == "after amount with space":
+                if p[13] > p[14]:
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                  countp += 1
+                elif p[12] == '1':
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                  countp += 1
+                else:
+                  product_sel_tree_1.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                  countp += 1
 
 
 
@@ -9012,38 +9649,215 @@ def mainpage():
         selected_indices_1 = pro_fil_cat_list_1.curselection()
         selected_filter_1 = ",".join([pro_fil_cat_list_1.get(i) for i in selected_indices_1])
 
-        if selected_filter_1 == "               View all Products/Services" or selected_filter_1 == "               Default":
+        if selected_filter_1 == "               View all Products/Services":
+          for record in product_sel_tree_1.get_children():
+            product_sel_tree_1.delete(record)
+          countp = 0
           pro_ser_sql_1 = "SELECT * FROM Productservice"
           fbcursor.execute(pro_ser_sql_1)
           pro_ser_data_1 = fbcursor.fetchall()
+          for p in pro_ser_data_1:
+            if p[12] == '1':
+              serv_or_not = '🗹'
+            else:
+              serv_or_not = ''
+            currency_sql = "SELECT currencysign,currsignplace FROM company"
+            fbcursor.execute(currency_sql,)
+            currency_symb = fbcursor.fetchone()
+            if not currency_symb: 
+              if p[13] > p[14]:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1              
+              elif p[12] == '1':
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+                    
+            elif currency_symb[1] == "before amount":
+              if p[13] > p[14]:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "before amount with space":
+              if p[13] > p[14]:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "after amount":
+              if p[13] > p[14]:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "after amount with space":
+              if p[13] > p[14]:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+        elif selected_filter_1 == "               View all Products":
           for record in product_sel_tree_1.get_children():
             product_sel_tree_1.delete(record)
-          count_ps = 0
-          for i in pro_ser_data_1:
-            product_sel_tree_1.insert(parent='',index='end',iid=i,text='',values=(i[2],i[4],i[7],i[12],i[13]))
-          count_ps += 1
-        elif selected_filter_1 == "               View all Products":
+          countp  = 0
           pro_sql_1 = "SELECT * FROM Productservice WHERE serviceornot=%s"
           pro_val_1 = ('0',)
           fbcursor.execute(pro_sql_1,pro_val_1)
           pro_data_1 = fbcursor.fetchall()
+          for p in pro_data_1:
+            if p[12] == '1':
+              serv_or_not = '🗹'
+            else:
+              serv_or_not = ''
+            currency_sql = "SELECT currencysign,currsignplace FROM company"
+            fbcursor.execute(currency_sql,)
+            currency_symb = fbcursor.fetchone()
+            if not currency_symb: 
+              if p[13] > p[14]:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1              
+              elif p[12] == '1':
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+                    
+            elif currency_symb[1] == "before amount":
+              if p[13] > p[14]:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "before amount with space":
+              if p[13] > p[14]:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "after amount":
+              if p[13] > p[14]:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "after amount with space":
+              if p[13] > p[14]:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+        elif selected_filter_1 == "               View all Services":
           for record in product_sel_tree_1.get_children():
             product_sel_tree_1.delete(record)
-          count_p = 0
-          for i in pro_data_1:
-            product_sel_tree_1.insert(parent='', index='end', iid=i, text='', values=(i[2],i[4],i[7],i[12],i[13]))
-          count_p += 1
-        elif selected_filter_1 == "               View all Services":
+          countp = 0
           ser_sql_1 = "SELECT * FROM Productservice WHERE serviceornot=%s"
           ser_val_1 = ('1',)
           fbcursor.execute(ser_sql_1,ser_val_1)
           ser_data_1 = fbcursor.fetchall()
-          for record in product_sel_tree_1.get_children():
-            product_sel_tree_1.delete(record)
-          count_s = 0
-          for i in ser_data_1:
-            product_sel_tree_1.insert(parent='', index='end', iid=i, text='', values=(i[2],i[4],i[7],i[12],i[13]))
-          count_s += 1
+          for p in ser_data_1:
+            if p[12] == '1':
+              serv_or_not = '🗹'
+            else:
+              serv_or_not = ''
+            currency_sql = "SELECT currencysign,currsignplace FROM company"
+            fbcursor.execute(currency_sql,)
+            currency_symb = fbcursor.fetchone()
+            if not currency_symb: 
+              if p[13] > p[14]:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1              
+              elif p[12] == '1':
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+                    
+            elif currency_symb[1] == "before amount":
+              if p[13] > p[14]:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "before amount with space":
+              if p[13] > p[14]:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "after amount":
+              if p[13] > p[14]:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "after amount with space":
+              if p[13] > p[14]:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                countp += 1
 
 
 
@@ -9054,7 +9868,6 @@ def mainpage():
       pro_fil_cat_list_1.insert(0,"               View all Products/Services")
       pro_fil_cat_list_1.insert(1,"               View all Products")
       pro_fil_cat_list_1.insert(2,"               View all Services")
-      pro_fil_cat_list_1.insert(3,"               Default")
       pro_fil_cat_list_1.place(x=660,y=63)
       pro_fil_cat_list_1.bind('<<ListboxSelect>>',list_filter_product_1)
 
@@ -9101,8 +9914,9 @@ def mainpage():
           canvas.config(yscrollcommand=vertibar.set)
           canvas.pack(expand=True,side=LEFT,fill=BOTH)
           canvas.create_rectangle(235, 25, 1035, 1430 , outline='yellow',fill='white')
-          # canvas.create_text(500, 50, text="Title text goes here...", fill="black", font=('Helvetica 10'))
-          # canvas.create_text(285, 110, text="Your Company Logo", fill="black", font=('Helvetica 18 bold'))
+          inv_title_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_title_canvas.config(text=title_txt_combo_1.get(),anchor="center",bg="white")
+          canvas.create_window(637, 50,window=inv_title_canvas)
 
           try:
             image = Image.open("images/"+comp_data[13])
@@ -9131,7 +9945,7 @@ def mainpage():
           inv_ref_canvas.config(text=inv_ref_entry_1.get(),anchor="w")
           canvas.create_window(548, 330,window=inv_ref_canvas) 
           
-          canvas.create_text(900, 110, text=comp_data[1], fill="black", font=('Helvetica 12 '))
+          canvas.create_text(896, 110, text=comp_data[1], fill="black", font=('Helvetica 12 bold'))
           comp_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=5,fg= "black",bg="white",cursor="arrow",bd=0,)
           comp_addr_canvas.insert("1.0",comp_data[2])
           comp_addr_canvas.tag_configure("tag_name", justify='right')
@@ -9144,24 +9958,28 @@ def mainpage():
           canvas.create_text(951, 255, text="Invoice", fill="black", font=('Helvetica 14 bold'))
           canvas.create_text(935, 285, text="TAX EXEMPTED", fill="black", font=('Helvetica 10'))
           
-          canvas.create_text(325, 370, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
+          canvas.create_text(325, 360, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
           inv_canv_name = Label(canvas,font=('Helvetica 10 '),width=30)
           inv_canv_name.config(text=inv_combo_e1_1.get(),anchor="w",bg="white")
-          canvas.create_window(419, 395,window=inv_canv_name)
+          canvas.create_window(419, 380,window=inv_canv_name)
           inv_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
           bg="white",cursor="arrow")
           inv_addr_canvas.insert("1.0",inv_addr_e2_1.get("1.0",END))
           inv_addr_canvas.config(state=DISABLED)
-          canvas.create_window(405, 442, window=inv_addr_canvas)
-          canvas.create_text(650, 370, text="Ship to", fill="black", font=('Helvetica 10 underline'))
+          canvas.create_window(405, 425, window=inv_addr_canvas)
+          canvas.create_text(650, 360, text="Ship to", fill="black", font=('Helvetica 10 underline'))
           inv_ship_canv_lbl = Label(canvas, font=('Helvetica 10 '),width=30)
           inv_ship_canv_lbl.config(text=inv_shipto_e3_1.get(),anchor="w",bg="white")
-          canvas.create_window(751, 395, window=inv_ship_canv_lbl)
+          canvas.create_window(751, 380, window=inv_ship_canv_lbl)
           inv_ship_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
           bg="white",cursor="arrow")
           inv_ship_addr_canvas.insert("1.0",inv_addr_e4_1.get("1.0",END))
           inv_ship_addr_canvas.config(state=DISABLED)
-          canvas.create_window(736, 442,window=inv_ship_addr_canvas)
+          canvas.create_window(736, 425,window=inv_ship_addr_canvas)
+
+          inv_header_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_header_canvas.config(text=pageh_txt_combo_1.get(),anchor="center",bg="white")
+          canvas.create_window(637, 452,window=inv_header_canvas)
           
           s = ttk.Style()
           s.configure('Treeview.Heading', background='',State='DISABLE')
@@ -10019,14 +10837,14 @@ def mainpage():
           inv_prev_terms.tag_configure("tag_name", justify='left')
           inv_prev_terms.tag_add("tag_name", "1.0", "end")
           inv_prev_terms.config(state=DISABLED)
-          canvas.create_window(642, 1130,window=inv_prev_terms)
-          canvas.create_text(330, 1170, text="Sale Person:", fill="black", font=('Helvetica 10'))
+          canvas.create_window(642, 1125,window=inv_prev_terms)
+          canvas.create_text(330, 1165, text="Sale Person:", fill="black", font=('Helvetica 10'))
           inv_prev_salesp = Label(canvas, font=('Helvetica 10 '),width=30)
           inv_prev_salesp.config(text=sales_per_entry_1.get(),anchor="w",bg="white")
-          canvas.create_window(502, 1170, window = inv_prev_salesp)
-
-          canvas.create_text(375, 1190, text="Page footer text goes here...", fill="black", font=('Helvetica 10'))
-          canvas.create_text(950, 1190, text="Page 1 of 1", fill="black", font=('Helvetica 10'))
+          canvas.create_window(502, 1165, window = inv_prev_salesp)
+          inv_footer_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_footer_canvas.config(text=footer_txt_combo_1.get(),anchor="w",bg="white")
+          canvas.create_window(413, 1185,window=inv_footer_canvas)
       #----------------Professional 2 (logo on right side)------------------
         elif temp_type == 'Professional 2 (logo on right side)':
           frame = Frame(prev_invo, width=953, height=300)
@@ -10042,8 +10860,9 @@ def mainpage():
           canvas.config(yscrollcommand=vertibar.set)
           canvas.pack(expand=True,side=LEFT,fill=BOTH)
           canvas.create_rectangle(235, 25, 1035, 1430 , outline='yellow',fill='white')
-          # canvas.create_text(500, 50, text="Title text goes here...", fill="black", font=('Helvetica 10'))
-          # canvas.create_text(285, 110, text="Your Company Logo", fill="black", font=('Helvetica 18 bold'))
+          inv_title_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_title_canvas.config(text=title_txt_combo_1.get(),anchor="center",bg="white")
+          canvas.create_window(637, 50,window=inv_title_canvas)
 
           try:
             image = Image.open("images/"+comp_data[13])
@@ -10072,7 +10891,7 @@ def mainpage():
           inv_ref_canvas.config(text=inv_ref_entry_1.get(),anchor="w")
           canvas.create_window(918, 330,window=inv_ref_canvas)
           
-          canvas.create_text(375, 110, text=comp_data[1], fill="black", font=('Helvetica 12 '))
+          canvas.create_text(379, 110, text=comp_data[1], fill="black", font=('Helvetica 12 bold'))
           comp_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=5,fg= "black",bg="white",cursor="arrow",bd=0,)
           comp_addr_canvas.insert("1.0",comp_data[2])
           comp_addr_canvas.tag_configure("tag_name", justify='left')
@@ -10085,24 +10904,28 @@ def mainpage():
           canvas.create_text(320, 255, text="Invoice", fill="black", font=('Helvetica 14 bold'))
           canvas.create_text(335, 285, text="TAX EXEMPTED", fill="black", font=('Helvetica 10'))
           
-          canvas.create_text(315, 370, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
+          canvas.create_text(315, 350, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
           inv_canv_name = Label(canvas,font=('Helvetica 10 '),width=30)
           inv_canv_name.config(text=inv_combo_e1_1.get(),anchor="w",bg="white")
-          canvas.create_window(409, 395,window=inv_canv_name)
+          canvas.create_window(409, 370,window=inv_canv_name)
           inv_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
           bg="white",cursor="arrow")
           inv_addr_canvas.insert("1.0",inv_addr_e2_1.get("1.0",END))
           inv_addr_canvas.config(state=DISABLED)
-          canvas.create_window(395, 442, window=inv_addr_canvas)
-          canvas.create_text(650, 370, text="Ship to", fill="black", font=('Helvetica 10 underline'))
+          canvas.create_window(395, 415, window=inv_addr_canvas)
+          canvas.create_text(650, 350, text="Ship to", fill="black", font=('Helvetica 10 underline'))
           inv_ship_canv_lbl = Label(canvas, font=('Helvetica 10 '),width=30)
           inv_ship_canv_lbl.config(text=inv_shipto_e3_1.get(),anchor="w",bg="white")
-          canvas.create_window(751, 395, window=inv_ship_canv_lbl)
+          canvas.create_window(751, 370, window=inv_ship_canv_lbl)
           inv_ship_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
           bg="white",cursor="arrow")
           inv_ship_addr_canvas.insert("1.0",inv_addr_e4_1.get("1.0",END))
           inv_ship_addr_canvas.config(state=DISABLED)
-          canvas.create_window(736, 442,window=inv_ship_addr_canvas)
+          canvas.create_window(736, 415,window=inv_ship_addr_canvas)
+
+          inv_header_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_header_canvas.config(text=pageh_txt_combo_1.get(),anchor="center",bg="white")
+          canvas.create_window(637, 452,window=inv_header_canvas)
           
           s = ttk.Style()
           s.configure('Treeview.Heading', background='',State='DISABLE')
@@ -10960,14 +11783,14 @@ def mainpage():
           inv_prev_terms.tag_configure("tag_name", justify='left')
           inv_prev_terms.tag_add("tag_name", "1.0", "end")
           inv_prev_terms.config(state=DISABLED)
-          canvas.create_window(642, 1130,window=inv_prev_terms)
-          canvas.create_text(330, 1170, text="Sale Person:", fill="black", font=('Helvetica 10'))
+          canvas.create_window(642, 1125,window=inv_prev_terms)
+          canvas.create_text(330, 1165, text="Sale Person:", fill="black", font=('Helvetica 10'))
           inv_prev_salesp = Label(canvas, font=('Helvetica 10 '),width=30)
           inv_prev_salesp.config(text=sales_per_entry_1.get(),anchor="w",bg="white")
-          canvas.create_window(502, 1170, window = inv_prev_salesp)
-
-          canvas.create_text(375, 1190, text="Page footer text goes here...", fill="black", font=('Helvetica 10'))
-          canvas.create_text(950, 1190, text="Page 1 of 1", fill="black", font=('Helvetica 10'))
+          canvas.create_window(502, 1165, window = inv_prev_salesp)
+          inv_footer_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_footer_canvas.config(text=footer_txt_combo_1.get(),anchor="w",bg="white")
+          canvas.create_window(413, 1185,window=inv_footer_canvas)
       #----------------Simplified 1 (logo on left side)------------------ 
         elif temp_type == 'Simplified 1 (logo on left side)':
           frame = Frame(prev_invo, width=953, height=300)
@@ -10983,8 +11806,9 @@ def mainpage():
           canvas.config(yscrollcommand=vertibar.set)
           canvas.pack(expand=True,side=LEFT,fill=BOTH)
           canvas.create_rectangle(235, 25, 1035, 1430 , outline='yellow',fill='white')
-          # canvas.create_text(500, 50, text="Title text goes here...", fill="black", font=('Helvetica 10'))
-          # canvas.create_text(285, 110, text="Your Company Logo", fill="black", font=('Helvetica 18 bold'))
+          inv_title_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_title_canvas.config(text=title_txt_combo_1.get(),anchor="center",bg="white")
+          canvas.create_window(637, 50,window=inv_title_canvas)
 
           try:
             image = Image.open("images/"+comp_data[13])
@@ -11013,7 +11837,7 @@ def mainpage():
           inv_ref_canvas.config(text=inv_ref_entry_1.get(),anchor="w")
           canvas.create_window(548, 330,window=inv_ref_canvas)   
           
-          canvas.create_text(900, 110, text=comp_data[1], fill="black", font=('Helvetica 12 '))
+          canvas.create_text(896, 110, text=comp_data[1], fill="black", font=('Helvetica 12 bold'))
           comp_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=5,fg= "black",bg="white",cursor="arrow",bd=0,)
           comp_addr_canvas.insert("1.0",comp_data[2])
           comp_addr_canvas.tag_configure("tag_name", justify='right')
@@ -11026,24 +11850,28 @@ def mainpage():
           canvas.create_text(951, 255, text="Invoice", fill="black", font=('Helvetica 14 bold'))
           canvas.create_text(935, 285, text="TAX EXEMPTED", fill="black", font=('Helvetica 10'))
           
-          canvas.create_text(325, 370, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
+          canvas.create_text(325, 360, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
           inv_canv_name = Label(canvas,font=('Helvetica 10 '),width=30)
           inv_canv_name.config(text=inv_combo_e1_1.get(),anchor="w",bg="white")
-          canvas.create_window(419, 395,window=inv_canv_name)
+          canvas.create_window(419, 380,window=inv_canv_name)
           inv_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
           bg="white",cursor="arrow")
           inv_addr_canvas.insert("1.0",inv_addr_e2_1.get("1.0",END))
           inv_addr_canvas.config(state=DISABLED)
-          canvas.create_window(405, 442, window=inv_addr_canvas)
-          canvas.create_text(650, 370, text="Ship to", fill="black", font=('Helvetica 10 underline'))
+          canvas.create_window(405, 425, window=inv_addr_canvas)
+          canvas.create_text(650, 360, text="Ship to", fill="black", font=('Helvetica 10 underline'))
           inv_ship_canv_lbl = Label(canvas, font=('Helvetica 10 '),width=30)
           inv_ship_canv_lbl.config(text=inv_shipto_e3_1.get(),anchor="w",bg="white")
-          canvas.create_window(751, 395, window=inv_ship_canv_lbl)
+          canvas.create_window(751, 380, window=inv_ship_canv_lbl)
           inv_ship_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
           bg="white",cursor="arrow")
           inv_ship_addr_canvas.insert("1.0",inv_addr_e4_1.get("1.0",END))
           inv_ship_addr_canvas.config(state=DISABLED)
-          canvas.create_window(736, 442,window=inv_ship_addr_canvas)
+          canvas.create_window(736, 425,window=inv_ship_addr_canvas)
+
+          inv_header_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_header_canvas.config(text=pageh_txt_combo_1.get(),anchor="center",bg="white")
+          canvas.create_window(637, 452,window=inv_header_canvas)
           
           s = ttk.Style()
           s.configure('Treeview.Heading', background='',State='DISABLE')
@@ -11897,14 +12725,14 @@ def mainpage():
           inv_prev_terms.tag_configure("tag_name", justify='left')
           inv_prev_terms.tag_add("tag_name", "1.0", "end")
           inv_prev_terms.config(state=DISABLED)
-          canvas.create_window(642, 1130,window=inv_prev_terms)
-          canvas.create_text(330, 1170, text="Sale Person:", fill="black", font=('Helvetica 10'))
+          canvas.create_window(642, 1125,window=inv_prev_terms)
+          canvas.create_text(330, 1165, text="Sale Person:", fill="black", font=('Helvetica 10'))
           inv_prev_salesp = Label(canvas, font=('Helvetica 10 '),width=30)
           inv_prev_salesp.config(text=sales_per_entry_1.get(),anchor="w",bg="white")
-          canvas.create_window(502, 1170, window = inv_prev_salesp)
-
-          canvas.create_text(375, 1190, text="Page footer text goes here...", fill="black", font=('Helvetica 10'))
-          canvas.create_text(950, 1190, text="Page 1 of 1", fill="black", font=('Helvetica 10'))
+          canvas.create_window(502, 1165, window = inv_prev_salesp)
+          inv_footer_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_footer_canvas.config(text=footer_txt_combo_1.get(),anchor="w",bg="white")
+          canvas.create_window(413, 1185,window=inv_footer_canvas)
       #----------------Simplified 2 (logo on right side)------------------ 
         elif temp_type == 'Simplified 2 (logo on right side)':
           frame = Frame(prev_invo, width=953, height=300)
@@ -11920,8 +12748,9 @@ def mainpage():
           canvas.config(yscrollcommand=vertibar.set)
           canvas.pack(expand=True,side=LEFT,fill=BOTH)
           canvas.create_rectangle(235, 25, 1035, 1430 , outline='yellow',fill='white')
-          # canvas.create_text(500, 50, text="Title text goes here...", fill="black", font=('Helvetica 10'))
-          # canvas.create_text(285, 110, text="Your Company Logo", fill="black", font=('Helvetica 18 bold'))
+          inv_title_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_title_canvas.config(text=title_txt_combo_1.get(),anchor="center",bg="white")
+          canvas.create_window(637, 50,window=inv_title_canvas)
 
           try:
             image = Image.open("images/"+comp_data[13])
@@ -11950,7 +12779,7 @@ def mainpage():
           inv_ref_canvas.config(text=inv_ref_entry_1.get(),anchor="w")
           canvas.create_window(918, 330,window=inv_ref_canvas)   
           
-          canvas.create_text(375, 110, text=comp_data[1], fill="black", font=('Helvetica 12 '))
+          canvas.create_text(379, 110, text=comp_data[1], fill="black", font=('Helvetica 12 bold'))
           comp_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=5,fg= "black",bg="white",cursor="arrow",bd=0,)
           comp_addr_canvas.insert("1.0",comp_data[2])
           comp_addr_canvas.tag_configure("tag_name", justify='left')
@@ -11963,24 +12792,28 @@ def mainpage():
           canvas.create_text(320, 255, text="Invoice", fill="black", font=('Helvetica 14 bold'))
           canvas.create_text(335, 285, text="TAX EXEMPTED", fill="black", font=('Helvetica 10'))
           
-          canvas.create_text(315, 370, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
+          canvas.create_text(315, 350, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
           inv_canv_name = Label(canvas,font=('Helvetica 10 '),width=30)
           inv_canv_name.config(text=inv_combo_e1_1.get(),anchor="w",bg="white")
-          canvas.create_window(409, 395,window=inv_canv_name)
+          canvas.create_window(409, 370,window=inv_canv_name)
           inv_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
           bg="white",cursor="arrow")
           inv_addr_canvas.insert("1.0",inv_addr_e2_1.get("1.0",END))
           inv_addr_canvas.config(state=DISABLED)
-          canvas.create_window(395, 442, window=inv_addr_canvas)
-          canvas.create_text(650, 370, text="Ship to", fill="black", font=('Helvetica 10 underline'))
+          canvas.create_window(395, 415, window=inv_addr_canvas)
+          canvas.create_text(650, 350, text="Ship to", fill="black", font=('Helvetica 10 underline'))
           inv_ship_canv_lbl = Label(canvas, font=('Helvetica 10 '),width=30)
           inv_ship_canv_lbl.config(text=inv_shipto_e3_1.get(),anchor="w",bg="white")
-          canvas.create_window(751, 395, window=inv_ship_canv_lbl)
+          canvas.create_window(751, 370, window=inv_ship_canv_lbl)
           inv_ship_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
           bg="white",cursor="arrow")
           inv_ship_addr_canvas.insert("1.0",inv_addr_e4_1.get("1.0",END))
           inv_ship_addr_canvas.config(state=DISABLED)
-          canvas.create_window(736, 442,window=inv_ship_addr_canvas)
+          canvas.create_window(736, 415,window=inv_ship_addr_canvas)
+
+          inv_header_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_header_canvas.config(text=pageh_txt_combo_1.get(),anchor="center",bg="white")
+          canvas.create_window(637, 452,window=inv_header_canvas)
           
           s = ttk.Style()
           s.configure('Treeview.Heading', background='',State='DISABLE')
@@ -12834,14 +13667,14 @@ def mainpage():
           inv_prev_terms.tag_configure("tag_name", justify='left')
           inv_prev_terms.tag_add("tag_name", "1.0", "end")
           inv_prev_terms.config(state=DISABLED)
-          canvas.create_window(642, 1130,window=inv_prev_terms)
-          canvas.create_text(330, 1170, text="Sale Person:", fill="black", font=('Helvetica 10'))
+          canvas.create_window(642, 1125,window=inv_prev_terms)
+          canvas.create_text(330, 1165, text="Sale Person:", fill="black", font=('Helvetica 10'))
           inv_prev_salesp = Label(canvas, font=('Helvetica 10 '),width=30)
           inv_prev_salesp.config(text=sales_per_entry_1.get(),anchor="w",bg="white")
-          canvas.create_window(502, 1170, window = inv_prev_salesp)
-
-          canvas.create_text(375, 1190, text="Page footer text goes here...", fill="black", font=('Helvetica 10'))
-          canvas.create_text(950, 1190, text="Page 1 of 1", fill="black", font=('Helvetica 10'))
+          canvas.create_window(502, 1165, window = inv_prev_salesp)
+          inv_footer_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_footer_canvas.config(text=footer_txt_combo_1.get(),anchor="w",bg="white")
+          canvas.create_window(413, 1185,window=inv_footer_canvas)
       #----------------Business Classic------------------ 
         elif temp_type == 'Business Classic':
           frame = Frame(prev_invo, width=953, height=300)
@@ -12857,8 +13690,11 @@ def mainpage():
           canvas.config(yscrollcommand=vertibar.set)
           canvas.pack(expand=True,side=LEFT,fill=BOTH)
           canvas.create_rectangle(235, 25, 1080, 1430 , outline='yellow',fill='white')
-          # canvas.create_text(500, 50, text="Title text goes here...", fill="black", font=('Helvetica 10'))
+          inv_title_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_title_canvas.config(text=title_txt_combo_1.get(),anchor="center",bg="white")
+          canvas.create_window(657, 50,window=inv_title_canvas)
           canvas.create_line(290, 70, 1025, 70, fill='orange')
+
           try:
             image = Image.open("images/"+comp_data[13])
             resize_image = image.resize((250, 125))
@@ -12868,7 +13704,7 @@ def mainpage():
             canvas.create_window(417, 155,window=b2)
           except:
             pass
-          canvas.create_text(625, 110, text=comp_data[1], fill="black", font=('Helvetica 10'))
+          canvas.create_text(629, 110, text=comp_data[1], fill="black", font=('Helvetica 10 bold'))
           comp_addr_canvas = Text(canvas,font=('Helvetica 10'),width=21,height=5,fg= "black",bg="white",cursor="arrow",bd=0,)
           comp_addr_canvas.insert("1.0",comp_data[2])
           comp_addr_canvas.tag_configure("tag_name", justify='left')
@@ -12904,12 +13740,11 @@ def mainpage():
           canvas.create_window(963, 250,window=inv_terms_canvas)
           inv_ref_canvas = Label(canvas,font=('Helvetica 10'),width=25,bg='white')
           inv_ref_canvas.config(text=inv_ref_entry_1.get(),anchor="w")
-          canvas.create_window(963, 270,window=inv_ref_canvas)
-          # canvas.create_text(890, 190, text=inv_number_entry.get(), fill="black", font=('Helvetica 10'))
-          # canvas.create_text(900, 210, text=inv_date_entry.get_date(), fill="black", font=('Helvetica 10'))
-          # canvas.create_text(900, 230, text=inv_duedate_entry.get_date(), fill="black", font=('Helvetica 10'))
-          # canvas.create_text(898, 250, text=inv_terms_combo.get(), fill="black", font=('Helvetica 10'))   
-          # canvas.create_text(890, 270, text=inv_ref_entry.get(), fill="black", font=('Helvetica 10'))  
+          canvas.create_window(963, 270,window=inv_ref_canvas) 
+
+          inv_header_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_header_canvas.config(text=pageh_txt_combo_1.get(),anchor="center",bg="white")
+          canvas.create_window(657, 290,window=inv_header_canvas)
 
 
           s = ttk.Style()
@@ -13765,14 +14600,14 @@ def mainpage():
           inv_prev_terms.tag_configure("tag_name", justify='left')
           inv_prev_terms.tag_add("tag_name", "1.0", "end")
           inv_prev_terms.config(state=DISABLED)
-          canvas.create_window(661, 1130,window=inv_prev_terms)
-          canvas.create_text(330, 1170, text="Sale Person:", fill="black", font=('Helvetica 10'))
+          canvas.create_window(661, 1125,window=inv_prev_terms)
+          canvas.create_text(330, 1165, text="Sale Person:", fill="black", font=('Helvetica 10'))
           inv_prev_salesp = Label(canvas, font=('Helvetica 10 '),width=30)
           inv_prev_salesp.config(text=sales_per_entry_1.get(),anchor="w",bg="white")
-          canvas.create_window(502, 1170, window = inv_prev_salesp)
-
-          canvas.create_text(375, 1190, text="Page footer text goes here...", fill="black", font=('Helvetica 10'))
-          canvas.create_text(1000, 1190, text="Page 1 of 1", fill="black", font=('Helvetica 10'))
+          canvas.create_window(502, 1165, window = inv_prev_salesp)
+          inv_footer_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+          inv_footer_canvas.config(text=footer_txt_combo_1.get(),anchor="w",bg="white")
+          canvas.create_window(413, 1185,window=inv_footer_canvas)
         else:
             pass
 
@@ -14077,53 +14912,108 @@ def mainpage():
       check_newline = add_newline_tree_1.get_children()
 
       def markas_paid_1():
-        close_sql = "UPDATE invoice SET paid_n_closed=%s WHERE invoice_number=%s"
-        close_val = (1,edit_inv_data[1],)
-        fbcursor.execute(close_sql,close_val)
+        invoice_number_1 = inv_number_entry_1.get()
+        invodate_1 = inv_date_entry_1.get_date()
+        if checkvarStatus5_1.get() == 0:
+          duedate_1 = NULL
+        else:
+          duedate_1 = inv_duedate_entry_1.get_date()
+        term_of_payment_1 = inv_terms_combo_1.get()
+        ref_1 = inv_ref_entry_1.get()
+        status_1 = draft_label_1.cget("text")
+        emailon_1 = never1_label_1.cget("text")
+        printon_1 = never2_label_1.cget("text")
+        # smson = 
+        subtotal_1 = sub1_1.cget("text")
+        invoicetot_1 = invoicetot1_1.cget("text")
+        totpaid_1 = total1_1.cget("text")
+        balance_1 = balance1_1.cget("text")
+        extracostname_1 = ex_costn_combo_1.get()
+        extracost_1 = cost1_1.cget("text")
+        template_1 = template_entry_1.get()
+        salesper_1 = sales_per_entry_1.get()
+        discourate_1 = dis_rate_entry_1.get()
+        discount_1 = discount1_1.cget("text")
+        tax1_01 = tax1_1.cget("text")
+        category_1 = category_entry_1.get()
+        businessname_1 = inv_combo_e1_1.get()
+        businessaddress_1 = inv_addr_e2_1.get("1.0",END)
+        shipname_1 = inv_shipto_e3_1.get()
+        shipaddress_1 = inv_addr_e4_1.get("1.0",END)
+        cpemail_1 = inv_email_e5_1.get()
+        cpmobileforsms_1 = inv_sms_e6_1.get()
+        if checkrecStatus_1.get() == 0 :
+          next_invoice_1 = NULL
+          stop_recurring_1 = NULL
+          recurring_period_1 = NULL
+          recurring_period_month_1 = NULL
+          recurring_check_1 = 0
+        else:
+          next_invoice_1 = recur_nxt_inv_date_1.get_date()
+          stop_recurring_1 = recur_stop_date_1.get_date()
+          recurring_period_1 = recur_period_entry_1.get()
+          recurring_period_month_1 = recur_month_combo_1.get()
+          recurring_check_1 = 1
+        title_text_1 = title_txt_combo_1.get()
+        header_text_1 = pageh_txt_combo_1.get()
+        footer_text_1 = footer_txt_combo_1.get()
+        tax2_01 = tax2_1.cget("text")
+        comments_1 = comment_txt_1.get("1.0",END)
+        privatenotes_1 = private_note_txt_1.get("1.0",END)
+        terms_1 = term_txt_1.get("1.0",END)
+        paid_n_closed = 1
+        doc_get_1 = doc_tree_1.get_children()
+        for qn in add_newline_tree_1.get_children():
+          quantity_1 = add_newline_tree_1.item(qn)["values"][4]
+
+        del_storp_sql = "DELETE FROM storingproduct WHERE invoice_number=%s"
+        del_storp_val = (invoice_number_1,)
+        fbcursor.execute(del_storp_sql,del_storp_val)
         fbilldb.commit()
 
         comp_sql = "SELECT * FROM company"
         fbcursor.execute(comp_sql,)
         comp_data_1 = fbcursor.fetchone()
-
-        del_storp_sql = "DELETE FROM storingproduct WHERE invoice_number=%s"
-        del_storp_val = (edit_inv_data[1],)
-        fbcursor.execute(del_storp_sql,del_storp_val)
-        fbilldb.commit()
         for record in add_newline_tree_1.get_children():
           storingproduct = add_newline_tree_1.item(record)["values"]
           if not comp_data_1:
             storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
-            storepro_val = (edit_inv_data[1],storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6])
+            storepro_val = (invoice_number_1,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6])
             fbcursor.execute(storepro_sql,storepro_val)
             fbilldb.commit()
           elif comp_data_1[12] == "1":
             storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)"
-            storepro_val = (edit_inv_data[1],storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6])
+            storepro_val = (invoice_number_1,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6])
             fbcursor.execute(storepro_sql,storepro_val)
             fbilldb.commit()
           elif comp_data_1[12] == "2":
             storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,tax1,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-            storepro_val = (edit_inv_data[1],storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6],storingproduct[7])
+            storepro_val = (invoice_number_1,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6],storingproduct[7])
             fbcursor.execute(storepro_sql,storepro_val)
             fbilldb.commit()
           elif comp_data_1[12] == "3":
             storepro_sql = "INSERT INTO storingproduct(invoice_number,sku,name,description,unitprice,quantity,peices,tax1,tax2,price) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-            storepro_val = (edit_inv_data[1],storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6],storingproduct[7],storingproduct[8])
+            storepro_val = (invoice_number_1,storingproduct[0],storingproduct[1],storingproduct[2],storingproduct[3],storingproduct[4],storingproduct[5],storingproduct[6],storingproduct[7],storingproduct[8])
             fbcursor.execute(storepro_sql,storepro_val)
             fbilldb.commit()
             
       
         del_file_sql = "DELETE FROM documents WHERE invoice_number=%s"
-        del_file_val = (edit_inv_data[1],)
+        del_file_val = (invoice_number_1,)
         fbcursor.execute(del_file_sql,del_file_val)
         fbilldb.commit()
-        for f in doc_tree_1.get_children():
+        for f in doc_get_1:
           files = doc_tree_1.item(f)["values"][1]
           file_sql = "INSERT INTO documents(invoice_number,documents) VALUES(%s,%s)"
-          file_val = (edit_inv_data[1],files)
+          file_val = (invoice_number_1,files)
           fbcursor.execute(file_sql,file_val)
           fbilldb.commit()
+
+        
+        inv_sql='UPDATE invoice SET invodate=%s,duedate=%s,status=%s,emailon=%s,printon=%s,subtotal=%s,invoicetot=%s,totpaid=%s,balance=%s,extracostname=%s,extracost=%s,template=%s,salesper=%s,discourate=%s,tax1=%s,category=%s,businessname=%s,businessaddress=%s,shipname=%s,shipaddress=%s,cpemail=%s,cpmobileforsms=%s,recurring_period=%s,recurring_period_month=%s,next_invoice=%s,stop_recurring=%s,discount=%s,terms=%s,tax2=%s,quantity=%s,title_text=%s,header_text=%s,footer_text=%s,term_of_payment=%s,ref=%s,comments=%s,privatenotes=%s,recurring_check=%s,paid_n_closed=%s WHERE invoice_number=%s' #adding values into db
+        inv_val=(invodate_1,duedate_1,status_1,emailon_1,printon_1,subtotal_1,invoicetot_1,totpaid_1,balance_1,extracostname_1,extracost_1,template_1,salesper_1,discourate_1,tax1_01,category_1,businessname_1,businessaddress_1,shipname_1,shipaddress_1,cpemail_1,cpmobileforsms_1,recurring_period_1,recurring_period_month_1,next_invoice_1,stop_recurring_1,discount_1,terms_1,tax2_01,quantity_1,title_text_1,header_text_1,footer_text_1,term_of_payment_1,ref_1,comments_1,privatenotes_1,recurring_check_1,paid_n_closed,invoice_number_1,)
+        fbcursor.execute(inv_sql,inv_val)
+        fbilldb.commit()
 
 
         select_customer_btn_1["state"] = DISABLED
@@ -14706,11 +15596,12 @@ def mainpage():
         if draft_label_1["text"] == "Void":
           if edit_inv_data[48] == 1:
             status_1 = draft_label_1.cget("text")
+            subtotal_1 = 0
             invoicetot_1 = 0
             totpaid_1 = 0
             balance_1 = 0
-            inv_sql = "UPDATE invoice SET status=%s,invoicetot=%s,totpaid=%s,balance=%s WHERE invoice_number=%s"
-            inv_val = (status_1,invoicetot_1,totpaid_1,balance_1,edit_inv_data[1])
+            inv_sql = "UPDATE invoice SET status=%s,subtotal=%s,invoicetot=%s,totpaid=%s,balance=%s WHERE invoice_number=%s"
+            inv_val = (status_1,subtotal_1,invoicetot_1,totpaid_1,balance_1,edit_inv_data[1])
             fbcursor.execute(inv_sql,inv_val)
             fbilldb.commit()
           else:
@@ -14726,6 +15617,7 @@ def mainpage():
             emailon_1 = never1_label_1.cget("text")
             printon_1 = never2_label_1.cget("text")
             # smson = 
+            subtotal_1 = 0
             invoicetot_1 = 0
             totpaid_1 = 0
             balance_1 = 0
@@ -14809,8 +15701,8 @@ def mainpage():
               fbcursor.execute(file_sql,file_val)
               fbilldb.commit()
 
-            inv_sql='UPDATE invoice SET invodate=%s,duedate=%s,status=%s,emailon=%s,printon=%s,invoicetot=%s,totpaid=%s,balance=%s,extracostname=%s,extracost=%s,template=%s,salesper=%s,discourate=%s,tax1=%s,category=%s,businessname=%s,businessaddress=%s,shipname=%s,shipaddress=%s,cpemail=%s,cpmobileforsms=%s,recurring_period=%s,recurring_period_month=%s,next_invoice=%s,stop_recurring=%s,discount=%s,terms=%s,tax2=%s,quantity=%s,title_text=%s,header_text=%s,footer_text=%s,term_of_payment=%s,ref=%s,comments=%s,privatenotes=%s,recurring_check=%s WHERE invoice_number=%s' #adding values into db
-            inv_val=(invodate_1,duedate_1,status_1,emailon_1,printon_1,invoicetot_1,totpaid_1,balance_1,extracostname_1,extracost_1,template_1,salesper_1,discourate_1,tax1_01,category_1,businessname_1,businessaddress_1,shipname_1,shipaddress_1,cpemail_1,cpmobileforsms_1,recurring_period_1,recurring_period_month_1,next_invoice_1,stop_recurring_1,discount_1,terms_1,tax2_01,quantity_1,title_text_1,header_text_1,footer_text_1,term_of_payment_1,ref_1,comments_1,privatenotes_1,recurring_check_1,invoice_number_1,)
+            inv_sql='UPDATE invoice SET invodate=%s,duedate=%s,status=%s,emailon=%s,printon=%s,subtotal=%s,invoicetot=%s,totpaid=%s,balance=%s,extracostname=%s,extracost=%s,template=%s,salesper=%s,discourate=%s,tax1=%s,category=%s,businessname=%s,businessaddress=%s,shipname=%s,shipaddress=%s,cpemail=%s,cpmobileforsms=%s,recurring_period=%s,recurring_period_month=%s,next_invoice=%s,stop_recurring=%s,discount=%s,terms=%s,tax2=%s,quantity=%s,title_text=%s,header_text=%s,footer_text=%s,term_of_payment=%s,ref=%s,comments=%s,privatenotes=%s,recurring_check=%s WHERE invoice_number=%s' #adding values into db
+            inv_val=(invodate_1,duedate_1,status_1,emailon_1,printon_1,subtotal_1,invoicetot_1,totpaid_1,balance_1,extracostname_1,extracost_1,template_1,salesper_1,discourate_1,tax1_01,category_1,businessname_1,businessaddress_1,shipname_1,shipaddress_1,cpemail_1,cpmobileforsms_1,recurring_period_1,recurring_period_month_1,next_invoice_1,stop_recurring_1,discount_1,terms_1,tax2_01,quantity_1,title_text_1,header_text_1,footer_text_1,term_of_payment_1,ref_1,comments_1,privatenotes_1,recurring_check_1,invoice_number_1,)
             fbcursor.execute(inv_sql,inv_val)
             fbilldb.commit()
         else:
@@ -15179,8 +16071,8 @@ def mainpage():
     prev_invoice_1= Button(inv_first_frame2,compound="top", text="Preview\nInvoice",relief=RAISED, image=photo4,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=previewline_1)
     prev_invoice_1.pack(side="left", pady=3, ipadx=4)
 
-    prin= Button(inv_first_frame2,compound="top", text="Print \nInvoice",relief=RAISED, image=photo5,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=printsele)
-    prin.pack(side="left", pady=3, ipadx=4)
+    print_invoice_1= Button(inv_first_frame2,compound="top", text="Print \nInvoice",relief=RAISED, image=photo5,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=printsele)
+    print_invoice_1.pack(side="left", pady=3, ipadx=4)
 
     w = Canvas(inv_first_frame2, width=1, height=65, bg="#b3b3b3", bd=0)
     w.pack(side="left", padx=5)
@@ -16954,8 +17846,9 @@ def mainpage():
         canvas.config(yscrollcommand=vertibar.set)
         canvas.pack(expand=True,side=LEFT,fill=BOTH)
         canvas.create_rectangle(235, 25, 1035, 1430 , outline='yellow',fill='white')
-        # canvas.create_text(500, 50, text="Title text goes here...", fill="black", font=('Helvetica 10'))
-        # canvas.create_text(285, 110, text="Your Company Logo", fill="black", font=('Helvetica 18 bold'))
+        inv_title_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+        inv_title_canvas.config(text=prev_data[39],anchor="center",bg="white")
+        canvas.create_window(637, 50,window=inv_title_canvas)
 
         try:
           image = Image.open("images/"+comp_data[13])
@@ -16984,7 +17877,7 @@ def mainpage():
         inv_ref_canvas.config(text=prev_data[43],anchor="w")
         canvas.create_window(548, 330,window=inv_ref_canvas) 
         
-        canvas.create_text(900, 110, text=comp_data[1], fill="black", font=('Helvetica 12 '))
+        canvas.create_text(896, 110, text=comp_data[1], fill="black", font=('Helvetica 12 bold'))
         comp_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=5,fg= "black",bg="white",cursor="arrow",bd=0,)
         comp_addr_canvas.insert("1.0",comp_data[2])
         comp_addr_canvas.tag_configure("tag_name", justify='right')
@@ -16997,24 +17890,28 @@ def mainpage():
         canvas.create_text(951, 255, text="Invoice", fill="black", font=('Helvetica 14 bold'))
         canvas.create_text(935, 285, text="TAX EXEMPTED", fill="black", font=('Helvetica 10'))
         
-        canvas.create_text(325, 370, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
+        canvas.create_text(325, 360, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
         inv_canv_name = Label(canvas,font=('Helvetica 10 '),width=30)
         inv_canv_name.config(text=prev_data[18],anchor="w",bg="white")
-        canvas.create_window(419, 395,window=inv_canv_name)
+        canvas.create_window(419, 380,window=inv_canv_name)
         inv_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
         bg="white",cursor="arrow")
         inv_addr_canvas.insert("1.0",prev_data[19])
         inv_addr_canvas.config(state=DISABLED)
-        canvas.create_window(405, 442, window=inv_addr_canvas)
-        canvas.create_text(650, 370, text="Ship to", fill="black", font=('Helvetica 10 underline'))
+        canvas.create_window(405, 425, window=inv_addr_canvas)
+        canvas.create_text(650, 360, text="Ship to", fill="black", font=('Helvetica 10 underline'))
         inv_ship_canv_lbl = Label(canvas, font=('Helvetica 10 '),width=30)
         inv_ship_canv_lbl.config(text=prev_data[20],anchor="w",bg="white")
-        canvas.create_window(751, 395, window=inv_ship_canv_lbl)
+        canvas.create_window(751, 380, window=inv_ship_canv_lbl)
         inv_ship_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
         bg="white",cursor="arrow")
         inv_ship_addr_canvas.insert("1.0",prev_data[21])
         inv_ship_addr_canvas.config(state=DISABLED)
-        canvas.create_window(736, 442,window=inv_ship_addr_canvas)
+        canvas.create_window(736, 425,window=inv_ship_addr_canvas)
+
+        inv_header_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+        inv_header_canvas.config(text=prev_data[40],anchor="center",bg="white")
+        canvas.create_window(637, 452,window=inv_header_canvas)
         
         s = ttk.Style()
         s.configure('Treeview.Heading', background='',State='DISABLE')
@@ -17869,14 +18766,14 @@ def mainpage():
         inv_prev_terms.tag_configure("tag_name", justify='left')
         inv_prev_terms.tag_add("tag_name", "1.0", "end")
         inv_prev_terms.config(state=DISABLED)
-        canvas.create_window(642, 1130,window=inv_prev_terms)
-        canvas.create_text(330, 1170, text="Sale Person:", fill="black", font=('Helvetica 10'))
+        canvas.create_window(642, 1125,window=inv_prev_terms)
+        canvas.create_text(330, 1165, text="Sale Person:", fill="black", font=('Helvetica 10'))
         inv_prev_salesp = Label(canvas, font=('Helvetica 10 '),width=30)
         inv_prev_salesp.config(text=prev_data[14],anchor="w",bg="white")
-        canvas.create_window(502, 1170, window = inv_prev_salesp)
-
-        canvas.create_text(375, 1190, text="Page footer text goes here...", fill="black", font=('Helvetica 10'))
-        canvas.create_text(950, 1190, text="Page 1 of 1", fill="black", font=('Helvetica 10'))
+        canvas.create_window(502, 1165, window = inv_prev_salesp)
+        inv_footer_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+        inv_footer_canvas.config(text=prev_data[41],anchor="w",bg="white")
+        canvas.create_window(413, 1185,window=inv_footer_canvas)
     #----------------Professional 2 (logo on right side)------------------
       elif prev_data[13] == 'Professional 2 (logo on right side)':
         frame = Frame(prev_invo, width=953, height=300)
@@ -17892,8 +18789,9 @@ def mainpage():
         canvas.config(yscrollcommand=vertibar.set)
         canvas.pack(expand=True,side=LEFT,fill=BOTH)
         canvas.create_rectangle(235, 25, 1035, 1430 , outline='yellow',fill='white')
-        # canvas.create_text(500, 50, text="Title text goes here...", fill="black", font=('Helvetica 10'))
-        # canvas.create_text(285, 110, text="Your Company Logo", fill="black", font=('Helvetica 18 bold'))
+        inv_title_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+        inv_title_canvas.config(text=prev_data[39],anchor="center",bg="white")
+        canvas.create_window(637, 50,window=inv_title_canvas)
 
         try:
           image = Image.open("images/"+comp_data[13])
@@ -17922,7 +18820,7 @@ def mainpage():
         inv_ref_canvas.config(text=prev_data[43],anchor="w")
         canvas.create_window(918, 330,window=inv_ref_canvas)
         
-        canvas.create_text(375, 110, text=comp_data[1], fill="black", font=('Helvetica 12 '))
+        canvas.create_text(379, 110, text=comp_data[1], fill="black", font=('Helvetica 12 bold'))
         comp_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=5,fg= "black",bg="white",cursor="arrow",bd=0,)
         comp_addr_canvas.insert("1.0",comp_data[2])
         comp_addr_canvas.tag_configure("tag_name", justify='left')
@@ -17935,24 +18833,28 @@ def mainpage():
         canvas.create_text(320, 255, text="Invoice", fill="black", font=('Helvetica 14 bold'))
         canvas.create_text(335, 285, text="TAX EXEMPTED", fill="black", font=('Helvetica 10'))
         
-        canvas.create_text(315, 370, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
+        canvas.create_text(315, 350, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
         inv_canv_name = Label(canvas,font=('Helvetica 10 '),width=30)
         inv_canv_name.config(text=prev_data[18],anchor="w",bg="white")
-        canvas.create_window(409, 395,window=inv_canv_name)
+        canvas.create_window(409, 370,window=inv_canv_name)
         inv_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
         bg="white",cursor="arrow")
         inv_addr_canvas.insert("1.0",prev_data[19])
         inv_addr_canvas.config(state=DISABLED)
-        canvas.create_window(395, 442, window=inv_addr_canvas)
-        canvas.create_text(650, 370, text="Ship to", fill="black", font=('Helvetica 10 underline'))
+        canvas.create_window(395, 415, window=inv_addr_canvas)
+        canvas.create_text(650, 350, text="Ship to", fill="black", font=('Helvetica 10 underline'))
         inv_ship_canv_lbl = Label(canvas, font=('Helvetica 10 '),width=30)
         inv_ship_canv_lbl.config(text=prev_data[20],anchor="w",bg="white")
-        canvas.create_window(751, 395, window=inv_ship_canv_lbl)
+        canvas.create_window(751, 370, window=inv_ship_canv_lbl)
         inv_ship_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
         bg="white",cursor="arrow")
         inv_ship_addr_canvas.insert("1.0",prev_data[21])
         inv_ship_addr_canvas.config(state=DISABLED)
-        canvas.create_window(736, 442,window=inv_ship_addr_canvas)
+        canvas.create_window(736, 415,window=inv_ship_addr_canvas)
+
+        inv_header_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+        inv_header_canvas.config(text=prev_data[40],anchor="center",bg="white")
+        canvas.create_window(637, 452,window=inv_header_canvas)
         
         s = ttk.Style()
         s.configure('Treeview.Heading', background='',State='DISABLE')
@@ -18807,14 +19709,14 @@ def mainpage():
         inv_prev_terms.tag_configure("tag_name", justify='left')
         inv_prev_terms.tag_add("tag_name", "1.0", "end")
         inv_prev_terms.config(state=DISABLED)
-        canvas.create_window(642, 1130,window=inv_prev_terms)
-        canvas.create_text(330, 1170, text="Sale Person:", fill="black", font=('Helvetica 10'))
+        canvas.create_window(642, 1125,window=inv_prev_terms)
+        canvas.create_text(330, 1165, text="Sale Person:", fill="black", font=('Helvetica 10'))
         inv_prev_salesp = Label(canvas, font=('Helvetica 10 '),width=30)
         inv_prev_salesp.config(text=prev_data[14],anchor="w",bg="white")
-        canvas.create_window(502, 1170, window = inv_prev_salesp)
-
-        canvas.create_text(375, 1190, text="Page footer text goes here...", fill="black", font=('Helvetica 10'))
-        canvas.create_text(950, 1190, text="Page 1 of 1", fill="black", font=('Helvetica 10'))
+        canvas.create_window(502, 1165, window = inv_prev_salesp)
+        inv_footer_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+        inv_footer_canvas.config(text=prev_data[41],anchor="w",bg="white")
+        canvas.create_window(413, 1185,window=inv_footer_canvas)
     #----------------Simplified 1 (logo on left side)------------------ 
       elif prev_data[13] == 'Simplified 1 (logo on left side)':
         frame = Frame(prev_invo, width=953, height=300)
@@ -18830,8 +19732,9 @@ def mainpage():
         canvas.config(yscrollcommand=vertibar.set)
         canvas.pack(expand=True,side=LEFT,fill=BOTH)
         canvas.create_rectangle(235, 25, 1035, 1430 , outline='yellow',fill='white')
-        # canvas.create_text(500, 50, text="Title text goes here...", fill="black", font=('Helvetica 10'))
-        # canvas.create_text(285, 110, text="Your Company Logo", fill="black", font=('Helvetica 18 bold'))
+        inv_title_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+        inv_title_canvas.config(text=prev_data[39],anchor="center",bg="white")
+        canvas.create_window(637, 50,window=inv_title_canvas)
 
         try:
           image = Image.open("images/"+comp_data[13])
@@ -18860,7 +19763,7 @@ def mainpage():
         inv_ref_canvas.config(text=prev_data[43],anchor="w")
         canvas.create_window(548, 330,window=inv_ref_canvas)   
         
-        canvas.create_text(900, 110, text=comp_data[1], fill="black", font=('Helvetica 12 '))
+        canvas.create_text(896, 110, text=comp_data[1], fill="black", font=('Helvetica 12 bold'))
         comp_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=5,fg= "black",bg="white",cursor="arrow",bd=0,)
         comp_addr_canvas.insert("1.0",comp_data[2])
         comp_addr_canvas.tag_configure("tag_name", justify='right')
@@ -18873,24 +19776,28 @@ def mainpage():
         canvas.create_text(951, 255, text="Invoice", fill="black", font=('Helvetica 14 bold'))
         canvas.create_text(935, 285, text="TAX EXEMPTED", fill="black", font=('Helvetica 10'))
         
-        canvas.create_text(325, 370, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
+        canvas.create_text(325, 360, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
         inv_canv_name = Label(canvas,font=('Helvetica 10 '),width=30)
         inv_canv_name.config(text=prev_data[18],anchor="w",bg="white")
-        canvas.create_window(419, 395,window=inv_canv_name)
+        canvas.create_window(419, 380,window=inv_canv_name)
         inv_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
         bg="white",cursor="arrow")
         inv_addr_canvas.insert("1.0",prev_data[19])
         inv_addr_canvas.config(state=DISABLED)
-        canvas.create_window(405, 442, window=inv_addr_canvas)
-        canvas.create_text(650, 370, text="Ship to", fill="black", font=('Helvetica 10 underline'))
+        canvas.create_window(405, 425, window=inv_addr_canvas)
+        canvas.create_text(650, 360, text="Ship to", fill="black", font=('Helvetica 10 underline'))
         inv_ship_canv_lbl = Label(canvas, font=('Helvetica 10 '),width=30)
         inv_ship_canv_lbl.config(text=prev_data[20],anchor="w",bg="white")
-        canvas.create_window(751, 395, window=inv_ship_canv_lbl)
+        canvas.create_window(751, 380, window=inv_ship_canv_lbl)
         inv_ship_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
         bg="white",cursor="arrow")
         inv_ship_addr_canvas.insert("1.0",prev_data[21])
         inv_ship_addr_canvas.config(state=DISABLED)
-        canvas.create_window(736, 442,window=inv_ship_addr_canvas)
+        canvas.create_window(736, 425,window=inv_ship_addr_canvas)
+
+        inv_header_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+        inv_header_canvas.config(text=prev_data[40],anchor="center",bg="white")
+        canvas.create_window(637, 452,window=inv_header_canvas)
         
         s = ttk.Style()
         s.configure('Treeview.Heading', background='',State='DISABLE')
@@ -19740,14 +20647,14 @@ def mainpage():
         inv_prev_terms.tag_configure("tag_name", justify='left')
         inv_prev_terms.tag_add("tag_name", "1.0", "end")
         inv_prev_terms.config(state=DISABLED)
-        canvas.create_window(642, 1130,window=inv_prev_terms)
-        canvas.create_text(330, 1170, text="Sale Person:", fill="black", font=('Helvetica 10'))
+        canvas.create_window(642, 1125,window=inv_prev_terms)
+        canvas.create_text(330, 1165, text="Sale Person:", fill="black", font=('Helvetica 10'))
         inv_prev_salesp = Label(canvas, font=('Helvetica 10 '),width=30)
         inv_prev_salesp.config(text=prev_data[14],anchor="w",bg="white")
-        canvas.create_window(502, 1170, window = inv_prev_salesp)
-
-        canvas.create_text(375, 1190, text="Page footer text goes here...", fill="black", font=('Helvetica 10'))
-        canvas.create_text(950, 1190, text="Page 1 of 1", fill="black", font=('Helvetica 10'))
+        canvas.create_window(502, 1165, window = inv_prev_salesp)
+        inv_footer_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+        inv_footer_canvas.config(text=prev_data[41],anchor="w",bg="white")
+        canvas.create_window(413, 1185,window=inv_footer_canvas)
     #----------------Simplified 2 (logo on right side)------------------ 
       elif prev_data[13] == 'Simplified 2 (logo on right side)':
         frame = Frame(prev_invo, width=953, height=300)
@@ -19763,8 +20670,9 @@ def mainpage():
         canvas.config(yscrollcommand=vertibar.set)
         canvas.pack(expand=True,side=LEFT,fill=BOTH)
         canvas.create_rectangle(235, 25, 1035, 1430 , outline='yellow',fill='white')
-        # canvas.create_text(500, 50, text="Title text goes here...", fill="black", font=('Helvetica 10'))
-        # canvas.create_text(285, 110, text="Your Company Logo", fill="black", font=('Helvetica 18 bold'))
+        inv_title_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+        inv_title_canvas.config(text=prev_data[39],anchor="center",bg="white")
+        canvas.create_window(637, 50,window=inv_title_canvas)
 
         try:
           image = Image.open("images/"+comp_data[13])
@@ -19793,7 +20701,7 @@ def mainpage():
         inv_ref_canvas.config(text=prev_data[43],anchor="w")
         canvas.create_window(918, 330,window=inv_ref_canvas)   
         
-        canvas.create_text(375, 110, text=comp_data[1], fill="black", font=('Helvetica 12 '))
+        canvas.create_text(379, 110, text=comp_data[1], fill="black", font=('Helvetica 12 bold'))
         comp_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=5,fg= "black",bg="white",cursor="arrow",bd=0,)
         comp_addr_canvas.insert("1.0",comp_data[2])
         comp_addr_canvas.tag_configure("tag_name", justify='left')
@@ -19806,24 +20714,28 @@ def mainpage():
         canvas.create_text(320, 255, text="Invoice", fill="black", font=('Helvetica 14 bold'))
         canvas.create_text(335, 285, text="TAX EXEMPTED", fill="black", font=('Helvetica 10'))
         
-        canvas.create_text(315, 370, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
+        canvas.create_text(315, 350, text="Invoice to", fill="black", font=('Helvetica 10 underline'))
         inv_canv_name = Label(canvas,font=('Helvetica 10 '),width=30)
         inv_canv_name.config(text=prev_data[18],anchor="w",bg="white")
-        canvas.create_window(409, 395,window=inv_canv_name)
+        canvas.create_window(409, 370,window=inv_canv_name)
         inv_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
         bg="white",cursor="arrow")
         inv_addr_canvas.insert("1.0",prev_data[19])
         inv_addr_canvas.config(state=DISABLED)
-        canvas.create_window(395, 442, window=inv_addr_canvas)
-        canvas.create_text(650, 370, text="Ship to", fill="black", font=('Helvetica 10 underline'))
+        canvas.create_window(395, 415, window=inv_addr_canvas)
+        canvas.create_text(650, 350, text="Ship to", fill="black", font=('Helvetica 10 underline'))
         inv_ship_canv_lbl = Label(canvas, font=('Helvetica 10 '),width=30)
         inv_ship_canv_lbl.config(text=prev_data[20],anchor="w",bg="white")
-        canvas.create_window(751, 395, window=inv_ship_canv_lbl)
+        canvas.create_window(751, 370, window=inv_ship_canv_lbl)
         inv_ship_addr_canvas = Text(canvas,font=('Helvetica 10'),width=30,height=4,bd=0,fg= "black",
         bg="white",cursor="arrow")
         inv_ship_addr_canvas.insert("1.0",prev_data[21])
         inv_ship_addr_canvas.config(state=DISABLED)
-        canvas.create_window(736, 442,window=inv_ship_addr_canvas)
+        canvas.create_window(736, 415,window=inv_ship_addr_canvas)
+
+        inv_header_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+        inv_header_canvas.config(text=prev_data[40],anchor="center",bg="white")
+        canvas.create_window(637, 452,window=inv_header_canvas)
         
         s = ttk.Style()
         s.configure('Treeview.Heading', background='',State='DISABLE')
@@ -20673,14 +21585,14 @@ def mainpage():
         inv_prev_terms.tag_configure("tag_name", justify='left')
         inv_prev_terms.tag_add("tag_name", "1.0", "end")
         inv_prev_terms.config(state=DISABLED)
-        canvas.create_window(642, 1130,window=inv_prev_terms)
-        canvas.create_text(330, 1170, text="Sale Person:", fill="black", font=('Helvetica 10'))
+        canvas.create_window(642, 1125,window=inv_prev_terms)
+        canvas.create_text(330, 1165, text="Sale Person:", fill="black", font=('Helvetica 10'))
         inv_prev_salesp = Label(canvas, font=('Helvetica 10 '),width=30)
         inv_prev_salesp.config(text=prev_data[14],anchor="w",bg="white")
-        canvas.create_window(502, 1170, window = inv_prev_salesp)
-
-        canvas.create_text(375, 1190, text="Page footer text goes here...", fill="black", font=('Helvetica 10'))
-        canvas.create_text(950, 1190, text="Page 1 of 1", fill="black", font=('Helvetica 10'))
+        canvas.create_window(502, 1165, window = inv_prev_salesp)
+        inv_footer_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+        inv_footer_canvas.config(text=prev_data[41],anchor="w",bg="white")
+        canvas.create_window(413, 1185,window=inv_footer_canvas)
     #----------------Business Classic------------------ 
       elif prev_data[13] == 'Business Classic':
         frame = Frame(prev_invo, width=953, height=300)
@@ -20696,7 +21608,9 @@ def mainpage():
         canvas.config(yscrollcommand=vertibar.set)
         canvas.pack(expand=True,side=LEFT,fill=BOTH)
         canvas.create_rectangle(235, 25, 1080, 1430 , outline='yellow',fill='white')
-        # canvas.create_text(500, 50, text="Title text goes here...", fill="black", font=('Helvetica 10'))
+        inv_title_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+        inv_title_canvas.config(text=prev_data[39],anchor="center",bg="white")
+        canvas.create_window(657, 50,window=inv_title_canvas)
         canvas.create_line(290, 70, 1025, 70, fill='orange')
         try:
           image = Image.open("images/"+comp_data[13])
@@ -20707,7 +21621,7 @@ def mainpage():
           canvas.create_window(417, 155,window=b2)
         except:
           pass
-        canvas.create_text(625, 110, text=comp_data[1], fill="black", font=('Helvetica 10'))
+        canvas.create_text(629, 110, text=comp_data[1], fill="black", font=('Helvetica 10 bold'))
         comp_addr_canvas = Text(canvas,font=('Helvetica 10'),width=21,height=5,fg= "black",bg="white",cursor="arrow",bd=0,)
         comp_addr_canvas.insert("1.0",comp_data[2])
         comp_addr_canvas.tag_configure("tag_name", justify='left')
@@ -20744,6 +21658,10 @@ def mainpage():
         inv_ref_canvas = Label(canvas,font=('Helvetica 10'),width=25,bg='white')
         inv_ref_canvas.config(text=prev_data[43],anchor="w")
         canvas.create_window(963, 270,window=inv_ref_canvas) 
+
+        inv_header_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+        inv_header_canvas.config(text=prev_data[40],anchor="center",bg="white")
+        canvas.create_window(657, 290,window=inv_header_canvas)
 
 
         s = ttk.Style()
@@ -21596,11 +22514,14 @@ def mainpage():
         inv_prev_terms.tag_configure("tag_name", justify='left')
         inv_prev_terms.tag_add("tag_name", "1.0", "end")
         inv_prev_terms.config(state=DISABLED)
-        canvas.create_window(661, 1130,window=inv_prev_terms)
-        canvas.create_text(330, 1170, text="Sale Person:", fill="black", font=('Helvetica 10'))
+        canvas.create_window(661, 1125,window=inv_prev_terms)
+        canvas.create_text(330, 1165, text="Sale Person:", fill="black", font=('Helvetica 10'))
         inv_prev_salesp = Label(canvas, font=('Helvetica 10 '),width=30)
         inv_prev_salesp.config(text=prev_data[14],anchor="w",bg="white")
-        canvas.create_window(502, 1170, window = inv_prev_salesp)
+        canvas.create_window(502, 1165, window = inv_prev_salesp)
+        inv_footer_canvas = Label(canvas,font=('Helvetica 10 '),width=30)
+        inv_footer_canvas.config(text=prev_data[41],anchor="w",bg="white")
+        canvas.create_window(413, 1185,window=inv_footer_canvas)
       else:
           pass
 
