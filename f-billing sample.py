@@ -826,13 +826,13 @@ def mainpage():
 
           elif currency_symb[1] == "after amount with space":
             if p[13] > p[14]:
-              product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+              product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
               countp += 1
             elif p[12] == '1':
-              product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+              product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
               countp += 1
             else:
-              product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+              product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
               countp += 1
       
       #filter product
@@ -999,7 +999,7 @@ def mainpage():
         top.title("Add a new Product/Service")
         p2 = PhotoImage(file = 'images/fbicon.png')
         top.iconphoto(False, p2)
-        top.geometry("700x550+390+15")
+        top.geometry("600x550+350+15")
         tabControl = ttk.Notebook(top)
         s = ttk.Style()
         s.theme_use('default')
@@ -1018,7 +1018,31 @@ def mainpage():
         innerFrame.pack(side="top",fill=BOTH)
 
         Customerlabelframe = LabelFrame(innerFrame,text="Product/Service",width=580,height=455)
-        Customerlabelframe.pack(side="top",fill=BOTH,padx=10,pady=24)
+        Customerlabelframe.pack(side="top",fill=BOTH,padx=10,pady=(10,45))
+
+        def service_check():
+          if check_service.get() == 1:
+            add_pro_price_entry['state'] = DISABLED
+            add_pro_stock_entry['state'] = DISABLED
+            add_pro_low_entry['state'] = DISABLED
+            add_pro_ware_entry['state'] = DISABLED
+          else:
+            add_pro_price_entry['state'] = NORMAL
+            add_pro_stock_entry['state'] = NORMAL
+            add_pro_low_entry['state'] = NORMAL
+            add_pro_ware_entry['state'] = NORMAL
+
+        def calc_pricecost(event):
+          if add_pro_unit_entry.get() == "":
+            up = 0
+          else:
+            up = add_pro_unit_entry.get()
+          if add_pro_cost_entry.get() == "":
+            cst = 0 
+          else:
+            cst = add_pro_cost_entry.get()
+          price_cost = float(up) - float(cst)
+          add_pro_price_entry.config(text=price_cost)
 
         add_pro_code_label=Label(Customerlabelframe,text="Code or SKU:",fg="blue",pady=10,padx=10)
         add_pro_code_label.place(x=20,y=0)
@@ -1027,15 +1051,13 @@ def mainpage():
 
         checkvarStatus=IntVar()
         add_pro_status=Label(Customerlabelframe,text="Status:")
-        add_pro_status.place(x=500,y=8)
+        add_pro_status.place(x=400,y=8)
         add_pro_checkbtn_active = Checkbutton(Customerlabelframe,
                           variable = checkvarStatus,text="Active",compound="right",
-                          onvalue =0 ,
-                          offvalue = 1,
-                        
-                          width = 10)
+                          onvalue =1 ,
+                          offvalue = 0,)
 
-        add_pro_checkbtn_active.place(x=550,y=5)
+        add_pro_checkbtn_active.place(x=450,y=5)
 
         add_pro_cat=Label(Customerlabelframe,text="Category:",pady=5,padx=10)
         add_pro_cat.place(x=20,y=40)
@@ -1050,58 +1072,71 @@ def mainpage():
 
         add_pro_name_label=Label(Customerlabelframe,text="Name :",fg="blue",pady=5,padx=10)
         add_pro_name_label.place(x=20,y=70)
-        add_pro_name_entry = Entry(Customerlabelframe,width=60)
+        add_pro_name_entry = Entry(Customerlabelframe,width=70)
         add_pro_name_entry.place(x=120,y=75)
 
         add_pro_des_label=Label(Customerlabelframe,text="Description :",pady=5,padx=10)
         add_pro_des_label.place(x=20,y=100)
-        add_pro_des_entry = Entry(Customerlabelframe,width=60)
+        add_pro_des_entry = Entry(Customerlabelframe,width=70)
         add_pro_des_entry.place(x=120,y=105)
 
-        uval = IntVar(Customerlabelframe, value='$0.00')
+        # uval = IntVar(Customerlabelframe, value=0)
         add_pro_unit_label=Label(Customerlabelframe,text="Unit Price:",fg="blue",pady=5,padx=10)
         add_pro_unit_label.place(x=20,y=130)
-        add_pro_unit_entry = Entry(Customerlabelframe,width=20,textvariable=uval)
+        add_pro_unit_entry = Entry(Customerlabelframe,width=20)
         add_pro_unit_entry.place(x=120,y=135)
+        add_pro_unit_entry.delete(0,END)
+        add_pro_unit_entry.insert(0,0)
+        add_pro_unit_entry.bind("<KeyRelease>",calc_pricecost)
 
-        pcsval = IntVar(Customerlabelframe, value='$0.00')
+        # pcsval = IntVar(Customerlabelframe, value='$0.00')
         add_pro_pcs_label=Label(Customerlabelframe,text="Pcs/Weight:",fg="blue",pady=5,padx=10)
-        add_pro_pcs_label.place(x=320,y=140)
-        add_pro_pcs_entry = Entry(Customerlabelframe,width=20,textvariable=pcsval)
-        add_pro_pcs_entry.place(x=410,y=140)
+        add_pro_pcs_label.place(x=330,y=135)
+        add_pro_pcs_entry = Entry(Customerlabelframe,width=20)
+        add_pro_pcs_entry.delete(0,END)
+        add_pro_pcs_entry.insert(0,0)
+        add_pro_pcs_entry.place(x=420,y=140)
 
-        costval = IntVar(Customerlabelframe, value='$0.00')
+        # costval = IntVar(Customerlabelframe, value=0)
         add_pro_cost_label=Label(Customerlabelframe,text="Cost:",pady=5,padx=10)
         add_pro_cost_label.place(x=20,y=160)
-        add_pro_cost_entry = Entry(Customerlabelframe,width=20,textvariable=costval)
+        add_pro_cost_entry = Entry(Customerlabelframe,width=20)
         add_pro_cost_entry.place(x=120,y=165)
+        add_pro_cost_entry.delete(0,END)
+        add_pro_cost_entry.insert(0,0)
+        add_pro_cost_entry.bind("<KeyRelease>",calc_pricecost)
 
-        priceval = IntVar(Customerlabelframe, value='$0.00')
-        add_pro_price_label=Label(Customerlabelframe,text="(Price Cost):",pady=5,padx=10)
+        # priceval = IntVar(Customerlabelframe, value='$0.00')
+        add_pro_price_label=Label(Customerlabelframe,text="(Price - Cost):",pady=5,padx=10)
         add_pro_price_label.place(x=20,y=190)
-        add_pro_price_entry = Entry(Customerlabelframe,width=20,textvariable=priceval)
+        add_pro_price_entry = Label(Customerlabelframe,width=17,bg="white",text="0",anchor="e")
         add_pro_price_entry.place(x=120,y=195)
 
-        checkvarStatus2=IntVar()
+        checkvar_tax1 =IntVar()
+        checkvar_tax2 =IntVar()
+
+        if not comp_data:
+          pass
+        elif comp_data[12] == "2":
+          pass
+        elif comp_data[12] == "2":
+          add_pro_checkbtn_tax1 = Checkbutton(Customerlabelframe,variable = checkvar_tax1,text="Taxable Tax1rate",compound="right",onvalue =0 ,offvalue = 1,height=2,width = 12) 
+          add_pro_checkbtn_tax1.place(x=415,y=170)        
+        elif comp_data[12] == "3":
+          add_pro_checkbtn_tax1 = Checkbutton(Customerlabelframe,variable = checkvar_tax1,text="Taxable Tax1rate",compound="right",onvalue =0 ,offvalue = 1,height=2,width = 12)
+          add_pro_checkbtn_tax2 = Checkbutton(Customerlabelframe,variable = checkvar_tax2,text="Taxable Tax2rate",compound="right",onvalue =0 ,offvalue = 1,height=2,width = 12)
+          add_pro_checkbtn_tax1.place(x=415,y=170)
+          add_pro_checkbtn_tax2.place(x=415,y=200)
+        
+
+
+        check_service=IntVar()
       
-        add_pro_checkbtn_tax = Checkbutton(Customerlabelframe,variable = checkvarStatus2,
-                          text="Taxable Tax1rate",compound="right",
-                          onvalue =0 ,
-                          offvalue = 1,
-                          height=2,
-                          width = 12)
-
-        add_pro_checkbtn_tax.place(x=415,y=170)
-
-
-        checkvarStatus3=IntVar()
-      
-        add_pro_checkbtn_no = Checkbutton(Customerlabelframe,variable = checkvarStatus3,
-                          text="No stock Control",
+        add_pro_checkbtn_no = Checkbutton(Customerlabelframe,variable = check_service,
+                          text="This is a service (no stock control)",
                           onvalue =1 ,
                           offvalue = 0,
-                          height=3,
-                          width = 15)
+                          height=3,command=service_check)
 
         add_pro_checkbtn_no.place(x=40,y=220)
 
@@ -1114,14 +1149,14 @@ def mainpage():
 
         lowval = IntVar(Customerlabelframe)
         add_pro_low_label=Label(Customerlabelframe,text="Low Stock Warning Limit:",pady=5,padx=10)
-        add_pro_low_label.place(x=300,y=260)
+        add_pro_low_label.place(x=270,y=260)
         add_pro_low_entry = Entry(Customerlabelframe,width=10,textvariable=lowval)
-        add_pro_low_entry.place(x=495,y=265)
+        add_pro_low_entry.place(x=432,y=265)
 
       
         add_pro_ware_label=Label(Customerlabelframe,text="Warehouse:",pady=5,padx=10)
         add_pro_ware_label.place(x=60,y=290)
-        add_pro_ware_entry = Entry(Customerlabelframe,width=50)
+        add_pro_ware_entry = Entry(Customerlabelframe,width=57)
         add_pro_ware_entry.place(x=150,y=295)
 
         add_pro_pnote_label=Label(Customerlabelframe,text="Private notes(not appears on invoice):",pady=5,padx=10)
@@ -1129,6 +1164,41 @@ def mainpage():
 
         add_pro_pnote_scroll = scrolledtext.ScrolledText(Customerlabelframe, undo=True,width=62,height=4)
         add_pro_pnote_scroll.place(x=32,y=358)
+
+
+        #Add product image
+        def add_pro_img():
+          global pro_img,image
+          img_type = [('png files','*.png'),('jpg files','*.jpg'),('all files','*.*')]
+          pro_img = filedialog.askopenfilename(initialdir="/",filetypes=img_type)
+          shutil.copyfile(pro_img, os.getcwd()+'/images/'+pro_img.split('/')[-1])
+          open_image = Image.open("images/"+pro_img.split('/')[-1])
+          resize_img = open_image.resize((480,320))
+          img = ImageTk.PhotoImage(resize_img)
+          image = Label(imageFrame,image=img)
+          image.photo = img
+          image.place(x=60,y=80)
+          img_size = image_getsize(os.path.getsize(pro_img))
+          pro_img_name.config(text=pro_img.split('/')[-1])
+          pro_img_size.config(text="(" + "" + img_size + "" + ")")
+          
+
+        def image_getsize(B):
+          BYTE = float(B)
+          KB = float(1024)
+          MB = float(KB**2)
+
+          if BYTE < KB:
+            return '{0} {1}'.format(BYTE,'Bytes' if 0 == B > 1 else 'Byte')
+          elif KB <= BYTE < MB:
+            return '{0:.2f} KB'.format(BYTE / KB)
+          elif MB <= BYTE:
+            return '{0:.2f} MB'.format(BYTE / MB)
+        
+        # Remove product image
+        def remove_pro_img():
+          os.remove("images/"+pro_img.split('/')[-1])
+
 
         def add_new_product():
           sku = add_pro_code_entry.get()
@@ -1138,42 +1208,555 @@ def mainpage():
           unitprice = add_pro_unit_entry.get()
           peices = add_pro_pcs_entry.get()
           cost = add_pro_cost_entry.get()
-          priceminuscost = add_pro_price_entry.get()
-          stock = add_pro_stock_entry.get()
-          stocklimit = add_pro_low_entry.get()
-          warehouse = add_pro_ware_entry.get()
+          serviceornot = check_service.get()
+          if serviceornot == 1:
+            priceminuscost = NULL
+            stock = NULL
+            stocklimit = NULL
+            warehouse = NULL
+          else:
+            priceminuscost = add_pro_price_entry.cget("text")
+            stock = add_pro_stock_entry.get()
+            stocklimit = add_pro_low_entry.get()
+            warehouse = add_pro_ware_entry.get()
           privatenote = add_pro_pnote_scroll.get("1.0",'end-1c')
           status = checkvarStatus.get()
-          taxable = checkvarStatus2.get()
-          serviceornot = checkvarStatus3.get()
-          sql='INSERT INTO Productservice (sku,category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,status,taxable,serviceornot) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
-          val=(sku,category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,status,taxable,serviceornot)
-          fbcursor.execute(sql,val)
+          if comp_data[12] == "1":
+            taxable1 = 0
+            taxable2 = 0
+          elif comp_data[12] == "2":
+            if checkvar_tax1.get() == 1:
+              taxable1 = 1
+            else:
+              taxable1 = 0
+            taxable2 = 0
+          elif comp_data[12] == "3":
+            if checkvar_tax1.get() == 1 and checkvar_tax2.get() == 1:
+              taxable1 = 1
+              taxable2 = 1
+            elif checkvar_tax1.get() == 0 and checkvar_tax2.get() == 1:
+              taxable1 = 0
+              taxable2 = 1
+            elif checkvar_tax1.get() == 1 and checkvar_tax2.get() == 0:
+              taxable1 = 1
+              taxable2 = 0
+            elif checkvar_tax1.get() == 0 and checkvar_tax2.get() == 0:
+              taxable1 = 0
+              taxable2 = 0
+          if pro_img_name.cget("text") == "":
+            product_image = NULL
+          else:
+            product_image = pro_img_name.cget("text")
+          add_pro_sql='INSERT INTO Productservice (sku,category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,image,status,taxable,serviceornot,tax2) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
+          add_pro_val=(sku,category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,product_image,status,taxable1,serviceornot,taxable2)
+          fbcursor.execute(add_pro_sql,add_pro_val)
           fbilldb.commit()
           top.destroy()
           messagebox.showinfo("F-Billing Revolution","Product registered successfully")
 
+          for record in product_sel_tree.get_children():
+            product_sel_tree.delete(record)
+
+          countp = 0
+          sql = 'SELECT * FROM Productservice'
+          fbcursor.execute(sql)
+          product_details = fbcursor.fetchall()
+          for p in product_details:
+            if p[12] == '1':
+              serv_or_not = '🗹'
+            else:
+              serv_or_not = ''
+            currency_sql = "SELECT currencysign,currsignplace FROM company"
+            fbcursor.execute(currency_sql,)
+            currency_symb = fbcursor.fetchone()
+            if not currency_symb: 
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1              
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+                    
+            elif currency_symb[1] == "before amount":
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "before amount with space":
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "after amount":
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "after amount with space":
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+
         # Cancel add new product
         def cancel_add():
           top.destroy()
-
+      
         add_pro_ok_btn = Button(innerFrame,compound = LEFT,image=tick , text ="Ok",width=60,command=add_new_product)
-        add_pro_ok_btn.place(x=10,y=483)
+        add_pro_ok_btn.place(x=10,y=475)
 
         add_pro_cancel_btn = Button(innerFrame,compound = LEFT,image=cancel ,text="Cancel",width=60,command=cancel_add)
-        add_pro_cancel_btn.place(x=580,y=483)
+        add_pro_cancel_btn.place(x=519,y=475)
 
         imageFrame = Frame(tab2, relief=GROOVE,height=580)
         imageFrame.pack(side="top",fill=BOTH)
 
+        pro_img_name = Label(imageFrame,text="")
+        pro_img_name.place(x=60,y=450)
+        pro_img_size = Label(imageFrame,text="")
+        pro_img_size.place(x=180,y=450)
+
         browseimg=Label(imageFrame,text=" Browse for product image file(recommended image type:JPG,size 480x320 pixels) ",bg='#f5f3f2')
         browseimg.place(x=15,y=35)
 
-        browsebutton=Button(imageFrame,text = 'Browse')
-        browsebutton.place(x=580,y=30,height=30,width=50)
+        add_browsebutton=Button(imageFrame,text = 'Browse',command=add_pro_img)
+        add_browsebutton.place(x=500,y=30)
         
-        removeButton = Button(imageFrame,compound = LEFT,image=cancel, text ="Remove Product Image",width=150)
-        removeButton.place(x=400,y=450)
+        add_removeButton = Button(imageFrame,compound = LEFT,image=cancel, text ="Remove Product Image",width=150,command=remove_pro_img)
+        add_removeButton.place(x=400,y=450)
+
+        #################### Edit product #####################
+
+      def edit_product():
+        top_edit = Toplevel()  
+        top_edit.title("Edit Product/Service")
+        p2 = PhotoImage(file = 'images/fbicon.png')
+        top_edit.iconphoto(False, p2)
+        top_edit.geometry("600x550+350+15")
+        tabControl = ttk.Notebook(top_edit)
+        s = ttk.Style()
+        s.theme_use('default')
+        s.configure('TNotebook.Tab', background="#999999",padding=10,bd=0)
+            
+
+        tab1 = ttk.Frame(tabControl)
+        tab2 = ttk.Frame(tabControl)
+      
+        tabControl.add(tab1,compound = LEFT, text ='Product/Service')
+        tabControl.add(tab2,compound = LEFT, text ='Product Image')
+      
+        tabControl.pack(expand = 1, fill ="both")
+      
+        innerFrame = Frame(tab1,bg="#f5f3f2", relief=GROOVE)
+        innerFrame.pack(side="top",fill=BOTH)
+
+        Customerlabelframe = LabelFrame(innerFrame,text="Product/Service",width=580,height=455)
+        Customerlabelframe.pack(side="top",fill=BOTH,padx=10,pady=(10,45))
+
+        def service_check():
+          if check_edit_service.get() == 1:
+            edit_pro_price_entry['state'] = DISABLED
+            edit_pro_stock_entry['state'] = DISABLED
+            edit_pro_low_entry['state'] = DISABLED
+            edit_pro_ware_entry['state'] = DISABLED
+          else:
+            edit_pro_price_entry['state'] = NORMAL
+            edit_pro_stock_entry['state'] = NORMAL
+            edit_pro_low_entry['state'] = NORMAL
+            edit_pro_ware_entry['state'] = NORMAL
+
+        def calc_pricecost(event):
+          if edit_pro_unit_entry.get() == "":
+            up = 0
+          else:
+            up = edit_pro_unit_entry.get()
+          if edit_pro_cost_entry.get() == "":
+            cst = 0 
+          else:
+            cst = edit_pro_cost_entry.get()
+          price_cost = float(up) - float(cst)
+          edit_pro_price_entry.config(text=price_cost)
+
+        edit_pro_code_label=Label(Customerlabelframe,text="Code or SKU:",fg="blue",pady=10,padx=10)
+        edit_pro_code_label.place(x=20,y=0)
+        edit_pro_code_entry = Entry(Customerlabelframe,width=35)
+        edit_pro_code_entry.place(x=120,y=8)
+
+        checkvar_edit_Status=IntVar()
+        edit_pro_status=Label(Customerlabelframe,text="Status:")
+        edit_pro_status.place(x=400,y=8)
+        edit_pro_checkbtn_active = Checkbutton(Customerlabelframe,
+                          variable = checkvar_edit_Status,text="Active",compound="right",
+                          onvalue =1 ,
+                          offvalue = 0,)
+
+        edit_pro_checkbtn_active.place(x=450,y=5)
+
+        edit_pro_cat=Label(Customerlabelframe,text="Category:",pady=5,padx=10)
+        edit_pro_cat.place(x=20,y=40)
+        n = StringVar()
+        edit_pro_category = ttk.Combobox(Customerlabelframe, width = 40, textvariable = n )
+        
+        edit_pro_category['values'] = ['Default']
+        
+        edit_pro_category.place(x=120,y=45)
+
+
+        edit_pro_name_label=Label(Customerlabelframe,text="Name :",fg="blue",pady=5,padx=10)
+        edit_pro_name_label.place(x=20,y=70)
+        edit_pro_name_entry = Entry(Customerlabelframe,width=70)
+        edit_pro_name_entry.place(x=120,y=75)
+
+        edit_pro_des_label=Label(Customerlabelframe,text="Description :",pady=5,padx=10)
+        edit_pro_des_label.place(x=20,y=100)
+        edit_pro_des_entry = Entry(Customerlabelframe,width=70)
+        edit_pro_des_entry.place(x=120,y=105)
+
+        # uval = IntVar(Customerlabelframe, value=0)
+        edit_pro_unit_label=Label(Customerlabelframe,text="Unit Price:",fg="blue",pady=5,padx=10)
+        edit_pro_unit_label.place(x=20,y=130)
+        edit_pro_unit_entry = Entry(Customerlabelframe,width=20)
+        edit_pro_unit_entry.place(x=120,y=135)
+        edit_pro_unit_entry.bind("<KeyRelease>",calc_pricecost)
+
+        # pcsval = IntVar(Customerlabelframe, value='$0.00')
+        edit_pro_pcs_label=Label(Customerlabelframe,text="Pcs/Weight:",fg="blue",pady=5,padx=10)
+        edit_pro_pcs_label.place(x=330,y=135)
+        edit_pro_pcs_entry = Entry(Customerlabelframe,width=20)
+        edit_pro_pcs_entry.place(x=420,y=140)
+
+        # costval = IntVar(Customerlabelframe, value=0)
+        edit_pro_cost_label=Label(Customerlabelframe,text="Cost:",pady=5,padx=10)
+        edit_pro_cost_label.place(x=20,y=160)
+        edit_pro_cost_entry = Entry(Customerlabelframe,width=20)
+        edit_pro_cost_entry.place(x=120,y=165)
+        edit_pro_cost_entry.bind("<KeyRelease>",calc_pricecost)
+
+        # priceval = IntVar(Customerlabelframe, value='$0.00')
+        edit_pro_price_label=Label(Customerlabelframe,text="(Price - Cost):",pady=5,padx=10)
+        edit_pro_price_label.place(x=20,y=190)
+        edit_pro_price_entry = Label(Customerlabelframe,width=17,bg="white",text="0",anchor="e")
+        edit_pro_price_entry.place(x=120,y=195)
+
+        checkvar_edit_tax1 =IntVar()
+        checkvar_edit_tax2 =IntVar()
+
+        if not comp_data:
+          pass
+        elif comp_data[12] == "2":
+          pass
+        elif comp_data[12] == "2":
+          edit_pro_checkbtn_tax1 = Checkbutton(Customerlabelframe,variable = checkvar_edit_tax1,text="Taxable Tax1rate",compound="right",onvalue =0 ,offvalue = 1,height=2,width = 12) 
+          edit_pro_checkbtn_tax1.place(x=415,y=170)        
+        elif comp_data[12] == "3":
+          edit_pro_checkbtn_tax1 = Checkbutton(Customerlabelframe,variable = checkvar_edit_tax1,text="Taxable Tax1rate",compound="right",onvalue =0 ,offvalue = 1,height=2,width = 12)
+          edit_pro_checkbtn_tax2 = Checkbutton(Customerlabelframe,variable = checkvar_edit_tax2,text="Taxable Tax2rate",compound="right",onvalue =0 ,offvalue = 1,height=2,width = 12)
+          edit_pro_checkbtn_tax1.place(x=415,y=170)
+          edit_pro_checkbtn_tax2.place(x=415,y=200)
+        
+
+
+        check_edit_service=IntVar()
+      
+        edit_pro_checkbtn_no = Checkbutton(Customerlabelframe,variable = check_edit_service,
+                          text="This is a service (no stock control)",
+                          onvalue =1 ,
+                          offvalue = 0,
+                          height=3,command=service_check)
+
+        edit_pro_checkbtn_no.place(x=40,y=220)
+
+
+        stockval = IntVar(Customerlabelframe)
+        edit_pro_stock_label=Label(Customerlabelframe,text="Stock:",pady=5,padx=10)
+        edit_pro_stock_label.place(x=90,y=260)
+        edit_pro_stock_entry = Entry(Customerlabelframe,width=15,textvariable=stockval)
+        edit_pro_stock_entry.place(x=150,y=265)
+
+        lowval = IntVar(Customerlabelframe)
+        edit_pro_low_label=Label(Customerlabelframe,text="Low Stock Warning Limit:",pady=5,padx=10)
+        edit_pro_low_label.place(x=270,y=260)
+        edit_pro_low_entry = Entry(Customerlabelframe,width=10,textvariable=lowval)
+        edit_pro_low_entry.place(x=432,y=265)
+
+      
+        edit_pro_ware_label=Label(Customerlabelframe,text="Warehouse:",pady=5,padx=10)
+        edit_pro_ware_label.place(x=60,y=290)
+        edit_pro_ware_entry = Entry(Customerlabelframe,width=57)
+        edit_pro_ware_entry.place(x=150,y=295)
+
+        edit_pro_pnote_label=Label(Customerlabelframe,text="Private notes(not appears on invoice):",pady=5,padx=10)
+        edit_pro_pnote_label.place(x=20,y=330)
+
+        edit_pro_pnote_scroll = scrolledtext.ScrolledText(Customerlabelframe, undo=True,width=62,height=4)
+        edit_pro_pnote_scroll.place(x=32,y=358)
+
+        selected_product = product_sel_tree.item(product_sel_tree.focus())["values"][0]
+
+        pro_sql = "SELECT * FROM Productservice WHERE sku=%s"
+        pro_val = (selected_product,)
+        fbcursor.execute(pro_sql,pro_val)
+        pro_data = fbcursor.fetchone()
+
+        edit_pro_code_entry.delete(0,END)
+        edit_pro_code_entry.insert(0,pro_data[2])
+        if pro_data[6] == "1":
+          checkvar_edit_Status.set(1)
+        else:
+          checkvar_edit_Status.set(0)
+        edit_pro_category.delete(0,END)
+        edit_pro_category.insert(0,pro_data[3])
+        edit_pro_name_entry.delete(0,END)
+        edit_pro_name_entry.insert(0,pro_data[4])
+        edit_pro_des_entry.delete(0,END)
+        edit_pro_des_entry.insert(0,pro_data[5])
+        edit_pro_unit_entry.delete(0,END)
+        edit_pro_unit_entry.insert(0,pro_data[7])
+        edit_pro_pcs_entry.delete(0,END)
+        edit_pro_pcs_entry.insert(0,pro_data[8])
+        edit_pro_cost_entry.delete(0,END)
+        edit_pro_cost_entry.insert(0,pro_data[9])
+        edit_pro_price_entry.config(text=pro_data[11])
+        if pro_data[10] == "1":
+          checkvar_edit_tax1.set(1)
+        else:
+          checkvar_edit_tax1.set(0)
+        if pro_data[19] == "1":
+          checkvar_edit_tax2.set(1)
+        else:
+          checkvar_edit_tax2.set(0)
+        if pro_data[12] == "1":
+          check_edit_service.set(1)
+          edit_pro_price_entry['state'] = DISABLED
+          edit_pro_stock_entry['state'] = DISABLED
+          edit_pro_low_entry['state'] = DISABLED
+          edit_pro_ware_entry['state'] = DISABLED
+        else:
+          check_edit_service.set(0)
+        edit_pro_stock_entry.delete(0,END)
+        edit_pro_stock_entry.insert(0,pro_data[13])
+        edit_pro_low_entry.delete(0,END)
+        edit_pro_low_entry.insert(0,pro_data[14])
+        edit_pro_ware_entry.delete(0,END)
+        edit_pro_ware_entry.insert(0,pro_data[15])
+        edit_pro_pnote_scroll.delete("1.0",'end-1c')
+        edit_pro_pnote_scroll.insert("1.0",pro_data[15])
+        
+
+
+
+        #Add product image
+        def edit_pro_img():
+          global pro_img,image
+          img_type = [('png files','*.png'),('jpg files','*.jpg'),('all files','*.*')]
+          pro_img = filedialog.askopenfilename(initialdir="/",filetypes=img_type)
+          shutil.copyfile(pro_img, os.getcwd()+'/images/'+pro_img.split('/')[-1])
+          open_image = Image.open("images/"+pro_img.split('/')[-1])
+          resize_img = open_image.resize((480,320))
+          img = ImageTk.PhotoImage(resize_img)
+          image = Label(edit_imageFrame,image=img)
+          image.photo = img
+          image.place(x=60,y=80)
+          img_size = image_getsize(os.path.getsize(pro_img))
+          pro_img_name_edit.config(text=pro_img.split('/')[-1])
+          pro_img_size_edit.config(text="(" + "" + img_size + "" + ")")
+          
+
+        def image_getsize(B):
+          BYTE = float(B)
+          KB = float(1024)
+          MB = float(KB**2)
+
+          if BYTE < KB:
+            return '{0} {1}'.format(BYTE,'Bytes' if 0 == B > 1 else 'Byte')
+          elif KB <= BYTE < MB:
+            return '{0:.2f} KB'.format(BYTE / KB)
+          elif MB <= BYTE:
+            return '{0:.2f} MB'.format(BYTE / MB)
+        
+        # Remove product image
+        def remove_pro_img_edit():
+          try:
+            os.remove("images/"+pro_img.split('/')[-1])
+          except:
+            pass
+
+
+        def edit_product():
+          sku = edit_pro_code_entry.get()
+          category = edit_pro_category.get()
+          name = edit_pro_name_entry.get()
+          description = edit_pro_des_entry.get()
+          unitprice = edit_pro_unit_entry.get()
+          peices = edit_pro_pcs_entry.get()
+          cost = edit_pro_cost_entry.get()
+          serviceornot = check_edit_service.get()
+          if serviceornot == 1:
+            priceminuscost = NULL
+            stock = NULL
+            stocklimit = NULL
+            warehouse = NULL
+          else:
+            priceminuscost = edit_pro_price_entry.cget("text")
+            stock = edit_pro_stock_entry.get()
+            stocklimit = edit_pro_low_entry.get()
+            warehouse = edit_pro_ware_entry.get()
+          privatenote = edit_pro_pnote_scroll.get("1.0",'end-1c')
+          status = checkvar_edit_Status.get()
+          if comp_data[12] == "1":
+            taxable1 = 0
+            taxable2 = 0
+          elif comp_data[12] == "2":
+            if checkvar_edit_tax1.get() == 1:
+              taxable1 = 1
+            else:
+              taxable1 = 0
+            taxable2 = 0
+          elif comp_data[12] == "3":
+            if checkvar_edit_tax1.get() == 1 and checkvar_edit_tax2.get() == 1:
+              taxable1 = 1
+              taxable2 = 1
+            elif checkvar_edit_tax1.get() == 0 and checkvar_edit_tax2.get() == 1:
+              taxable1 = 0
+              taxable2 = 1
+            elif checkvar_edit_tax1.get() == 1 and checkvar_edit_tax2.get() == 0:
+              taxable1 = 1
+              taxable2 = 0
+            elif checkvar_edit_tax1.get() == 0 and checkvar_edit_tax2.get() == 0:
+              taxable1 = 0
+              taxable2 = 0
+          if pro_img_name_edit.cget("text") == "":
+            product_image = NULL
+          else:
+            product_image = pro_img_name_edit.cget("text")
+
+          edit_pro_sql='UPDATE Productservice SET category=%s,name=%s,description=%s,unitprice=%s,peices=%s,cost=%s,priceminuscost=%s,stock=%s,stocklimit=%s,warehouse=%s,privatenote=%s,image=%s,status=%s,taxable=%s,serviceornot=%s,tax2=%s WHERE sku=%s'
+          edit_pro_val=(category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,product_image,status,taxable1,serviceornot,taxable2,sku)
+          fbcursor.execute(edit_pro_sql,edit_pro_val)
+          fbilldb.commit()
+          top_edit.destroy()
+          messagebox.showinfo("F-Billing Revolution","Product registered successfully")
+
+          for record in product_sel_tree.get_children():
+            product_sel_tree.delete(record)
+
+          countp = 0
+          sql = 'SELECT * FROM Productservice'
+          fbcursor.execute(sql)
+          product_details = fbcursor.fetchall()
+          for p in product_details:
+            if p[12] == '1':
+              serv_or_not = '🗹'
+            else:
+              serv_or_not = ''
+            currency_sql = "SELECT currencysign,currsignplace FROM company"
+            fbcursor.execute(currency_sql,)
+            currency_symb = fbcursor.fetchone()
+            if not currency_symb: 
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1              
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+                    
+            elif currency_symb[1] == "before amount":
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "before amount with space":
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "after amount":
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "after amount with space":
+              if p[13] > p[14]:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+        
+
+        edit_pro_ok_btn = Button(innerFrame,compound = LEFT,image=tick , text ="Ok",width=60,command=edit_product)
+        edit_pro_ok_btn.place(x=10,y=475)
+
+        edit_pro_cancel_btn = Button(innerFrame,compound = LEFT,image=cancel ,text="Cancel",width=60,)
+        edit_pro_cancel_btn.place(x=519,y=475)
+
+        edit_imageFrame = Frame(tab2, relief=GROOVE,height=580)
+        edit_imageFrame.pack(side="top",fill=BOTH)
+
+        pro_img_name_edit = Label(edit_imageFrame,text="")
+        pro_img_name_edit.place(x=60,y=450)
+        pro_img_size_edit = Label(edit_imageFrame,text="")
+        pro_img_size_edit.place(x=180,y=450)
+
+        browseimg=Label(edit_imageFrame,text=" Browse for product image file(recommended image type:JPG,size 480x320 pixels) ",bg='#f5f3f2')
+        browseimg.place(x=15,y=35)
+
+        edit_browsebutton=Button(edit_imageFrame,text = 'Browse',command=edit_pro_img)
+        edit_browsebutton.place(x=500,y=30)
+        
+        edit_removeButton = Button(edit_imageFrame,compound = LEFT,image=cancel, text ="Remove Product Image",width=150,command=remove_pro_img_edit)
+        edit_removeButton.place(x=400,y=450)
 
 
       pro_fil_cat_tree=ttk.Treeview(inv_newline_sel, height=27)
@@ -1250,13 +1833,13 @@ def mainpage():
 
             elif currency_symb[1] == "after amount with space":
               if p[13] > p[14]:
-                product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
                 countp += 1
               elif p[12] == '1':
-                product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
                 countp += 1
               else:
-                product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
                 countp += 1
         elif selected_filter == "               View all Products":
           for record in product_sel_tree.get_children():
@@ -1320,13 +1903,13 @@ def mainpage():
 
             elif currency_symb[1] == "after amount with space":
               if p[13] > p[14]:
-                product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
                 countp += 1
               elif p[12] == '1':
-                product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
                 countp += 1
               else:
-                product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
                 countp += 1
         elif selected_filter == "               View all Services":
           for record in product_sel_tree.get_children():
@@ -1390,13 +1973,13 @@ def mainpage():
 
             elif currency_symb[1] == "after amount with space":
               if p[13] > p[14]:
-                product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
                 countp += 1
               elif p[12] == '1':
-                product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
                 countp += 1
               else:
-                product_sel_tree.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                product_sel_tree.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
                 countp += 1
 
 
@@ -1412,11 +1995,14 @@ def mainpage():
       scrollbar.config( command=add_newline_tree.yview )
     
 
-      product_ok_btn=Button(inv_newline_sel,compound = LEFT,image=tick ,text="ok", width=60,command=product_tree_fetch).place(x=15, y=610)
-      product_edit_btn=Button(inv_newline_sel,compound = LEFT,image=tick , text="Edit product/Service", width=150,command=product).place(x=250, y=610)
+      product_ok_btn=Button(inv_newline_sel,compound = LEFT,image=tick ,text="ok", width=60,command=product_tree_fetch)
+      product_ok_btn.place(x=15, y=610)
+      product_edit_btn=Button(inv_newline_sel,compound = LEFT,image=tick , text="Edit product/Service", width=150,command=edit_product)
+      product_edit_btn.place(x=250, y=610)
       product_add_btn=Button(inv_newline_sel,compound = LEFT,image=tick , text="Add product/Service", width=150,command=new_product)
       product_add_btn.place(x=435, y=610)
-      product_cancel_btn=Button(inv_newline_sel,compound = LEFT,image=cancel ,text="Cancel", width=60).place(x=740, y=610)
+      product_cancel_btn=Button(inv_newline_sel,compound = LEFT,image=cancel ,text="Cancel", width=60,command=lambda:inv_newline_sel.destroy())
+      product_cancel_btn.place(x=740, y=610)
 
 
 
@@ -9453,13 +10039,12 @@ def mainpage():
         top.title("Add a new Product/Service")
         p2 = PhotoImage(file = 'images/fbicon.png')
         top.iconphoto(False, p2)
-      
-        top.geometry("700x550+390+15")
+        top.geometry("600x550+350+15")
         tabControl = ttk.Notebook(top)
         s = ttk.Style()
         s.theme_use('default')
         s.configure('TNotebook.Tab', background="#999999",padding=10,bd=0)
-
+            
 
         tab1 = ttk.Frame(tabControl)
         tab2 = ttk.Frame(tabControl)
@@ -9472,91 +10057,126 @@ def mainpage():
         innerFrame = Frame(tab1,bg="#f5f3f2", relief=GROOVE)
         innerFrame.pack(side="top",fill=BOTH)
 
-        Customerlabelframe = LabelFrame(innerFrame,text="Product/Service",width=580,height=485)
-        Customerlabelframe.pack(side="top",fill=BOTH,padx=10)
+        Customerlabelframe = LabelFrame(innerFrame,text="Product/Service",width=580,height=455)
+        Customerlabelframe.pack(side="top",fill=BOTH,padx=10,pady=(10,45))
+
+        def service_check():
+          if check_service_1.get() == 1:
+            add_pro_price_entry_1['state'] = DISABLED
+            add_pro_stock_entry_1['state'] = DISABLED
+            add_pro_low_entry_1['state'] = DISABLED
+            add_pro_ware_entry_1['state'] = DISABLED
+          else:
+            add_pro_price_entry_1['state'] = NORMAL
+            add_pro_stock_entry_1['state'] = NORMAL
+            add_pro_low_entry_1['state'] = NORMAL
+            add_pro_ware_entry_1['state'] = NORMAL
+
+        def calc_pricecost(event):
+          if add_pro_unit_entry_1.get() == "":
+            up = 0
+          else:
+            up = add_pro_unit_entry_1.get()
+          if add_pro_cost_entry_1.get() == "":
+            cst = 0 
+          else:
+            cst = add_pro_cost_entry_1.get()
+          price_cost = float(up) - float(cst)
+          add_pro_price_entry_1.config(text=price_cost)
 
         add_pro_code_label_1=Label(Customerlabelframe,text="Code or SKU:",fg="blue",pady=10,padx=10)
         add_pro_code_label_1.place(x=20,y=0)
         add_pro_code_entry_1 = Entry(Customerlabelframe,width=35)
         add_pro_code_entry_1.place(x=120,y=8)
 
-        checkvarStatus=IntVar()
+        checkvarStatus_1=IntVar()
         add_pro_status_1=Label(Customerlabelframe,text="Status:")
-        add_pro_status_1.place(x=500,y=8)
+        add_pro_status_1.place(x=400,y=8)
         add_pro_checkbtn_active_1 = Checkbutton(Customerlabelframe,
-                          variable = checkvarStatus,text="Active",compound="right",
-                          onvalue =0 ,
-                          offvalue = 1,
-                        
-                          width = 10)
+                          variable = checkvarStatus_1,text="Active",compound="right",
+                          onvalue =1 ,
+                          offvalue = 0,)
 
-        add_pro_checkbtn_active_1.place(x=550,y=5)
+        add_pro_checkbtn_active_1.place(x=450,y=5)
 
         add_pro_cat_1=Label(Customerlabelframe,text="Category:",pady=5,padx=10)
         add_pro_cat_1.place(x=20,y=40)
         n = StringVar()
-        add_pro_country_1 = ttk.Combobox(Customerlabelframe, width = 40, textvariable = n )
+        add_pro_category_1 = ttk.Combobox(Customerlabelframe, width = 40, textvariable = n )
         
-        add_pro_country_1['values'] = ('Default',' India',' China',' Australia',' Nigeria',' Malaysia',' Italy',' Turkey',)
+        add_pro_category_1['values'] = ('Default',)
         
-        add_pro_country_1.place(x=120,y=45)
-        add_pro_country_1.current(0)
+        add_pro_category_1.place(x=120,y=45)
+        add_pro_category_1.current(0)
 
 
         add_pro_name_label_1=Label(Customerlabelframe,text="Name :",fg="blue",pady=5,padx=10)
         add_pro_name_label_1.place(x=20,y=70)
-        add_pro_name_entry_1 = Entry(Customerlabelframe,width=60)
+        add_pro_name_entry_1 = Entry(Customerlabelframe,width=70)
         add_pro_name_entry_1.place(x=120,y=75)
 
         add_pro_des_label_1=Label(Customerlabelframe,text="Description :",pady=5,padx=10)
         add_pro_des_label_1.place(x=20,y=100)
-        add_pro_des_entry_1 = Entry(Customerlabelframe,width=60)
+        add_pro_des_entry_1 = Entry(Customerlabelframe,width=70)
         add_pro_des_entry_1.place(x=120,y=105)
 
-        uval = IntVar(Customerlabelframe, value='$0.00')
+        # uval = IntVar(Customerlabelframe, value=0)
         add_pro_unit_label_1=Label(Customerlabelframe,text="Unit Price:",fg="blue",pady=5,padx=10)
         add_pro_unit_label_1.place(x=20,y=130)
-        add_pro_unit_entry_1 = Entry(Customerlabelframe,width=20,textvariable=uval)
+        add_pro_unit_entry_1 = Entry(Customerlabelframe,width=20)
         add_pro_unit_entry_1.place(x=120,y=135)
+        add_pro_unit_entry_1.delete(0,END)
+        add_pro_unit_entry_1.insert(0,0)
+        add_pro_unit_entry_1.bind("<KeyRelease>",calc_pricecost)
 
-        pcsval = IntVar(Customerlabelframe, value='$0.00')
+        # pcsval = IntVar(Customerlabelframe, value='$0.00')
         add_pro_pcs_label_1=Label(Customerlabelframe,text="Pcs/Weight:",fg="blue",pady=5,padx=10)
-        add_pro_pcs_label_1.place(x=320,y=140)
-        add_pro_pcs_entry_1 = Entry(Customerlabelframe,width=20,textvariable=pcsval)
-        add_pro_pcs_entry_1.place(x=410,y=140)
+        add_pro_pcs_label_1.place(x=330,y=135)
+        add_pro_pcs_entry_1 = Entry(Customerlabelframe,width=20)
+        add_pro_pcs_entry_1.delete(0,END)
+        add_pro_pcs_entry_1.insert(0,0)
+        add_pro_pcs_entry_1.place(x=420,y=140)
 
-        costval = IntVar(Customerlabelframe, value='$0.00')
+        # costval = IntVar(Customerlabelframe, value=0)
         add_pro_cost_label_1=Label(Customerlabelframe,text="Cost:",pady=5,padx=10)
         add_pro_cost_label_1.place(x=20,y=160)
-        add_pro_cost_entry_1 = Entry(Customerlabelframe,width=20,textvariable=costval)
+        add_pro_cost_entry_1 = Entry(Customerlabelframe,width=20)
         add_pro_cost_entry_1.place(x=120,y=165)
+        add_pro_cost_entry_1.delete(0,END)
+        add_pro_cost_entry_1.insert(0,0)
+        add_pro_cost_entry_1.bind("<KeyRelease>",calc_pricecost)
 
-        priceval = IntVar(Customerlabelframe, value='$0.00')
-        add_pro_price_label_1=Label(Customerlabelframe,text="(Price Cost):",pady=5,padx=10)
+        # priceval = IntVar(Customerlabelframe, value='$0.00')
+        add_pro_price_label_1=Label(Customerlabelframe,text="(Price - Cost):",pady=5,padx=10)
         add_pro_price_label_1.place(x=20,y=190)
-        add_pro_price_entry_1 = Entry(Customerlabelframe,width=20,textvariable=priceval)
+        add_pro_price_entry_1 = Label(Customerlabelframe,width=17,bg="white",text="0",anchor="e")
         add_pro_price_entry_1.place(x=120,y=195)
 
-        checkvarStatus2=IntVar()
+        checkvar_tax1_1 =IntVar()
+        checkvar_tax2_1 =IntVar()
+
+        if not comp_data:
+          pass
+        elif comp_data[12] == "2":
+          pass
+        elif comp_data[12] == "2":
+          add_pro_checkbtn_tax1_1 = Checkbutton(Customerlabelframe,variable = checkvar_tax1_1,text="Taxable Tax1rate",compound="right",onvalue =0 ,offvalue = 1,height=2,width = 12) 
+          add_pro_checkbtn_tax1_1.place(x=415,y=170)        
+        elif comp_data[12] == "3":
+          add_pro_checkbtn_tax1_1 = Checkbutton(Customerlabelframe,variable = checkvar_tax1_1,text="Taxable Tax1rate",compound="right",onvalue =0 ,offvalue = 1,height=2,width = 12)
+          add_pro_checkbtn_tax2_1 = Checkbutton(Customerlabelframe,variable = checkvar_tax2_1,text="Taxable Tax2rate",compound="right",onvalue =0 ,offvalue = 1,height=2,width = 12)
+          add_pro_checkbtn_tax1_1.place(x=415,y=170)
+          add_pro_checkbtn_tax2_1.place(x=415,y=200)
+        
+
+
+        check_service_1=IntVar()
       
-        add_pro_checkbtn_tax_1 = Checkbutton(Customerlabelframe,variable = checkvarStatus2,
-                          text="Taxable Tax1rate",compound="right",
-                          onvalue =0 ,
-                          offvalue = 1,
-                          height=2,
-                          width = 12)
-
-        add_pro_checkbtn_tax_1.place(x=415,y=170)
-
-
-        checkvarStatus3=IntVar()
-      
-        add_pro_checkbtn_no_1 = Checkbutton(Customerlabelframe,variable = checkvarStatus3,
-                          text="No stock Control",
+        add_pro_checkbtn_no_1 = Checkbutton(Customerlabelframe,variable = check_service_1,
+                          text="This is a service (no stock control)",
                           onvalue =1 ,
                           offvalue = 0,
-                          height=3,
-                          width = 15)
+                          height=3,command=service_check)
 
         add_pro_checkbtn_no_1.place(x=40,y=220)
 
@@ -9569,14 +10189,14 @@ def mainpage():
 
         lowval = IntVar(Customerlabelframe)
         add_pro_low_label_1=Label(Customerlabelframe,text="Low Stock Warning Limit:",pady=5,padx=10)
-        add_pro_low_label_1.place(x=300,y=260)
+        add_pro_low_label_1.place(x=270,y=260)
         add_pro_low_entry_1 = Entry(Customerlabelframe,width=10,textvariable=lowval)
-        add_pro_low_entry_1.place(x=495,y=265)
+        add_pro_low_entry_1.place(x=432,y=265)
 
       
         add_pro_ware_label_1=Label(Customerlabelframe,text="Warehouse:",pady=5,padx=10)
         add_pro_ware_label_1.place(x=60,y=290)
-        add_pro_ware_entry_1 = Entry(Customerlabelframe,width=50)
+        add_pro_ware_entry_1 = Entry(Customerlabelframe,width=57)
         add_pro_ware_entry_1.place(x=150,y=295)
 
         add_pro_pnote_label_1=Label(Customerlabelframe,text="Private notes(not appears on invoice):",pady=5,padx=10)
@@ -9586,53 +10206,197 @@ def mainpage():
         add_pro_pnote_scroll_1.place(x=32,y=358)
 
 
-        def add_new_product_1():
-          sku_1 = add_pro_code_entry_1.get()
-          category_1 = add_pro_country_1.get()
-          name_1 = add_pro_name_entry_1.get()
-          description_1 = add_pro_des_entry_1.get()
-          unitprice_1 = add_pro_unit_entry_1.get()
-          peices_1 = add_pro_pcs_entry_1.get()
-          cost_1 = add_pro_cost_entry_1.get()
-          priceminuscost_1 = add_pro_price_entry_1.get()
-          stock_1 = add_pro_stock_entry_1.get()
-          stocklimit_1 = add_pro_low_entry_1.get()
-          warehouse_1 = add_pro_ware_entry_1.get()
-          privatenote_1 = add_pro_pnote_scroll_1.get("1.0",'end-1c')
-          status_1 = checkvarStatus.get()
-          taxable_1 = checkvarStatus2.get()
-          serviceornot_1 = checkvarStatus3.get()
-          sql='INSERT INTO Productservice (sku,category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,status,taxable,serviceornot) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
-          val=(sku_1,category_1,name_1,description_1,unitprice_1,peices_1,cost_1,priceminuscost_1,stock_1,stocklimit_1,warehouse_1,privatenote_1,status_1,taxable_1,serviceornot_1)
-          fbcursor.execute(sql,val)
+        #Add product image
+        def add_pro_img():
+          global pro_img,pro_img_name
+          img_type = [('png files','*.png'),('jpg files','*.jpg'),('all files','*.*')]
+          pro_img = filedialog.askopenfilename(initialdir="/",filetypes=img_type)
+          shutil.copyfile(pro_img, os.getcwd()+'/images/'+pro_img.split('/')[-1])
+          open_image = Image.open("images/"+pro_img.split('/')[-1])
+          resize_img = open_image.resize((480,320))
+          img = ImageTk.PhotoImage(resize_img)
+          image = Label(imageFrame,image=img)
+          image.photo = img
+          image.place(x=60,y=80)
+          img_size = image_getsize(os.path.getsize(pro_img))
+          pro_img_name_1.config(text=pro_img.split('/')[-1])
+          pro_img_size_1.config(text="(" + "" + img_size + "" + ")")
+          
+
+        def image_getsize(B):
+          BYTE = float(B)
+          KB = float(1024)
+          MB = float(KB**2)
+
+          if BYTE < KB:
+            return '{0} {1}'.format(BYTE,'Bytes' if 0 == B > 1 else 'Byte')
+          elif KB <= BYTE < MB:
+            return '{0:.2f} KB'.format(BYTE / KB)
+          elif MB <= BYTE:
+            return '{0:.2f} MB'.format(BYTE / MB)
+
+        
+        
+        # Remove product image
+        def remove_pro_img():
+          try:
+            os.remove("images/"+pro_img.split('/')[-1])
+          except:
+            pass
+
+
+        def add_new_product():
+          sku = add_pro_code_entry_1.get()
+          category = add_pro_category_1.get()
+          name = add_pro_name_entry_1.get()
+          description = add_pro_des_entry_1.get()
+          unitprice = add_pro_unit_entry_1.get()
+          peices = add_pro_pcs_entry_1.get()
+          cost = add_pro_cost_entry_1.get()
+          serviceornot = check_service_1.get()
+          if serviceornot == 1:
+            priceminuscost = NULL
+            stock = NULL
+            stocklimit = NULL
+            warehouse = NULL
+          else:
+            priceminuscost = add_pro_price_entry_1.cget("text")
+            stock = add_pro_stock_entry_1.get()
+            stocklimit = add_pro_low_entry_1.get()
+            warehouse = add_pro_ware_entry_1.get()
+          privatenote = add_pro_pnote_scroll_1.get("1.0",'end-1c')
+          status = checkvarStatus_1.get()
+          if comp_data[12] == "1":
+            taxable1 = 0
+            taxable2 = 0
+          elif comp_data[12] == "2":
+            if checkvar_tax1_1.get() == 1:
+              taxable1 = 1
+            else:
+              taxable1 = 0
+            taxable2 = 0
+          elif comp_data[12] == "3":
+            if checkvar_tax1_1.get() == 1 and checkvar_tax2_1.get() == 1:
+              taxable1 = 1
+              taxable2 = 1
+            elif checkvar_tax1_1.get() == 0 and checkvar_tax2_1.get() == 1:
+              taxable1 = 0
+              taxable2 = 1
+            elif checkvar_tax1_1.get() == 1 and checkvar_tax2_1.get() == 0:
+              taxable1 = 1
+              taxable2 = 0
+            elif checkvar_tax1_1.get() == 0 and checkvar_tax2_1.get() == 0:
+              taxable1 = 0
+              taxable2 = 0
+          if pro_img_name_1.cget("text") == "":
+            product_image = NULL
+          else:
+            product_image = pro_img_name_1.cget("text")
+          add_pro_sql='INSERT INTO Productservice (sku,category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,image,status,taxable,serviceornot,tax2) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
+          add_pro_val=(sku,category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,product_image,status,taxable1,serviceornot,taxable2)
+          fbcursor.execute(add_pro_sql,add_pro_val)
           fbilldb.commit()
+          top.destroy()
           messagebox.showinfo("F-Billing Revolution","Product registered successfully")
 
+          for record in product_sel_tree_1.get_children():
+            product_sel_tree_1.delete(record)
+
+          countp = 0
+          sql = 'SELECT * FROM Productservice'
+          fbcursor.execute(sql)
+          product_details = fbcursor.fetchall()
+          for p in product_details:
+            if p[12] == '1':
+              serv_or_not = '🗹'
+            else:
+              serv_or_not = ''
+            currency_sql = "SELECT currencysign,currsignplace FROM company"
+            fbcursor.execute(currency_sql,)
+            currency_symb = fbcursor.fetchone()
+            if not currency_symb: 
+              if p[13] > p[14]:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1              
+              elif p[12] == '1':
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+                    
+            elif currency_symb[1] == "before amount":
+              if p[13] > p[14]:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0]+p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "before amount with space":
+              if p[13] > p[14]:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],currency_symb[0] +" "+p[7],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "after amount":
+              if p[13] > p[14]:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='', values=(p[2],p[4],p[7]+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                countp += 1
+
+            elif currency_symb[1] == "after amount with space":
+              if p[13] > p[14]:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('green',))
+                countp += 1
+              elif p[12] == '1':
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('blue',))
+                countp += 1
+              else:
+                product_sel_tree_1.insert(parent='', index='end', iid=countp, text='hello', values=(p[2],p[4],p[7]+" "+currency_symb[0],serv_or_not,p[13]),tags=('red',))
+                countp += 1
 
         # Cancel add new product
-        def cancel_add_1():
+        def cancel_add():
           top.destroy()
 
+        
 
+        add_pro_ok_btn_1 = Button(innerFrame,compound = LEFT,image=tick , text ="Ok",width=60,command=add_new_product)
+        add_pro_ok_btn_1.place(x=10,y=475)
 
-
-        add_pro_ok_btn_1 = Button(innerFrame,compound = LEFT,image=tick , text ="Ok",width=60,command=add_new_product_1)
-        add_pro_ok_btn_1.pack(side=LEFT)
-
-        add_pro_cancel_btn_1 = Button(innerFrame,compound = LEFT,image=cancel ,text="Cancel",width=60,command=cancel_add_1)
-        add_pro_cancel_btn_1.pack(side=RIGHT)
+        add_pro_cancel_btn_1 = Button(innerFrame,compound = LEFT,image=cancel ,text="Cancel",width=60,command=cancel_add)
+        add_pro_cancel_btn_1.place(x=519,y=475)
 
         imageFrame = Frame(tab2, relief=GROOVE,height=580)
         imageFrame.pack(side="top",fill=BOTH)
 
-        add_pro_browse_img_1=Label(imageFrame,text=" Browse for product image file(recommended image type:JPG,size 480x320 pixels) ",bg='#f5f3f2')
-        add_pro_browse_img_1.place(x=15,y=35)
+        pro_img_name_1 = Label(imageFrame,text="")
+        pro_img_name_1.place(x=60,y=450)
+        pro_img_size_1 = Label(imageFrame,text="")
+        pro_img_size_1.place(x=180,y=450)
 
-        add_pro_browse_btn_1=Button(imageFrame,text = 'Browse')
-        add_pro_browse_btn_1.place(x=580,y=30,height=30,width=50)
+        browseimg_1=Label(imageFrame,text=" Browse for product image file(recommended image type:JPG,size 480x320 pixels) ",bg='#f5f3f2')
+        browseimg_1.place(x=15,y=35)
+
+        browsebutton_1=Button(imageFrame,text = 'Browse',command=add_pro_img)
+        browsebutton_1.place(x=500,y=30)
         
-        add_pro_remove_img_1 = Button(imageFrame,compound = LEFT,image=cancel, text ="Remove Product Image",width=150)
-        add_pro_remove_img_1.place(x=400,y=450)
+        removeButton_1 = Button(imageFrame,compound = LEFT,image=cancel, text ="Remove Product Image",width=150,command=remove_pro_img)
+        removeButton_1.place(x=400,y=450)
 
 
 
@@ -9885,7 +10649,8 @@ def mainpage():
       product_edit_btn_1.place(x=250, y=610)
       product_add_btn_1=Button(inv_newline_sel_1,compound = LEFT,image=tick , text="Add product/Service", width=150,command=new_product_1)
       product_add_btn_1.place(x=435, y=610)
-      product_cancel_btn_1=Button(inv_newline_sel_1,compound = LEFT,image=cancel ,text="Cancel", width=60).place(x=740, y=610)
+      product_cancel_btn_1=Button(inv_newline_sel_1,compound = LEFT,image=cancel ,text="Cancel", width=60,command=lambda:inv_newline_sel_1.destroy())
+      product_cancel_btn_1.place(x=740, y=610)
 
 
 
