@@ -3,6 +3,7 @@ from asyncio.windows_events import NULL
 from asyncore import poll3
 from calendar import c
 from cgitb import enable, text
+from ctypes import alignment
 from distutils import command
 import email
 from email import encoders
@@ -1087,27 +1088,21 @@ def mainpage():
         # uval = IntVar(Customerlabelframe, value=0)
         add_pro_unit_label=Label(Customerlabelframe,text="Unit Price:",fg="blue",pady=5,padx=10)
         add_pro_unit_label.place(x=20,y=130)
-        add_pro_unit_entry = Entry(Customerlabelframe,width=20)
+        add_pro_unit_entry = Entry(Customerlabelframe,width=20,justify="right")
         add_pro_unit_entry.place(x=120,y=135)
-        add_pro_unit_entry.delete(0,END)
-        add_pro_unit_entry.insert(0,0)
         add_pro_unit_entry.bind("<KeyRelease>",calc_pricecost)
 
         # pcsval = IntVar(Customerlabelframe, value='$0.00')
         add_pro_pcs_label=Label(Customerlabelframe,text="Pcs/Weight:",fg="blue",pady=5,padx=10)
         add_pro_pcs_label.place(x=330,y=135)
-        add_pro_pcs_entry = Entry(Customerlabelframe,width=20,anchor="e")
-        add_pro_pcs_entry.delete(0,END)
-        add_pro_pcs_entry.insert(0,0)
+        add_pro_pcs_entry = Entry(Customerlabelframe,width=20)
         add_pro_pcs_entry.place(x=420,y=140)
 
         # costval = IntVar(Customerlabelframe, value=0)
         add_pro_cost_label=Label(Customerlabelframe,text="Cost:",pady=5,padx=10)
         add_pro_cost_label.place(x=20,y=160)
-        add_pro_cost_entry = Entry(Customerlabelframe,width=20,anchor="e")
+        add_pro_cost_entry = Entry(Customerlabelframe,width=20,justify="right")
         add_pro_cost_entry.place(x=120,y=165)
-        add_pro_cost_entry.delete(0,END)
-        add_pro_cost_entry.insert(0,0)
         add_pro_cost_entry.bind("<KeyRelease>",calc_pricecost)
 
         # priceval = IntVar(Customerlabelframe, value='$0.00')
@@ -1172,22 +1167,22 @@ def mainpage():
         
         #Add product image
         def add_pro_img():
-          global pro_img,image
+          global pro_img,add_image
           img_type = [('png files','*.png'),('jpg files','*.jpg'),('all files','*.*')]
           pro_img = filedialog.askopenfilename(initialdir="/",filetypes=img_type)
           shutil.copyfile(pro_img, os.getcwd()+'/images/'+pro_img.split('/')[-1])
           open_image = Image.open("images/"+pro_img.split('/')[-1])
           resize_img = open_image.resize((480,320))
-          img = ImageTk.PhotoImage(resize_img)
-          image = Label(imageFrame,image=img)
-          image.photo = img
-          image.place(x=60,y=80)
-          img_size = image_getsize(os.path.getsize(pro_img))
+          add_img = ImageTk.PhotoImage(resize_img)
+          add_image = Label(imageFrame,image=add_img)
+          add_image.photo = add_img
+          add_image.place(x=60,y=80)
+          img_size = add_image_getsize(os.path.getsize(pro_img))
           pro_img_name.config(text=pro_img.split('/')[-1])
           pro_img_size.config(text="(" + "" + img_size + "" + ")")
           
 
-        def image_getsize(B):
+        def add_image_getsize(B):
           BYTE = float(B)
           KB = float(1024)
           MB = float(KB**2)
@@ -1205,6 +1200,7 @@ def mainpage():
             os.remove("images/"+pro_img.split('/')[-1])
             pro_img_name.config(text="")
             pro_img_size.config(text="")
+            add_image.destroy()
           except:
             pass
 
@@ -1232,24 +1228,29 @@ def mainpage():
           status = checkvarStatus.get()
           taxable1 = checkvar_tax1.get()
           taxable2 = checkvar_tax2.get()
-          if pro_img_name.cget("text") == "":
-            product_image = ""
+          product_image = pro_img_name.cget("text")
+          chk_fields = [sku,name,unitprice,cost]
+          chk_data = []
+          for i in chk_fields:
+            if i == "":
+              chk_data.append(i)
+          
+          if len(chk_data) == 0:
+            chk_sql = "SELECT * FROM Productservice WHERE sku=%s or name=%s"
+            chk_val = (sku,name)
+            fbcursor.execute(chk_sql,chk_val)
+            fbcursor.fetchall()
+            chk_row_count = fbcursor.rowcount
+            if chk_row_count == 0:
+              add_pro_sql='INSERT INTO Productservice (sku,category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,image,status,taxable,serviceornot,tax2) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
+              add_pro_val=(sku,category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,product_image,status,taxable1,serviceornot,taxable2)
+              fbcursor.execute(add_pro_sql,add_pro_val)
+              fbilldb.commit()
+              top.destroy()
+            else:
+              messagebox.showinfo("Alert","Entry with same name or SKU already exist.\nTry again.")
           else:
-            product_image = pro_img_name.cget("text")
-
-          chk_sql = "SELECT * FROM Productservice WHERE sku=%s or name=%s"
-          chk_val = (sku,name)
-          fbcursor.execute(chk_sql,chk_val)
-          fbcursor.fetchall()
-          chk_row_count = fbcursor.rowcount
-          if chk_row_count == 0:
-            add_pro_sql='INSERT INTO Productservice (sku,category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,image,status,taxable,serviceornot,tax2) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
-            add_pro_val=(sku,category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,product_image,status,taxable1,serviceornot,taxable2)
-            fbcursor.execute(add_pro_sql,add_pro_val)
-            fbilldb.commit()
-            top.destroy()
-          else:
-            messagebox.showinfo("Alert","Entry with same name or SKU already exist.\nTry again.")
+            messagebox.showinfo("Alert","Fields (sku,name,unitprice,cost) cannot be empty.\nTry again.")
           
 
           for record in product_sel_tree.get_children():
@@ -1378,7 +1379,7 @@ def mainpage():
         Customerlabelframe = LabelFrame(innerFrame,text="Product/Service",width=580,height=455)
         Customerlabelframe.pack(side="top",fill=BOTH,padx=10,pady=(10,45))
 
-        def service_check():
+        def edit_service_check():
           if check_edit_service.get() == 1:
             edit_pro_price_entry['state'] = DISABLED
             edit_pro_stock_entry['state'] = DISABLED
@@ -1390,7 +1391,7 @@ def mainpage():
             edit_pro_low_entry['state'] = NORMAL
             edit_pro_ware_entry['state'] = NORMAL
 
-        def calc_pricecost(event):
+        def edit_calc_pricecost(event):
           if edit_pro_unit_entry.get() == "":
             up = 0
           else:
@@ -1442,7 +1443,7 @@ def mainpage():
         edit_pro_unit_label.place(x=20,y=130)
         edit_pro_unit_entry = Entry(Customerlabelframe,width=20,justify="right")
         edit_pro_unit_entry.place(x=120,y=135)
-        edit_pro_unit_entry.bind("<KeyRelease>",calc_pricecost)
+        edit_pro_unit_entry.bind("<KeyRelease>",edit_calc_pricecost)
 
         # pcsval = IntVar(Customerlabelframe, value='$0.00')
         edit_pro_pcs_label=Label(Customerlabelframe,text="Pcs/Weight:",fg="blue",pady=5,padx=10)
@@ -1455,7 +1456,7 @@ def mainpage():
         edit_pro_cost_label.place(x=20,y=160)
         edit_pro_cost_entry = Entry(Customerlabelframe,width=20,justify="right")
         edit_pro_cost_entry.place(x=120,y=165)
-        edit_pro_cost_entry.bind("<KeyRelease>",calc_pricecost)
+        edit_pro_cost_entry.bind("<KeyRelease>",edit_calc_pricecost)
 
         # priceval = IntVar(Customerlabelframe, value='$0.00')
         edit_pro_price_label=Label(Customerlabelframe,text="(Price - Cost):",pady=5,padx=10)
@@ -1487,7 +1488,7 @@ def mainpage():
                           text="This is a service (no stock control)",
                           onvalue =1 ,
                           offvalue = 0,
-                          height=3,command=service_check)
+                          height=3,command=edit_service_check)
 
         edit_pro_checkbtn_no.place(x=40,y=220)
 
@@ -1582,12 +1583,12 @@ def mainpage():
           edit_image = Label(edit_imageFrame,image=edit_img)
           edit_image.photo = edit_img
           edit_image.place(x=60,y=80)
-          img_size = image_getsize(os.path.getsize(pro_edit_img))
+          img_size = edit_image_getsize(os.path.getsize(pro_edit_img))
           pro_img_name_edit.config(text=pro_edit_img.split('/')[-1])
           pro_img_size_edit.config(text="(" + "" + img_size + "" + ")")
           
 
-        def image_getsize(B):
+        def edit_image_getsize(B):
           BYTE = float(B)
           KB = float(1024)
           MB = float(KB**2)
@@ -1600,7 +1601,7 @@ def mainpage():
             return '{0:.2f} MB'.format(BYTE / MB)
         
         # Remove product image
-        def remove_pro_img_edit():
+        def remove_edit_img():
           try:
             if pro_data[17] != "":
               pro_img_name_edit.config(text="")
@@ -1652,11 +1653,20 @@ def mainpage():
               else:
                 os.remove("images/"+pro_data[17])
 
-          edit_pro_sql='UPDATE Productservice SET category=%s,name=%s,description=%s,unitprice=%s,peices=%s,cost=%s,priceminuscost=%s,stock=%s,stocklimit=%s,warehouse=%s,privatenote=%s,image=%s,status=%s,taxable=%s,serviceornot=%s,tax2=%s WHERE sku=%s'
-          edit_pro_val=(category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,product_image,status,taxable1,serviceornot,taxable2,sku)
-          fbcursor.execute(edit_pro_sql,edit_pro_val)
-          fbilldb.commit()
-          top_edit.destroy()
+          edit_chk_fields = [sku,name,unitprice,cost]
+          edit_chk_data = []
+          for i in edit_chk_fields:
+            if i == "":
+              edit_chk_data.append(i)
+          
+          if len(edit_chk_data) == 0:
+            edit_pro_sql='UPDATE Productservice SET category=%s,name=%s,description=%s,unitprice=%s,peices=%s,cost=%s,priceminuscost=%s,stock=%s,stocklimit=%s,warehouse=%s,privatenote=%s,image=%s,status=%s,taxable=%s,serviceornot=%s,tax2=%s WHERE sku=%s'
+            edit_pro_val=(category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,product_image,status,taxable1,serviceornot,taxable2,sku)
+            fbcursor.execute(edit_pro_sql,edit_pro_val)
+            fbilldb.commit()
+            top_edit.destroy()
+          else:
+            messagebox.showinfo("Alert","Fields (sku,name,unitprice,cost) cannot be empty.\nTry again.")
 
           for record in product_sel_tree.get_children():
             product_sel_tree.delete(record)
@@ -1754,7 +1764,7 @@ def mainpage():
           edit_image1 = Label(edit_imageFrame,image=edit_img1)
           edit_image1.photo = edit_img1
           edit_image1.place(x=60,y=80)
-          edit_img_size = image_getsize(os.path.getsize("images/"+pro_data[17]))
+          edit_img_size = edit_image_getsize(os.path.getsize("images/"+pro_data[17]))
           pro_img_name_edit.config(text=pro_data[17])
           pro_img_size_edit.config(text="(" + "" + edit_img_size + "" + ")")
         except:
@@ -1766,7 +1776,7 @@ def mainpage():
         edit_browsebutton=Button(edit_imageFrame,text = 'Browse',command=edit_pro_img)
         edit_browsebutton.place(x=500,y=30)
         
-        edit_removeButton = Button(edit_imageFrame,compound = LEFT,image=cancel, text ="Remove Product Image",width=150,command=remove_pro_img_edit)
+        edit_removeButton = Button(edit_imageFrame,compound = LEFT,image=cancel, text ="Remove Product Image",width=150,command=remove_edit_img)
         edit_removeButton.place(x=400,y=450)
 
 
@@ -6746,6 +6756,25 @@ def mainpage():
       pdf = canvas.Canvas("Invoice/Invoice_Report.pdf", pagesize=letter)
       
       # Professional 1 (logo on left side)
+      pdf.drawImage("images/"+comp_data[13],30,665,width=200,height=90)
+
+      pdf.drawString(30,635,"Invoice#")
+      pdf.drawString(30,620,"Invoice date")
+      pdf.drawString(30,605,"Due date")
+      pdf.drawString(30,590,"Terms")
+      pdf.drawString(30,575,"Invoice ref#")
+
+      pdf.drawString(60,550,"Invoice to")
+      pdf.line(60,548,112,548)
+      pdf.drawString(60,535,inv_combo_e1.get())
+      pdf.drawString(60,520,inv_addr_e2.get("1.0","end-1c"))
+
+      pdf.drawString(300,550,"Ship to")
+      pdf.line(300,548,338,548)
+      pdf.drawString(300,535,inv_shipto_e3.get())
+      pdf.drawString(300,520,inv_addr_e4.get("1.0","end-1c"))
+
+
       pdf.setFont('Helvetica',12)
       pdf.drawString(450,745, comp_data[1])
       text=comp_data[2]
@@ -6771,7 +6800,150 @@ def mainpage():
         pass
 
       pdf.drawString(450,670, comp_data[4])
+
+
+      pdf.setLineWidth(.3)
+      pdf.line(30,470,30,450)
+      pdf.line(580,470,580,450)
+      pdf.line(130,470,130,450)
+      pdf.line(310,470,310,450) #vertical lines
+      pdf.line(400,470,400,450)
+      pdf.line(490,470,490,450)
+      #------------------------#
+      pdf.line(30,450,580,450)
+      pdf.line(30,470,580,470)
+
+      pdf.drawString(60,455,"ID/SKU")
+      pdf.drawString(140,455,"Product/Service - Description")
+      pdf.drawString(332,455,"Quantity")
+      pdf.drawString(420,455,"Unit Price")
+      pdf.drawString(523,455,"Price")
+
+      y1 = 430 
+      y2 = 430
+      v1 = 450
+      v2 = 430
+      for i in add_newline_tree.get_children():
+        pdf.line(30,y1,580,y2)
+        pdf.drawString(60,y1+5,add_newline_tree.item(i,'value')[0])
+        pdf.drawString(150,y1+5,add_newline_tree.item(i,'value')[1] + " - " + add_newline_tree.item(i,'value')[2])
+        pdf.drawString(332,y1+5,add_newline_tree.item(i,'value')[4])
+        pdf.drawString(420,y1+5,add_newline_tree.item(i,'value')[3])
+        pdf.drawString(523,y1+5,add_newline_tree.item(i,'value')[6])
+        y1 -= 20
+        y2 -= 20
+
+        pdf.line(30,v1,30,v2)
+        pdf.line(580,v1,580,v2)
+        pdf.line(130,v1,130,v2)
+        pdf.line(310,v1,310,v2) #vertical lines
+        pdf.line(400,v1,400,v2)
+        pdf.line(490,v1,490,v2)
+        v1 -= 20
+        v2 -= 20
       
+      calc_y1 = y1
+      calc_y2 = y2
+      if comp_data[12] == "1":
+        pdf.line(350,calc_y1-100,350,calc_y1+20)
+        pdf.line(580,calc_y1-100,580,calc_y1+20)
+        pdf.line(465,calc_y1-100,465,calc_y1+20)
+        #-----------------------------------
+        pdf.line(350,calc_y1,580,calc_y2)
+        pdf.line(350,calc_y1-20,580,calc_y2-20)
+        pdf.line(350,calc_y1-40,580,calc_y2-40)
+        pdf.line(350,calc_y1-60,580,calc_y2-60)
+        pdf.line(350,calc_y1-80,580,calc_y2-80)
+        pdf.line(350,calc_y1-100,580,calc_y2-100)
+
+        pdf.drawString(360,calc_y1+5,discount.cget("text"))
+        pdf.drawString(500,calc_y1+5,str(discount1.cget("text")))
+
+        pdf.drawString(360,(calc_y1-20)+5,"Subtotal")
+        pdf.drawString(500,(calc_y1-20)+5,str(sub1.cget("text")))
+
+        pdf.drawString(360,(calc_y1-40)+5,ex_costn_combo.get())
+        pdf.drawString(500,(calc_y1-40)+5,str(cost1.cget("text")))
+
+        pdf.drawString(360,(calc_y1-60)+5,"Invoice Total")
+        pdf.drawString(500,(calc_y1-60)+5,str(invoicetot1.cget("text")))
+
+        pdf.drawString(360,(calc_y1-80)+5,"Total Paid")
+        pdf.drawString(500,(calc_y1-80)+5,str(total1.cget("text")))
+
+        pdf.drawString(360,(calc_y1-100)+5,"Balance")
+        pdf.drawString(500,(calc_y1-100)+5,str(balance1.cget("text")))
+      elif comp_data[12] == "2":
+        pdf.line(350,calc_y1-120,350,calc_y1+20)
+        pdf.line(580,calc_y1-120,580,calc_y1+20)
+        pdf.line(465,calc_y1-120,465,calc_y1+20)
+        #-----------------------------------
+        pdf.line(350,calc_y1,580,calc_y2)
+        pdf.line(350,calc_y1-20,580,calc_y2-20)
+        pdf.line(350,calc_y1-40,580,calc_y2-40)
+        pdf.line(350,calc_y1-60,580,calc_y2-60)
+        pdf.line(350,calc_y1-80,580,calc_y2-80)
+        pdf.line(350,calc_y1-100,580,calc_y2-100)
+        pdf.line(350,calc_y1-120,580,calc_y2-120)
+
+        pdf.drawString(360,calc_y1+5,discount.cget("text"))
+        pdf.drawString(500,calc_y1+5,str(discount1.cget("text")))
+
+        pdf.drawString(360,(calc_y1-20)+5,"Subtotal")
+        pdf.drawString(500,(calc_y1-20)+5,str(sub1.cget("text")))
+
+        pdf.drawString(360,(calc_y1-40)+5,ex_costn_combo.get())
+        pdf.drawString(500,(calc_y1-40)+5,str(cost1.cget("text")))
+
+        pdf.drawString(360,(calc_y1-60)+5,"TAX1")
+        pdf.drawString(500,(calc_y1-60)+5,str(tax_1.cget("text")))
+
+        pdf.drawString(360,(calc_y1-80)+5,"Invoice Total")
+        pdf.drawString(500,(calc_y1-80)+5,str(invoicetot1.cget("text")))
+
+        pdf.drawString(360,(calc_y1-100)+5,"Total Paid")
+        pdf.drawString(500,(calc_y1-100)+5,str(total1.cget("text")))
+
+        pdf.drawString(360,(calc_y1-120)+5,"Balance")
+        pdf.drawString(500,(calc_y1-120)+5,str(balance1.cget("text")))
+      elif comp_data[12] == "3":
+        pdf.line(350,calc_y1-140,350,calc_y1+20)
+        pdf.line(580,calc_y1-140,580,calc_y1+20)
+        pdf.line(465,calc_y1-140,465,calc_y1+20)
+        #-----------------------------------
+        pdf.line(350,calc_y1,580,calc_y2)
+        pdf.line(350,calc_y1-20,580,calc_y2-20)
+        pdf.line(350,calc_y1-40,580,calc_y2-40)
+        pdf.line(350,calc_y1-60,580,calc_y2-60)
+        pdf.line(350,calc_y1-80,580,calc_y2-80)
+        pdf.line(350,calc_y1-100,580,calc_y2-100)
+        pdf.line(350,calc_y1-120,580,calc_y2-120)
+        pdf.line(350,calc_y1-140,580,calc_y2-140)
+      
+        pdf.drawString(360,calc_y1+5,discount.cget("text"))
+        pdf.drawString(500,calc_y1+5,str(discount1.cget("text")))
+
+        pdf.drawString(360,(calc_y1-20)+5,"Subtotal")
+        pdf.drawString(500,(calc_y1-20)+5,str(sub1.cget("text")))
+
+        pdf.drawString(360,(calc_y1-40)+5,ex_costn_combo.get())
+        pdf.drawString(500,(calc_y1-40)+5,str(cost1.cget("text")))
+
+        pdf.drawString(360,(calc_y1-60)+5,"TAX1")
+        pdf.drawString(500,(calc_y1-60)+5,str(tax_1.cget("text")))
+
+        pdf.drawString(360,(calc_y1-80)+5,"TAX2")
+        pdf.drawString(500,(calc_y1-80)+5,str(tax_2.cget("text")))
+
+        pdf.drawString(360,(calc_y1-100)+5,"Invoice Total")
+        pdf.drawString(500,(calc_y1-100)+5,str(invoicetot1.cget("text")))
+
+        pdf.drawString(360,(calc_y1-120)+5,"Total Paid")
+        pdf.drawString(500,(calc_y1-120)+5,str(total1.cget("text")))
+
+        pdf.drawString(360,(calc_y1-140)+5,"Balance")
+        pdf.drawString(500,(calc_y1-140)+5,str(balance1.cget("text")))
+
   
       pdf.save()
       win32api.ShellExecute(0,"","Invoice\Invoice_Report.pdf",None,".",0)
@@ -10229,25 +10401,19 @@ def mainpage():
         add_pro_unit_label_1.place(x=20,y=130)
         add_pro_unit_entry_1 = Entry(Customerlabelframe,width=20,justify="right")
         add_pro_unit_entry_1.place(x=120,y=135)
-        add_pro_unit_entry_1.delete(0,END)
-        add_pro_unit_entry_1.insert(0,0)
         add_pro_unit_entry_1.bind("<KeyRelease>",calc_pricecost)
 
         # pcsval = IntVar(Customerlabelframe, value='$0.00')
         add_pro_pcs_label_1=Label(Customerlabelframe,text="Pcs/Weight:",fg="blue",pady=5,padx=10)
         add_pro_pcs_label_1.place(x=330,y=135)
-        add_pro_pcs_entry_1 = Entry(Customerlabelframe,width=20,justify="right")
-        add_pro_pcs_entry_1.delete(0,END)
-        add_pro_pcs_entry_1.insert(0,0)
+        add_pro_pcs_entry_1 = Entry(Customerlabelframe,width=20,)
         add_pro_pcs_entry_1.place(x=420,y=140)
 
         # costval = IntVar(Customerlabelframe, value=0)
         add_pro_cost_label_1=Label(Customerlabelframe,text="Cost:",pady=5,padx=10)
         add_pro_cost_label_1.place(x=20,y=160)
-        add_pro_cost_entry_1 = Entry(Customerlabelframe,width=20)
+        add_pro_cost_entry_1 = Entry(Customerlabelframe,width=20,justify="right")
         add_pro_cost_entry_1.place(x=120,y=165)
-        add_pro_cost_entry_1.delete(0,END)
-        add_pro_cost_entry_1.insert(0,0)
         add_pro_cost_entry_1.bind("<KeyRelease>",calc_pricecost)
 
         # priceval = IntVar(Customerlabelframe, value='$0.00')
@@ -10311,23 +10477,23 @@ def mainpage():
 
 
         #Add product image
-        def add_pro_img():
-          global pro_img,pro_img_name
+        def add_pro_img_1():
+          global pro_img,add_image_1
           img_type = [('png files','*.png'),('jpg files','*.jpg'),('all files','*.*')]
           pro_img = filedialog.askopenfilename(initialdir="/",filetypes=img_type)
           shutil.copyfile(pro_img, os.getcwd()+'/images/'+pro_img.split('/')[-1])
           open_image = Image.open("images/"+pro_img.split('/')[-1])
           resize_img = open_image.resize((480,320))
-          img = ImageTk.PhotoImage(resize_img)
-          image = Label(imageFrame,image=img)
-          image.photo = img
-          image.place(x=60,y=80)
-          img_size = image_getsize(os.path.getsize(pro_img))
+          add_img_1 = ImageTk.PhotoImage(resize_img)
+          add_image_1 = Label(imageFrame,image=add_img_1)
+          add_image_1.photo = add_img_1
+          add_image_1.place(x=60,y=80)
+          img_size = add_image_getsize_1(os.path.getsize(pro_img))
           pro_img_name_1.config(text=pro_img.split('/')[-1])
           pro_img_size_1.config(text="(" + "" + img_size + "" + ")")
           
 
-        def image_getsize(B):
+        def add_image_getsize_1(B):
           BYTE = float(B)
           KB = float(1024)
           MB = float(KB**2)
@@ -10342,16 +10508,17 @@ def mainpage():
         
         
         # Remove product image
-        def remove_pro_img():
+        def remove_add_img_1():
           try:
             os.remove("images/"+pro_img.split('/')[-1])
             pro_img_name_1.config(text="")
             pro_img_size_1.config(text="")
+            add_image_1.destroy()
           except:
             pass
 
 
-        def add_new_product():
+        def add_new_product_1():
           sku = add_pro_code_entry_1.get()
           category = add_pro_category_1.get()
           name = add_pro_name_entry_1.get()
@@ -10374,26 +10541,29 @@ def mainpage():
           status = checkvarStatus_1.get()
           taxable1 = checkvar_tax1_1.get()
           taxable2 = checkvar_tax2_1.get()
-          if pro_img_name_1.cget("text") == "":
-            product_image = ""
-          else:
-            product_image = pro_img_name_1.cget("text")
+          product_image = pro_img_name_1.cget("text")
+          chk_fields_1 = [sku,name,unitprice,cost]
+          chk_data_1 = []
+          for i in chk_fields_1:
+            if i == "":
+              chk_data_1.append(i)
 
-          # chk_list = [sku,name]
-
-          chk_sql_1 = "SELECT * FROM Productservice WHERE sku=%s or name=%s"
-          chk_val_1 = (sku,name)
-          fbcursor.execute(chk_sql_1,chk_val_1)
-          fbcursor.fetchall()
-          chk_row_count_1 = fbcursor.rowcount
-          if chk_row_count_1 == 0:
-            add_pro_sql='INSERT INTO Productservice (sku,category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,image,status,taxable,serviceornot,tax2) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
-            add_pro_val=(sku,category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,product_image,status,taxable1,serviceornot,taxable2)
-            fbcursor.execute(add_pro_sql,add_pro_val)
-            fbilldb.commit()
-            top.destroy()
+          if len(chk_data_1) == 0:
+            chk_sql_1 = "SELECT * FROM Productservice WHERE sku=%s or name=%s"
+            chk_val_1 = (sku,name)
+            fbcursor.execute(chk_sql_1,chk_val_1)
+            fbcursor.fetchall()
+            chk_row_count_1 = fbcursor.rowcount
+            if chk_row_count_1 == 0:
+              add_pro_sql='INSERT INTO Productservice (sku,category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,image,status,taxable,serviceornot,tax2) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)' #adding values into db
+              add_pro_val=(sku,category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,product_image,status,taxable1,serviceornot,taxable2)
+              fbcursor.execute(add_pro_sql,add_pro_val)
+              fbilldb.commit()
+              top.destroy()
+            else:
+              messagebox.showinfo("Alert","Entry with same name or SKU already exist.\nTry again.")
           else:
-            messagebox.showinfo("Alert","Entry with same name or SKU already exist.\nTry again.")
+            messagebox.showinfo("Alert","Fields (sku,name,unitprice,cost) cannot be empty.\nTry again.")
 
           for record in product_sel_tree_1.get_children():
             product_sel_tree_1.delete(record)
@@ -10466,15 +10636,15 @@ def mainpage():
                 countp += 1
 
         # Cancel add new product
-        def cancel_add():
+        def cancel_add_1():
           top.destroy()
 
         
 
-        add_pro_ok_btn_1 = Button(innerFrame,compound = LEFT,image=tick , text ="Ok",width=60,command=add_new_product)
+        add_pro_ok_btn_1 = Button(innerFrame,compound = LEFT,image=tick , text ="Ok",width=60,command=add_new_product_1)
         add_pro_ok_btn_1.place(x=10,y=475)
 
-        add_pro_cancel_btn_1 = Button(innerFrame,compound = LEFT,image=cancel ,text="Cancel",width=60,command=cancel_add)
+        add_pro_cancel_btn_1 = Button(innerFrame,compound = LEFT,image=cancel ,text="Cancel",width=60,command=cancel_add_1)
         add_pro_cancel_btn_1.place(x=519,y=475)
 
         imageFrame = Frame(tab2, relief=GROOVE,height=580)
@@ -10488,10 +10658,10 @@ def mainpage():
         browseimg_1=Label(imageFrame,text=" Browse for product image file(recommended image type:JPG,size 480x320 pixels) ",bg='#f5f3f2')
         browseimg_1.place(x=15,y=35)
 
-        add_browsebutton_1=Button(imageFrame,text = 'Browse',command=add_pro_img)
+        add_browsebutton_1=Button(imageFrame,text = 'Browse',command=add_pro_img_1)
         add_browsebutton_1.place(x=500,y=30)
         
-        add_removeButton_1 = Button(imageFrame,compound = LEFT,image=cancel, text ="Remove Product Image",width=150,command=remove_pro_img)
+        add_removeButton_1 = Button(imageFrame,compound = LEFT,image=cancel, text ="Remove Product Image",width=150,command=remove_add_img_1)
         add_removeButton_1.place(x=400,y=450)
 
       ############# Edit product ############
@@ -10522,7 +10692,7 @@ def mainpage():
         Customerlabelframe = LabelFrame(innerFrame,text="Product/Service",width=580,height=455)
         Customerlabelframe.pack(side="top",fill=BOTH,padx=10,pady=(10,45))
 
-        def service_check():
+        def edit_service_check_1():
           if check_edit_service_1.get() == 1:
             edit_pro_price_entry_1['state'] = DISABLED
             edit_pro_stock_entry_1['state'] = DISABLED
@@ -10534,7 +10704,7 @@ def mainpage():
             edit_pro_low_entry_1['state'] = NORMAL
             edit_pro_ware_entry_1['state'] = NORMAL
 
-        def calc_pricecost(event):
+        def edit_calc_pricecost_1(event):
           if edit_pro_unit_entry_1.get() == "":
             up = 0
           else:
@@ -10586,7 +10756,7 @@ def mainpage():
         edit_pro_unit_label_1.place(x=20,y=130)
         edit_pro_unit_entry_1 = Entry(Customerlabelframe,width=20,justify="right")
         edit_pro_unit_entry_1.place(x=120,y=135)
-        edit_pro_unit_entry_1.bind("<KeyRelease>",calc_pricecost)
+        edit_pro_unit_entry_1.bind("<KeyRelease>",edit_calc_pricecost_1)
 
         # pcsval = IntVar(Customerlabelframe, value='$0.00')
         edit_pro_pcs_label_1=Label(Customerlabelframe,text="Pcs/Weight:",fg="blue",pady=5,padx=10)
@@ -10599,7 +10769,7 @@ def mainpage():
         edit_pro_cost_label_1.place(x=20,y=160)
         edit_pro_cost_entry_1 = Entry(Customerlabelframe,width=20,justify="right")
         edit_pro_cost_entry_1.place(x=120,y=165)
-        edit_pro_cost_entry_1.bind("<KeyRelease>",calc_pricecost)
+        edit_pro_cost_entry_1.bind("<KeyRelease>",edit_calc_pricecost_1)
 
         # priceval = IntVar(Customerlabelframe, value='$0.00')
         edit_pro_price_label_1=Label(Customerlabelframe,text="(Price - Cost):",pady=5,padx=10)
@@ -10631,7 +10801,7 @@ def mainpage():
                           text="This is a service (no stock control)",
                           onvalue =1 ,
                           offvalue = 0,
-                          height=3,command=service_check)
+                          height=3,command=edit_service_check_1)
 
         edit_pro_checkbtn_no_1.place(x=40,y=220)
 
@@ -10722,16 +10892,16 @@ def mainpage():
           shutil.copyfile(pro_edit_img_1, os.getcwd()+'/images/'+pro_edit_img_1.split('/')[-1])
           open_image = Image.open("images/"+pro_edit_img_1.split('/')[-1])
           resize_img = open_image.resize((480,320))
-          img = ImageTk.PhotoImage(resize_img)
-          edit_image_1 = Label(edit_imageFrame,image=img)
-          edit_image_1.photo = img
+          edit_img_1 = ImageTk.PhotoImage(resize_img)
+          edit_image_1 = Label(edit_imageFrame,image=edit_img_1)
+          edit_image_1.photo = edit_img_1
           edit_image_1.place(x=60,y=80)
-          img_size = image_getsize(os.path.getsize(pro_edit_img_1))
+          img_size = edit_image_getsize_1(os.path.getsize(pro_edit_img_1))
           pro_img_name_edit_1.config(text=pro_edit_img_1.split('/')[-1])
           pro_img_size_edit_1.config(text="(" + "" + img_size + "" + ")")
           
 
-        def image_getsize(B):
+        def edit_image_getsize_1(B):
           BYTE = float(B)
           KB = float(1024)
           MB = float(KB**2)
@@ -10744,7 +10914,7 @@ def mainpage():
             return '{0:.2f} MB'.format(BYTE / MB)
         
         # Remove product image
-        def remove_pro_img_edit_1():
+        def remove_edit_img_1():
           try:
             if pro_data[17] != "":
               pro_img_name_edit_1.config(text="")
@@ -10795,12 +10965,20 @@ def mainpage():
                 pass
               else:
                 os.remove("images/"+pro_data[17])
-
-          edit_pro_sql='UPDATE Productservice SET category=%s,name=%s,description=%s,unitprice=%s,peices=%s,cost=%s,priceminuscost=%s,stock=%s,stocklimit=%s,warehouse=%s,privatenote=%s,image=%s,status=%s,taxable=%s,serviceornot=%s,tax2=%s WHERE sku=%s'
-          edit_pro_val=(category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,product_image,status,taxable1,serviceornot,taxable2,sku)
-          fbcursor.execute(edit_pro_sql,edit_pro_val)
-          fbilldb.commit()
-          top_edit.destroy()
+          edit_chk_fields = [sku,name,unitprice,cost]
+          edit_chk_data = []
+          for i in edit_chk_fields:
+            if i == "":
+              edit_chk_data.append(i)
+          
+          if len(edit_chk_data) == 0:
+            edit_pro_sql='UPDATE Productservice SET category=%s,name=%s,description=%s,unitprice=%s,peices=%s,cost=%s,priceminuscost=%s,stock=%s,stocklimit=%s,warehouse=%s,privatenote=%s,image=%s,status=%s,taxable=%s,serviceornot=%s,tax2=%s WHERE sku=%s'
+            edit_pro_val=(category,name,description,unitprice,peices,cost,priceminuscost,stock,stocklimit,warehouse,privatenote,product_image,status,taxable1,serviceornot,taxable2,sku)
+            fbcursor.execute(edit_pro_sql,edit_pro_val)
+            fbilldb.commit()
+            top_edit.destroy()
+          else:
+            messagebox.showinfo("Alert","Fields (sku,name,unitprice,cost) cannot be empty.\nTry again.")
 
           for record in product_sel_tree_1.get_children():
             product_sel_tree_1.delete(record)
@@ -10898,7 +11076,7 @@ def mainpage():
           edit_image1_1 = Label(edit_imageFrame,image=edit_img1_1)
           edit_image1_1.photo = edit_img1_1
           edit_image1_1.place(x=60,y=80)
-          edit_img_size_1 = image_getsize(os.path.getsize("images/"+pro_data[17]))
+          edit_img_size_1 = edit_image_getsize_1(os.path.getsize("images/"+pro_data[17]))
           pro_img_name_edit_1.config(text=pro_data[17])
           pro_img_size_edit_1.config(text="(" + "" + edit_img_size_1 + "" + ")")
         except:
@@ -10910,7 +11088,7 @@ def mainpage():
         edit_browsebutton_1=Button(edit_imageFrame,text = 'Browse',command=edit_pro_img_1)
         edit_browsebutton_1.place(x=500,y=30)
         
-        edit_removeButton_1 = Button(edit_imageFrame,compound = LEFT,image=cancel, text ="Remove Product Image",width=150,command=remove_pro_img_edit_1)
+        edit_removeButton_1 = Button(edit_imageFrame,compound = LEFT,image=cancel, text ="Remove Product Image",width=150,command=remove_edit_img_1)
         edit_removeButton_1.place(x=400,y=450)
 
 
@@ -24298,64 +24476,61 @@ def mainpage():
 
   ################### filter invoice by date ##################
   def filterby_date():
-    for record in inv_tree.get_children():
-      inv_tree.delete(record)
     if check_invbydate.get() == 1:
-      date_sql = "SELECT * FROM invoice"
-      fbcursor.execute(date_sql,)
+      start_date = inv_datefrom_entry.get_date()
+      end_date = inv_dateto_entry.get_date()
+      date_sql = "SELECT * FROM invoice WHERE invodate BETWEEN %s AND %s"
+      date_val = (start_date,end_date)
+      fbcursor.execute(date_sql,date_val)
       date_data = fbcursor.fetchall()
-      
+      for record in inv_tree.get_children():
+        inv_tree.delete(record)
+
+      countd = 0
       for date in date_data:
-        start_date = inv_datefrom_entry.get_date()
-        end_date = inv_dateto_entry.get_date()
-        if date[2] >= start_date and date[2] <= end_date:
-          print(date[2])
-          inv_tree.insert(parent='',index='end',text='',values=('',date[1], date[2], date[3], date[20], date[4], date[5], date[6], date[7], date[8], date[9], date[10]))
-        else:
-          for record in inv_tree.get_children():
-            inv_tree.delete(record)
-            
-        if comp_data[10] == "mm-dd-yyyy":
-          s = datetime.strftime(start_date,"%m-%d-%Y")
-          e = datetime.strftime(end_date,"%m-%d-%Y")
-          invoice_all_label.config(text="Invoices(Fitered list - Invoice date period: " + "" + str(s) + " - " + str(e) + ")")
-        elif comp_data[10] == "dd-mm-yyyy":
-          s = datetime.strftime(start_date,"%d-%m-%Y")
-          e = datetime.strftime(end_date,"%d-%m-%Y")
-          invoice_all_label.config(text="Invoices(Fitered list - Invoice date period: " + "" + str(s) + " - " + str(e) + ")")
-        elif comp_data[10] == "yyyy.mm.dd":
-          sd = datetime.strptime(str(start_date),"%Y-%m-%d")
-          std = '{0}.{1:02}.{2:02}'.format(sd.year,sd.month,sd.day)
-          ed = datetime.strptime(str(end_date),"%Y-%m-%d")
-          end = '{0}.{1:02}.{2:02}'.format(ed.year,ed.month,ed.day)
-          invoice_all_label.config(text="Invoices(Fitered list - Invoice date period: " + "" + str(std) + " - " + str(end) + ")")
-        elif comp_data[10] == "mm/dd/yyyy":
-          s = datetime.strftime(start_date,"%m/%d/%Y")
-          e = datetime.strftime(end_date,"%m/%d/%Y")
-          invoice_all_label.config(text="Invoices(Fitered list - Invoice date period: " + "" + str(s) + " - " + str(e) + ")")
-        elif comp_data[10] == "dd/mm/yyyy":
-          s = datetime.strftime(start_date,"%d/%m/%Y")
-          e = datetime.strftime(end_date,"%d/%m/%Y")
-          invoice_all_label.config(text="Invoices(Fitered list - Invoice date period: " + "" + str(s) + " - " + str(e) + ")")
-        elif comp_data[10] == "dd.mm.yyyy":
-          sd = datetime.strptime(str(start_date),"%Y-%m-%d")
-          std = '{0:02}.{1:02}.{2:02}'.format(sd.day,sd.month,sd.year)
-          ed = datetime.strptime(str(end_date),"%Y-%m-%d")
-          end = '{0:02}.{1:02}.{2:02}'.format(ed.day,ed.month,ed.year)
-          invoice_all_label.config(text="Invoices(Fitered list - Invoice date period: " + "" + str(std) + " - " + str(end) + ")")
-        elif comp_data[10] == "yyyy/mm/dd":
-          s = datetime.strftime(start_date,"%Y/%m/%d")
-          e = datetime.strftime(end_date,"%Y/%m/%d")
-          invoice_all_label.config(text="Invoices(Fitered list - Invoice date period: " + "" + str(s) + " - " + str(e) + ")")
-        else:
-          sd = datetime.strptime(str(start_date),"%Y-%m-%d")
-          std = '{0}/{1}/{2:02}'.format(sd.month,sd.day,sd.year % 100)
-          ed = datetime.strptime(str(end_date),"%Y-%m-%d")
-          end = '{0}/{1}/{2:02}'.format(ed.month,ed.day,ed.year % 100)
-          invoice_all_label.config(text="Invoices(Fitered list - Invoice date period: " + "" + str(std) + " - " + str(end) + ")")
+        inv_tree.insert(parent='',index='end',iid=countd,text='',values=('',date[1], date[2], date[3], date[20], date[4], date[5], date[6], date[7], date[8], date[9], date[10]))
+      countd += 1
+
+      if comp_data[10] == "mm-dd-yyyy":
+        s = datetime.strftime(start_date,"%m-%d-%Y")
+        e = datetime.strftime(end_date,"%m-%d-%Y")
+        invoice_all_label.config(text="Invoices(Fitered list - Invoice date period: " + "" + str(s) + " - " + str(e) + ")")
+      elif comp_data[10] == "dd-mm-yyyy":
+        s = datetime.strftime(start_date,"%d-%m-%Y")
+        e = datetime.strftime(end_date,"%d-%m-%Y")
+        invoice_all_label.config(text="Invoices(Fitered list - Invoice date period: " + "" + str(s) + " - " + str(e) + ")")
+      elif comp_data[10] == "yyyy.mm.dd":
+        sd = datetime.strptime(str(start_date),"%Y-%m-%d")
+        std = '{0}.{1:02}.{2:02}'.format(sd.year,sd.month,sd.day)
+        ed = datetime.strptime(str(end_date),"%Y-%m-%d")
+        end = '{0}.{1:02}.{2:02}'.format(ed.year,ed.month,ed.day)
+        invoice_all_label.config(text="Invoices(Fitered list - Invoice date period: " + "" + str(std) + " - " + str(end) + ")")
+      elif comp_data[10] == "mm/dd/yyyy":
+        s = datetime.strftime(start_date,"%m/%d/%Y")
+        e = datetime.strftime(end_date,"%m/%d/%Y")
+        invoice_all_label.config(text="Invoices(Fitered list - Invoice date period: " + "" + str(s) + " - " + str(e) + ")")
+      elif comp_data[10] == "dd/mm/yyyy":
+        s = datetime.strftime(start_date,"%d/%m/%Y")
+        e = datetime.strftime(end_date,"%d/%m/%Y")
+        invoice_all_label.config(text="Invoices(Fitered list - Invoice date period: " + "" + str(s) + " - " + str(e) + ")")
+      elif comp_data[10] == "dd.mm.yyyy":
+        sd = datetime.strptime(str(start_date),"%Y-%m-%d")
+        std = '{0:02}.{1:02}.{2:02}'.format(sd.day,sd.month,sd.year)
+        ed = datetime.strptime(str(end_date),"%Y-%m-%d")
+        end = '{0:02}.{1:02}.{2:02}'.format(ed.day,ed.month,ed.year)
+        invoice_all_label.config(text="Invoices(Fitered list - Invoice date period: " + "" + str(std) + " - " + str(end) + ")")
+      elif comp_data[10] == "yyyy/mm/dd":
+        s = datetime.strftime(start_date,"%Y/%m/%d")
+        e = datetime.strftime(end_date,"%Y/%m/%d")
+        invoice_all_label.config(text="Invoices(Fitered list - Invoice date period: " + "" + str(s) + " - " + str(e) + ")")
+      else:
+        sd = datetime.strptime(str(start_date),"%Y-%m-%d")
+        std = '{0}/{1}/{2:02}'.format(sd.month,sd.day,sd.year % 100)
+        ed = datetime.strptime(str(end_date),"%Y-%m-%d")
+        end = '{0}/{1}/{2:02}'.format(ed.month,ed.day,ed.year % 100)
+        invoice_all_label.config(text="Invoices(Fitered list - Invoice date period: " + "" + str(std) + " - " + str(end) + ")")
     else:
       pass
-    # check_invbydate.set(0)
 
   inv_lbframe = LabelFrame(inv_midFrame, height=60, width=200, bg="#f8f8f2")
   inv_lbframe.pack(side="left", padx=10, pady=0)
