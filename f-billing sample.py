@@ -17,6 +17,7 @@ from glob import glob
 from itertools import count
 from locale import currency
 from pydoc import describe, doc
+import re
 from secrets import choice
 import smtplib
 from sqlite3 import enable_callback_tracebacks
@@ -64,6 +65,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate,Table,TableStyle,Paragraph
 from reportlab.lib.pagesizes import letter
+import re
 
 
 import win32api
@@ -406,10 +408,811 @@ def mainpage():
         inv_sms_e6.insert(0,sel_cust_str[12])
 
         customer_selection.destroy()
-      
+
+
+      #add new customer
+      def inv_create_newcustomer():
+        def cancel_add_customer():
+          print(scroll_notes.get("1.0", END))
+          vendor.destroy()
+        def add_customer():
+          customerno = cust_id.get()
+          if customerno == 0 or None:
+            pass
+          else:
+            businessname = 	bn.get()
+            businessaddress = badd.get()
+            contactperson = cn.get()
+            cpemail = cem.get()
+            cptelno = ct.get()
+            cpfax = cf.get()
+            cpmobileforsms = cs.get()
+            taxexempt = check_taxexempt.get()
+            specifictax1 = specf_tax1_entry.get()
+            specifictax2 = specf_tax2_entry.get()
+            discount = discount_entry.get()
+            customertype = custypeVar.get()
+
+            category = cust_cate.get()
+            status = check_active.get()
+            shipname = sn.get()
+            shipaddress = sadd.get()
+            shipcontactperson = scn.get()
+            shipcpemail = scem.get()
+            shipcptelno = sct.get()
+            shipcpfax = scf.get()
+            country = countryVar.get()
+            city = cityVar.get()
+            notes = scroll_notes.get("1.0", END)
+            custno_sql = "SELECT * FROM customer WHERE customerno=%s"
+            custno_val = (customerno,)
+            fbcursor.execute(custno_sql,custno_val)
+            custno_data = fbcursor.fetchone()
+
+            if custno_data is None:
+              cust_add_sql = "INSERT INTO customer(customerno,category,status,businessname,businessaddress,shipname,shipaddress,contactperson,cpemail,cptelno,cpfax,cpmobileforsms,shipcontactperson,shipcpemail,shipcptelno,shipcpfax,taxexempt,specifictax1,discount,country,city,customertype,notes,specifictax2)VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)" #adding values into db
+              cust_add_val = (customerno,category,status,businessname,businessaddress,shipname,shipaddress,contactperson,cpemail,cptelno,cpfax,cpmobileforsms,shipcontactperson,shipcpemail,shipcptelno,shipcpfax,taxexempt,specifictax1,discount,country,city,customertype,notes,specifictax2)
+              fbcursor.execute(cust_add_sql,cust_add_val)
+              fbilldb.commit()
+              for record in select_cust_tree.get_children():
+                select_cust_tree.delete(record)
+              all_cust_sql = "SELECT * FROM customer"
+              fbcursor.execute(all_cust_sql)
+              all_cust_data = fbcursor.fetchall()
+
+              count_cus=0
+              for i in all_cust_data:
+                select_cust_tree.insert(parent='', index='end', iid=count_cus, text='', values=(i[0],i[4],i[10],i[8]))
+                count_cus +=1
+              
+              vendor.destroy()
+            else:
+                messagebox.askyesno("Already Exists", "Customer ID value already exists. Duplicate value not allowed")
+
+
+
+        vendor=Toplevel(inv_midFrame)
+        vendor.title("Add new Customer")
+        vendor.geometry("775x580+300+100")
+        # create_cust_frame=Frame(vendor, bg="#f5f3f2", height=650)
+        # create_cust_frame.pack(side="top", fill="both")
+
+        labelframe1 = LabelFrame(vendor,text="Customer",bg="#f5f3f2",font=("arial",15))
+        labelframe1.place(x=10,y=10,width=755,height=525)
+
+        custVar = IntVar()
+        customer_id=Label(labelframe1, text="Customer ID:",bg="#f5f3f2",fg="blue").place(x=10 ,y=7)
+        cust_id=Entry(labelframe1)
+        cust_id.place(x=120,y=7,width=200)
+
+        cust_cate = StringVar()
+        category=Label(labelframe1, text="Category:",bg="#f5f3f2").place(x=330 ,y=7)
+        cust_category = ttk.Combobox(labelframe1,textvariable=cust_cate,width=35)
+        category_sql = 'SELECT DISTINCT category FROM customer'
+        fbcursor.execute(category_sql,)
+        category_data = fbcursor.fetchall()
+        cust_category['values'] = category_data
+        cust_category.current(0)
+        cust_category.place(x=390 ,y=7,width=220)
+
+        check_active = IntVar()
+        status=Label(labelframe1, text="Status:").place(x=620 ,y=7)
+        cust_status = Checkbutton(labelframe1,text="Active",variable=check_active,onvalue=1,offvalue=0,bg="#f5f3f2")
+        cust_status.select()
+        cust_status.place(x=670 ,y=6)
+        
+        labelframe2 = LabelFrame(labelframe1,text="Invoice to (appears on invoices)",bg="#f5f3f2")
+        labelframe2.place(x=10,y=34,width=340,height=125)
+
+        bn = StringVar()
+        bname = Label(labelframe2, text="Business name:",bg="#f5f3f2",fg="blue").place(x=10,y=10)
+        bus_name = Entry(labelframe2,textvariable=bn)
+        bus_name.place(x=110,y=10,width=210)
+
+        badd = StringVar()
+        baddress = Label(labelframe2, text="Address:",bg="#f5f3f2",fg="blue").place(x=10,y=35)
+        bus_address = scrolledtext.ScrolledText(labelframe2,)
+        bus_address.place(x=110,y=35,width=210,height=63)
+        
+        btn_mover1 = Button(labelframe1,width=3,height=2,compound = LEFT,text=">>")
+        btn_mover1.place(x=359, y=85,height=20)
+
+        labelframe3 = LabelFrame(labelframe1,text="Ship to (appears on invoices)",bg="#f5f3f2")
+        labelframe3.place(x=400,y=35,width=340,height=125)
+
+        sn = StringVar()
+        sname = Label(labelframe3, text="Ship to name:",bg="#f5f3f2").place(x=10,y=10)
+        ship_name = Entry(labelframe3,width=28,textvariable=sn)
+        ship_name.place(x=110,y=10,width=210)
+        sadd = StringVar()
+        saddress = Label(labelframe3, text="Address:",bg="#f5f3f2").place(x=10,y=35)
+        ship_address = scrolledtext.ScrolledText(labelframe3)
+        ship_address.place(x=110,y=35,width=210,height=63)
+        
+        labelframe4 = LabelFrame(labelframe1,text="Contact",bg="#f5f3f2")
+        labelframe4.place(x=5,y=195,width=420,height=150)
+
+        cn = StringVar()
+        cname = Label(labelframe4, text="Contact person:",bg="#f5f3f2").place(x=5,y=5)
+        cont_person = Entry(labelframe4,width=28,textvariable=cn)
+        cont_person.place(x=130,y=5)
+
+        cem = StringVar()
+        cemail = Label(labelframe4, text="E-mail address:",bg="#f5f3f2",fg="blue").place(x=5,y=35)
+        cont_email = Entry(labelframe4,width=28,textvariable=cem)
+
+        def validate_email(value):
+          
+          """
+          Validate the email entry
+          :param value
+          :return:
+          """
+
+          pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+          if re.fullmatch(pattern, value) is None:
+            return False
+          cont_email.config(fg="black")
+          return True
+
+        def on_invalid_email():
+          cont_email.config(fg="red")
+
+        valid_cmnd = (labelframe2.register(validate_email), '%P')
+        invalid_cmnd = (labelframe2.register(on_invalid_email),)
+        cont_email.config(validate='focusout',validatecommand=valid_cmnd,invalidcommand=invalid_cmnd)
+        cont_email.place(x=130,y=35)
+        
+
+        ct = StringVar()
+        ctel = Label(labelframe4, text="Tel.number:",bg="#f5f3f2").place(x=5,y=65)
+        cont_tel = Entry(labelframe4,width=11,textvariable=ct)
+
+        def validate_tel(value):
+              
+          """
+          Validat the email entry
+          :param value:
+          :return:
+          """
+          pattern = r'^[0-9]\d{0-12}$'
+          if re.fullmatch(pattern, value) is None:
+            return False
+          cont_tel.config(fg="black")
+          return True
+
+        def on_invalid_tel():
+          cont_tel.config(fg="red")
+              
+        valid_tel_cmnd = (labelframe2.register(validate_tel), '%P')
+        invalid_tel_cmnd = (labelframe2.register(on_invalid_tel),)
+        
+        
+        cont_tel.config(validate='focusout', validatecommand=valid_tel_cmnd, invalidcommand=invalid_tel_cmnd)
+        cont_tel.place(x=130,y=65)
+
+        cf = StringVar()
+        cfax = Label(labelframe4, text="Fax:",bg="#f5f3f2").place(x=240,y=65)
+        cont_fax = Entry(labelframe4,width=11,textvariable=cf)
+
+        def validate_fax(value):
+          """
+          Validate the email entry
+          :param value:
+          :return:
+          """
+          pattern = r'^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}$'
+          if re.fullmatch(pattern,value) is None:
+            return False
+          cont_fax.config(fg="black")
+          return True
+
+        def on_invalid_fax():
+          cont_fax.config(fg="red")
+
+        valid_fax_cmnd = (labelframe2.register(validate_fax),'%P')
+        invalid_fax_cmnd = (labelframe2.register(on_invalid_fax),)
+        cont_fax.config(validate='focusout',validatecommand=valid_fax_cmnd,invalidcommand=invalid_fax_cmnd)
+        cont_fax.place(x=280,y=65)
+
+
+        cs = StringVar()
+        csms = Label(labelframe4, text="Mobile number for SMS notifications:",bg="#f5f3f2").place(x=5,y=95)
+        cont_mob = Entry(labelframe4,width=15,textvariable=cs)
+
+        def validate_sms(value):
+          
+          """
+          Validat the email entry
+          :param value:
+          :return:
+          """
+          pattern = r'^[0-9]\d{10}$'
+          if re.fullmatch(pattern, value) is None:
+            return False
+          cont_mob.config(fg="black")
+          return True
+
+        def on_invalid_sms():
+          cont_mob.config(fg="red")
+          
+        valid_sms_cmnd = (labelframe2.register(validate_sms), '%P')
+        invalid_sms_cmnd = (labelframe2.register(on_invalid_sms),)
+        cont_mob.config(validate='focusout', validatecommand=valid_sms_cmnd, invalidcommand=invalid_sms_cmnd)
+        cont_mob.place(x=248,y=95)      
+
+        btn_mover2 = Button(labelframe1,width=3,height=2,compound = LEFT,text=">>")
+        btn_mover2.place(x=440, y=250)
+
+        
+        labelframe5 = LabelFrame(labelframe1,text="Ship to contact",bg="#f5f3f2")
+        labelframe5.place(x=480,y=195,width=420,height=120)
+
+        scn = StringVar()
+        scname = Label(labelframe5, text="Contact person:",bg="#f5f3f2").place(x=5,y=5)
+        shipcont_person = Entry(labelframe5,width=28,textvariable=scn)
+        shipcont_person.place(x=130,y=5)
+
+        scem = StringVar()
+        scemail = Label(labelframe5, text="E-mail address:",bg="#f5f3f2").place(x=5,y=35)
+        shipcont_email = Entry(labelframe5,width=28,textvariable=scem)
+        def validate_shipemail(value):
+          
+          """
+          Validat the email entry
+          :param value:
+          :return:
+          """
+          pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+          if re.fullmatch(pattern, value) is None:
+            return False
+          shipcont_email.config(fg="black")
+          return True
+
+        def on_invalid_shipemail():
+          shipcont_email.config(fg="red")
+              
+        valid_shipemail_cmnd = (labelframe2.register(validate_shipemail), '%P')
+        invalid_shipemail_cmnd = (labelframe2.register(on_invalid_shipemail),)
+        shipcont_email.config(validate='focusout', validatecommand=valid_shipemail_cmnd, invalidcommand=invalid_shipemail_cmnd)
+        shipcont_email.place(x=130,y=35)
+
+        sct = StringVar()
+        sctel = Label(labelframe5, text="Tel.number:",bg="#f5f3f2").place(x=5,y=65)
+        shipcont_tel = Entry(labelframe5,width=11,textvariable=sct)
+        def validate_shiptel(value):
+          
+          """
+          Validat the email entry
+          :param value:
+          :return:
+          """
+          pattern = r'^[0-9]\d{10}$'
+          if re.fullmatch(pattern, value) is None:
+            return False
+          shipcont_tel.config(fg="black")
+          return True
+
+        def on_invalid_shiptel():
+          shipcont_tel.config(fg="red")
+              
+        valid_shiptel_cmnd = (labelframe2.register(validate_shiptel), '%P')
+        invalid_shiptel_cmnd = (labelframe2.register(on_invalid_shiptel),)
+        shipcont_tel.config(validate='focusout', validatecommand=valid_shiptel_cmnd, invalidcommand=invalid_shiptel_cmnd)
+        shipcont_tel.place(x=130,y=65)
+
+        scf = StringVar()
+        scfax = Label(labelframe5, text="Fax:",bg="#f5f3f2").place(x=240,y=65)
+        shipcont_fax = Entry(labelframe5,width=11,textvariable=scf)
+        def validate_shipfax(value):
+          
+          """
+          Validat the email entry
+          :param value:
+          :return:
+          """
+          pattern = r'^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}$'
+          if re.fullmatch(pattern, value) is None:
+            return False
+          shipcont_fax.config(fg="black")
+          return True
+
+        def on_invalid_shipfax():
+              shipcont_fax.config(fg="red")
+              
+        valid_shipfax_cmnd = (labelframe2.register(validate_shipfax), '%P')
+        invalid_shipfax_cmnd = (labelframe2.register(on_invalid_shipfax),)
+        shipcont_fax.config(validate='focusout', validatecommand=valid_shipfax_cmnd, invalidcommand=invalid_shipfax_cmnd)
+        shipcont_fax.place(x=280,y=65)
+
+        labelframe6 = LabelFrame(labelframe1,text="Payment Option",bg="#f5f3f2")
+        labelframe6.place(x=5,y=350,width=420,height=100)
+
+        check_taxexempt = StringVar()
+        checkbtn_taxexempt = Checkbutton(labelframe6,text="Tax Exempt",variable=check_taxexempt,onvalue=1,offvalue=0,bg="#f5f3f2")
+        checkbtn_taxexempt.place(x=5 ,y=5)
+        checkbtn_taxexempt.select()
+
+        spfc_tax1 = IntVar() 
+        tax_sql = "SELECT taxtype FROM company"
+        fbcursor.execute(tax_sql,)
+        tax_data = fbcursor.fetchone()
+        def tax_t(S,d):
+          if d == '1':
+            if not S in ['.','0','1','2','3','4','5','6','7','8','9']:
+              return False
+            return True
+            
+          if d.isdigit():
+            return True
+        valid_spfctax1 = (labelframe6.register(tax_t), '%S','%d')
+        specf_tax1_entry = Entry(labelframe6, textvariable=spfc_tax1)
+        specf_tax2_entry = Entry(labelframe6,width=10)
+        if tax_data[0] == '3':
+          specf_tax1 = Label(labelframe6, text="Specific Tax1 %:",bg="#f5f3f2").place(x=180,y=5)
+          specf_tax1_entry = Entry(labelframe6,width=10)
+          specf_tax1_entry.config(validate='key',validatecommand=valid_spfctax1)
+          specf_tax1_entry.place(x=290,y=5)
+          specf_tax2 = Label(labelframe6,text="Specific Tax2%::").place(x=180,y=30)
+          specf_tax2_entry.config(validate='key',validatecommand=valid_spfctax1)
+          specf_tax2_entry.place(x=290,y=28)
+        elif tax_data[0] == '2':
+          specf_tax1 = Label(labelframe6, text="Specific Tax1 %:",bg="#f5f3f2").place(x=180,y=5)
+          specf_tax1_entry.config(validate='key',validatecommand=valid_spfctax1)
+          specf_tax1_entry.place(x=290,y=5)
+        elif tax_data[0] == '1':
+          pass
+        # unknwn = Entry(labelframe6,)
+        # unknwn.config(validate='key',validatecommand=(valid_spfctax1))
+        # unknwn.place(x=110,y=30,width=10)
+
+        discVar = IntVar()
+        discount = Label(labelframe6, text="Discount%:",bg="#f5f3f2").place(x=5,y=35)
+        discVar = IntVar(labelframe6)
+        discount_entry = Entry(labelframe6,width=10)
+        discount_entry.config(validate='key',validatecommand=(valid_spfctax1))
+        discount_entry.place(x=100,y=35)
+
+        labelframe7 = LabelFrame(labelframe1,text="Additional Info",bg="#f5f3f2")
+        labelframe7.place(x=480,y=320,width=420,height=90)
+
+        countryVar = StringVar()
+        country = Label(labelframe7, text="country:",bg="#f5f3f2").place(x=5,y=5)
+        addi_country = ttk.Combobox(labelframe7,width=28,textvariable=countryVar)
+        addi_country.place(x=130,y=5)
+        addi_country['values'] = ('India','America')
+
+        cityVar = StringVar()
+        city = Label(labelframe7, text="City:",bg="#f5f3f2").place(x=5,y=35)
+        addi_city = Entry(labelframe7,width=28,textvariable=cityVar)
+        addi_city.place(x=130,y=35)
+
+        labelframe8 = LabelFrame(labelframe1,text="Customer Type",bg="#f5f3f2")
+        labelframe8.place(x=5,y=460,width=420,height=100)
+        custypeVar = StringVar()
+        client_radio = Radiobutton(labelframe8,text=" Client ",variable=custypeVar,value="Client",bg="#f5f3f2")
+        client_radio.place(x=5,y=15)
+        vendor_radio = Radiobutton(labelframe8,text=" Vendor ",variable=custypeVar,value="Vendor",bg="#f5f3f2")
+        vendor_radio.place(x=150,y=15)
+        both_radio = Radiobutton(labelframe8,text=" Both(client/vendor)",variable=custypeVar,value="Both(client/vendor)",bg="#f5f3f2")
+        both_radio.place(x=250,y=15)
+        
+
+        labelframe9 = LabelFrame(labelframe1,text="Notes",bg="#f5f3f2")
+        labelframe9.place(x=480,y=415,width=420,height=145)
+        scrollnoteVar = StringVar()
+        global scroll_notes
+        scroll_notes = scrolledtext.ScrolledText(labelframe9)
+        scroll_notes.place(x=10,y=10,height=100,width=390)
+
+        add_customer_btnok = Button(vendor,width=60,height=10,bg="#f5f3f2",compound = LEFT,image=tick ,text="OK",command=add_customer)
+        add_customer_btnok.place(x=20, y=615)
+        add_customer_btncancel = Button(vendor,width=60,height=10,bg="#f5f3f2",compound = LEFT,image=cancel,text="Cancel",command=cancel_add_customer)
+        add_customer_btncancel.place(x=800, y=615)
+
+
+      #edi customer
+      def inv_edit_customer():
+        # def cancel_edit_customer():
+          # print(scroll_notes.get("1.0", END))
+          # vendor.destroy()
+        # def edit_customer():
+          # customerno = cust_id.get()
+          # if customerno == 0 or None:
+          #   pass
+          # else:
+          #   businessname = 	bn.get()
+          #   businessaddress = badd.get()
+          #   contactperson = cn.get()
+          #   cpemail = cem.get()
+          #   cptelno = ct.get()
+          #   cpfax = cf.get()
+          #   cpmobileforsms = cs.get()
+          #   taxexempt = check_taxexempt.get()
+          #   specifictax1 = specf_tax1_entry.get()
+          #   specifictax2 = specf_tax2_entry.get()
+          #   discount = discount_entry.get()
+          #   customertype = custypeVar.get()
+
+          #   category = cust_cate.get()
+          #   status = check_active.get()
+          #   shipname = sn.get()
+          #   shipaddress = sadd.get()
+          #   shipcontactperson = scn.get()
+          #   shipcpemail = scem.get()
+          #   shipcptelno = sct.get()
+          #   shipcpfax = scf.get()
+          #   country = countryVar.get()
+          #   city = cityVar.get()
+          #   notes = scroll_notes.get("1.0", END)
+          #   custno_sql = "SELECT * FROM customer WHERE customerno=%s"
+          #   custno_val = (customerno,)
+          #   fbcursor.execute(custno_sql,custno_val)
+          #   custno_data = fbcursor.fetchone()
+
+          #   if custno_data is None:
+          #     cust_add_sql = "INSERT INTO customer(customerno,category,status,businessname,businessaddress,shipname,shipaddress,contactperson,cpemail,cptelno,cpfax,cpmobileforsms,shipcontactperson,shipcpemail,shipcptelno,shipcpfax,taxexempt,specifictax1,discount,country,city,customertype,notes,specifictax2)VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)" #adding values into db
+          #     cust_add_val = (customerno,category,status,businessname,businessaddress,shipname,shipaddress,contactperson,cpemail,cptelno,cpfax,cpmobileforsms,shipcontactperson,shipcpemail,shipcptelno,shipcpfax,taxexempt,specifictax1,discount,country,city,customertype,notes,specifictax2)
+          #     fbcursor.execute(cust_add_sql,cust_add_val)
+          #     fbilldb.commit()
+          #     for record in select_cust_tree.get_children():
+          #       select_cust_tree.delete(record)
+          #     all_cust_sql = "SELECT * FROM customer"
+          #     fbcursor.execute(all_cust_sql)
+          #     all_cust_data = fbcursor.fetchall()
+
+          #     count_cus=0
+          #     for i in all_cust_data:
+          #       select_cust_tree.insert(parent='', index='end', iid=count_cus, text='', values=(i[0],i[4],i[10],i[8]))
+          #       count_cus +=1
+              
+          #     vendor.destroy()
+          #   else:
+          #       messagebox.askyesno("Already Exists", "Customer ID value already exists. Duplicate value not allowed")
+
+
+
+        edit_vendor=Toplevel(inv_midFrame)
+        edit_vendor.title("Edit Vendor")
+        edit_vendor.geometry("930x650+240+10")
+        create_cust_frame_1=Frame(edit_vendor, bg="#f5f3f2", height=650)
+        create_cust_frame_1.pack(side="top", fill="both")
+
+        labelframe1_1 = LabelFrame(create_cust_frame_1,text="Customer",bg="#f5f3f2",font=("arial",15))
+        labelframe1_1.place(x=10,y=5,width=910,height=600)
+
+        custVar_1 = IntVar()
+        customer_id_1=Label(labelframe1_1, text="Customer ID:",bg="#f5f3f2",fg="blue").place(x=5 ,y=10)
+        cust_id_1=Entry(labelframe1_1,width=25)
+        cust_id_1.place(x=150,y=10)
+
+        cust_cate_1 = StringVar()
+        category_1=Label(labelframe1_1, text="Category:",bg="#f5f3f2").place(x=390 ,y=10)
+        cust_category_1 = ttk.Combobox(labelframe1_1,width=25,value="Default",textvariable=cust_cate_1)
+        category_sql = 'SELECT DISTINCT category FROM customer'
+        fbcursor.execute(category_sql,)
+        category_data = fbcursor.fetchall()
+        cust_category_1['values'] = category_data
+        cust_category_1.current(0)
+        cust_category_1.place(x=460 ,y=10)
+
+        check_active_1 = IntVar()
+        status_1=Label(labelframe1_1, text="Status:",bg="#f5f3f2").place(x=710 ,y=10)
+        cust_status_1 = Checkbutton(labelframe1_1,text="Active",variable=check_active_1,onvalue=1,offvalue=0,bg="#f5f3f2")
+        cust_status_1.select()
+        cust_status_1.place(x=760 ,y=10)
+        
+        labelframe2_1 = LabelFrame(labelframe1_1,text="Invoice to (appears on invoices)",bg="#f5f3f2")
+        labelframe2_1.place(x=5,y=40,width=420,height=150)
+
+        bn_1 = StringVar()
+        bname_1 = Label(labelframe2_1, text="Business name:",bg="#f5f3f2",fg="blue").place(x=5,y=5)
+        bus_name_1 = Entry(labelframe2_1,width=28 ,textvariable=bn_1)
+        bus_name_1.place(x=130,y=5)
+
+        badd_1 = StringVar()
+        baddress_1 = Label(labelframe2_1, text="Address:",bg="#f5f3f2",fg="blue").place(x=5,y=40)
+        bus_address_1 = Entry(labelframe2_1,width=28,textvariable=badd_1)
+        bus_address_1.place(x=130,y=40,height=80)
+        
+        btn_mover1_1 = Button(labelframe1_1,width=3,height=2,compound = LEFT,text=">>")
+        btn_mover1_1.place(x=440, y=90)
+
+        labelframe3_1 = LabelFrame(labelframe1_1,text="Ship to (appears on invoices)",bg="#f5f3f2")
+        labelframe3_1.place(x=480,y=40,width=420,height=150)
+
+        sn_1 = StringVar()
+        sname_1 = Label(labelframe3_1, text="Ship to name:",bg="#f5f3f2").place(x=5,y=5)
+        ship_name_1 = Entry(labelframe3_1,width=28,textvariable=sn_1)
+        ship_name_1.place(x=130,y=5)
+        sadd_1 = StringVar()
+        saddress_1 = Label(labelframe3_1, text="Address:",bg="#f5f3f2").place(x=5,y=40)
+        ship_address_1 = Entry(labelframe3_1,width=28,textvariable=sadd_1)
+        ship_address_1.place(x=130,y=40,height=80)
+        
+        labelframe4_1 = LabelFrame(labelframe1_1,text="Contact",bg="#f5f3f2")
+        labelframe4_1.place(x=5,y=195,width=420,height=150)
+
+        cn_1 = StringVar()
+        cname_1 = Label(labelframe4_1, text="Contact person:",bg="#f5f3f2").place(x=5,y=5)
+        cont_person_1 = Entry(labelframe4_1,width=28,textvariable=cn_1)
+        cont_person_1.place(x=130,y=5)
+
+        cem_1 = StringVar()
+        cemail_1 = Label(labelframe4_1, text="E-mail address:",bg="#f5f3f2",fg="blue").place(x=5,y=35)
+        cont_email_1 = Entry(labelframe4_1,width=28,textvariable=cem_1)
+
+        def validate_email_1(value):
+          
+          """
+          Validate the email entry
+          :param value
+          :return:
+          """
+
+          pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+          if re.fullmatch(pattern, value) is None:
+            return False
+          cont_email_1.config(fg="black")
+          return True
+
+        def on_invalid_email_1():
+          cont_email_1.config(fg="red")
+
+        valid_cmnd_1 = (labelframe2_1.register(validate_email_1), '%P')
+        invalid_cmnd_1 = (labelframe2_1.register(on_invalid_email_1),)
+        cont_email_1.config(validate='focusout',validatecommand=valid_cmnd_1,invalidcommand=invalid_cmnd_1)
+        cont_email_1.place(x=130,y=35)
+        
+
+        ct_1 = StringVar()
+        ctel_1 = Label(labelframe4_1, text="Tel.number:",bg="#f5f3f2").place(x=5,y=65)
+        cont_tel_1 = Entry(labelframe4_1,width=11,textvariable=ct_1)
+
+        def validate_tel_1(value):
+              
+          """
+          Validat the email entry
+          :param value:
+          :return:
+          """
+          pattern = r'^[0-9]\d{0-12}$'
+          if re.fullmatch(pattern, value) is None:
+              
+              return False
+          cont_tel_1.config(fg="black")
+          return True
+
+        def on_invalid_tel_1():
+          cont_tel_1.config(fg="red")
+              
+        valid_tel_cmnd_1 = (labelframe2_1.register(validate_tel_1), '%P')
+        invalid_tel_cmnd_1 = (labelframe2_1.register(on_invalid_tel_1),)
+        
+        
+        cont_tel_1.config(validate='focusout', validatecommand=valid_tel_cmnd_1, invalidcommand=invalid_tel_cmnd_1)
+        cont_tel_1.place(x=130,y=65)
+
+        cf_1 = StringVar()
+        cfax_1 = Label(labelframe4_1, text="Fax:",bg="#f5f3f2").place(x=240,y=65)
+        cont_fax_1 = Entry(labelframe4_1,width=11,textvariable=cf_1)
+
+        def validate_fax_1(value):
+          """
+          Validate the email entry
+          :param value:
+          :return:
+          """
+          pattern = r'^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}$'
+          if re.fullmatch(pattern,value) is None:
+            return False
+          cont_fax_1.config(fg="black")
+          return True
+
+        def on_invalid_fax_1():
+          cont_fax_1.config(fg="red")
+
+        valid_fax_cmnd_1 = (labelframe2_1.register(validate_fax_1),'%P')
+        invalid_fax_cmnd_1 = (labelframe2_1.register(on_invalid_fax_1),)
+        cont_fax_1.config(validate='focusout',validatecommand=valid_fax_cmnd_1,invalidcommand=invalid_fax_cmnd_1)
+        cont_fax_1.place(x=280,y=65)
+
+
+        cs_1 = StringVar()
+        csms_1 = Label(labelframe4_1, text="Mobile number for SMS notifications:",bg="#f5f3f2").place(x=5,y=95)
+        cont_mob_1 = Entry(labelframe4_1,width=15,textvariable=cs_1)
+
+        def validate_sms_1(value):
+          
+          """
+          Validat the email entry
+          :param value:
+          :return:
+          """
+          pattern = r'^[0-9]\d{10}$'
+          if re.fullmatch(pattern, value) is None:
+            return False
+          cont_mob_1.config(fg="black")
+          return True
+
+        def on_invalid_sms_1():
+          cont_mob_1.config(fg="red")
+          
+        valid_sms_cmnd_1 = (labelframe2_1.register(validate_sms_1), '%P')
+        invalid_sms_cmnd_1 = (labelframe2_1.register(on_invalid_sms_1),)
+        cont_mob_1.config(validate='focusout', validatecommand=valid_sms_cmnd_1, invalidcommand=invalid_sms_cmnd_1)
+        cont_mob_1.place(x=248,y=95)      
+
+        btn_mover2_1 = Button(labelframe1_1,width=3,height=2,compound = LEFT,text=">>")
+        btn_mover2_1.place(x=440, y=250)
+
+        
+        labelframe5_1 = LabelFrame(labelframe1_1,text="Ship to contact",bg="#f5f3f2")
+        labelframe5_1.place(x=480,y=195,width=420,height=120)
+
+        scn_1 = StringVar()
+        scname_1 = Label(labelframe5_1, text="Contact person:",bg="#f5f3f2").place(x=5,y=5)
+        shipcont_person_1 = Entry(labelframe5_1,width=28,textvariable=scn_1)
+        shipcont_person_1.place(x=130,y=5)
+
+        scem_1 = StringVar()
+        scemail_1 = Label(labelframe5_1, text="E-mail address:",bg="#f5f3f2").place(x=5,y=35)
+        shipcont_email_1 = Entry(labelframe5_1,width=28,textvariable=scem_1)
+        def validate_shipemail_1(value):
+          
+          """
+          Validat the email entry
+          :param value:
+          :return:
+          """
+          pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+          if re.fullmatch(pattern, value) is None:
+            return False
+          shipcont_email_1.config(fg="black")
+          return True
+
+        def on_invalid_shipemail_1():
+          shipcont_email_1.config(fg="red")
+              
+        valid_shipemail_cmnd_1 = (labelframe2_1.register(validate_shipemail_1), '%P')
+        invalid_shipemail_cmnd_1 = (labelframe2_1.register(on_invalid_shipemail_1),)
+        shipcont_email_1.config(validate='focusout', validatecommand=valid_shipemail_cmnd_1, invalidcommand=invalid_shipemail_cmnd_1)
+        shipcont_email_1.place(x=130,y=35)
+
+        sct_1 = StringVar()
+        sctel_1 = Label(labelframe5_1, text="Tel.number:",bg="#f5f3f2").place(x=5,y=65)
+        shipcont_tel_1 = Entry(labelframe5_1,width=11,textvariable=sct_1)
+        def validate_shiptel_1(value):
+          
+          """
+          Validat the email entry
+          :param value:
+          :return:
+          """
+          pattern = r'^[0-9]\d{10}$'
+          if re.fullmatch(pattern, value) is None:
+            return False
+          shipcont_tel_1.config(fg="black")
+          return True
+
+        def on_invalid_shiptel_1():
+          shipcont_tel_1.config(fg="red")
+              
+        valid_shiptel_cmnd_1 = (labelframe2_1.register(validate_shiptel_1), '%P')
+        invalid_shiptel_cmnd_1 = (labelframe2_1.register(on_invalid_shiptel_1),)
+        shipcont_tel_1.config(validate='focusout', validatecommand=valid_shiptel_cmnd_1, invalidcommand=invalid_shiptel_cmnd_1)
+        shipcont_tel_1.place(x=130,y=65)
+
+        scf_1 = StringVar()
+        scfax_1 = Label(labelframe5_1, text="Fax:",bg="#f5f3f2").place(x=240,y=65)
+        shipcont_fax_1 = Entry(labelframe5_1,width=11,textvariable=scf_1)
+        def validate_shipfax_1(value):
+          
+          """
+          Validat the email entry
+          :param value:
+          :return:
+          """
+          pattern = r'^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}$'
+          if re.fullmatch(pattern, value) is None:
+            return False
+          shipcont_fax_1.config(fg="black")
+          return True
+
+        def on_invalid_shipfax_1():
+              shipcont_fax_1.config(fg="red")
+              
+        valid_shipfax_cmnd_1 = (labelframe2_1.register(validate_shipfax_1), '%P')
+        invalid_shipfax_cmnd_1 = (labelframe2_1.register(on_invalid_shipfax_1),)
+        shipcont_fax_1.config(validate='focusout', validatecommand=valid_shipfax_cmnd_1, invalidcommand=invalid_shipfax_cmnd_1)
+        shipcont_fax_1.place(x=280,y=65)
+
+        labelframe6_1 = LabelFrame(labelframe1_1,text="Payment Option",bg="#f5f3f2")
+        labelframe6_1.place(x=5,y=350,width=420,height=100)
+
+        check_taxexempt_1 = StringVar()
+        checkbtn_taxexempt_1 = Checkbutton(labelframe6_1,text="Tax Exempt",variable=check_taxexempt_1,onvalue=1,offvalue=0,bg="#f5f3f2")
+        checkbtn_taxexempt_1.place(x=5 ,y=5)
+        checkbtn_taxexempt_1.select()
+
+        spfc_tax1_1 = IntVar() 
+        tax_sql = "SELECT taxtype FROM company"
+        fbcursor.execute(tax_sql,)
+        tax_data = fbcursor.fetchone()
+        def tax_t_1(S,d):
+          if d == '1':
+            if not S in ['.','0','1','2','3','4','5','6','7','8','9']:
+              return False
+            return True
+            
+          if d.isdigit():
+            return True
+        valid_spfctax1_1 = (labelframe6_1.register(tax_t_1), '%S','%d')
+        specf_tax1_entry_1 = Entry(labelframe6_1, textvariable=spfc_tax1_1)
+        specf_tax2_entry_1 = Entry(labelframe6_1,width=10)
+        if tax_data[0] == '3':
+          specf_tax1_1 = Label(labelframe6_1, text="Specific Tax1 %:",bg="#f5f3f2").place(x=180,y=5)
+          specf_tax1_entry_1 = Entry(labelframe6_1,width=10)
+          specf_tax1_entry_1.config(validate='key',validatecommand=valid_spfctax1_1)
+          specf_tax1_entry_1.place(x=290,y=5)
+          specf_tax2_1 = Label(labelframe6_1,text="Specific Tax2%::").place(x=180,y=30)
+          specf_tax2_entry_1.config(validate='key',validatecommand=valid_spfctax1_1)
+          specf_tax2_entry_1.place(x=290,y=28)
+        elif tax_data[0] == '2':
+          specf_tax1_1 = Label(labelframe6_1, text="Specific Tax1 %:",bg="#f5f3f2").place(x=180,y=5)
+          specf_tax1_entry_1.config(validate='key',validatecommand=valid_spfctax1_1)
+          specf_tax1_entry_1.place(x=290,y=5)
+        elif tax_data[0] == '1':
+          pass
+        # unknwn = Entry(labelframe6,)
+        # unknwn.config(validate='key',validatecommand=(valid_spfctax1))
+        # unknwn.place(x=110,y=30,width=10)
+
+        discVar_1 = IntVar()
+        discount_1 = Label(labelframe6_1, text="Discount%:",bg="#f5f3f2").place(x=5,y=35)
+        discVar_1 = IntVar(labelframe6_1)
+        discount_entry_1 = Entry(labelframe6_1,width=10)
+        discount_entry_1.config(validate='key',validatecommand=(valid_spfctax1_1))
+        discount_entry_1.place(x=100,y=35)
+
+        labelframe7_1 = LabelFrame(labelframe1_1,text="Additional Info",bg="#f5f3f2")
+        labelframe7_1.place(x=480,y=320,width=420,height=90)
+
+        countryVar_1 = StringVar()
+        country_1 = Label(labelframe7_1, text="country:",bg="#f5f3f2").place(x=5,y=5)
+        addi_country_1 = ttk.Combobox(labelframe7_1,width=28,textvariable=countryVar_1)
+        addi_country_1.place(x=130,y=5)
+        addi_country_1['values'] = ('India','America')
+
+        cityVar_1 = StringVar()
+        city_1 = Label(labelframe7_1, text="City:",bg="#f5f3f2").place(x=5,y=35)
+        addi_city_1 = Entry(labelframe7_1,width=28,textvariable=cityVar_1)
+        addi_city_1.place(x=130,y=35)
+
+        labelframe8_1 = LabelFrame(labelframe1_1,text="Customer Type",bg="#f5f3f2")
+        labelframe8_1.place(x=5,y=460,width=420,height=100)
+        custypeVar_1 = StringVar()
+        client_radio_1 = Radiobutton(labelframe8_1,text=" Client ",variable=custypeVar_1,value="Client",bg="#f5f3f2")
+        client_radio_1.place(x=5,y=15)
+        vendor_radio_1 = Radiobutton(labelframe8_1,text=" Vendor ",variable=custypeVar_1,value="Vendor",bg="#f5f3f2")
+        vendor_radio_1.place(x=150,y=15)
+        both_radio_1 = Radiobutton(labelframe8_1,text=" Both(client/vendor)",variable=custypeVar_1,value="Both(client/vendor)",bg="#f5f3f2")
+        both_radio_1.place(x=250,y=15)
+        
+
+        labelframe9_1 = LabelFrame(labelframe1_1,text="Notes",bg="#f5f3f2")
+        labelframe9_1.place(x=480,y=415,width=420,height=145)
+        scrollnoteVar_1 = StringVar()
+        global scroll_notes_1
+        scroll_notes_1 = scrolledtext.ScrolledText(labelframe9_1)
+        scroll_notes_1.place(x=10,y=10,height=100,width=390)
+
+        edit_customer_btnok = Button(edit_vendor,width=60,height=10,bg="#f5f3f2",compound = LEFT,image=tick ,text="OK",)
+        edit_customer_btnok.place(x=20, y=615)
+        edit_customer_btncancel = Button(edit_vendor,width=60,height=10,bg="#f5f3f2",compound = LEFT,image=cancel,text="Cancel",)
+        edit_customer_btncancel.place(x=800, y=615)
       
 
-      
       # filter customers
 
       def filter_customer():
@@ -452,181 +1255,6 @@ def mainpage():
       cust_filter_entry.place(x=110, y=10)
       cust_filter_button=Button(customer_selection, text='Click Here',command=filter_customer)
       cust_filter_button.place(x=240, y=9,height=20,width=60)
-
-
-
-
-      #add new customer
-      def inv_create_newcustomer():
-        global checkvar1,checkvar2,cust_id,bus_name,bus_address,cat,ship_name,ship_address,cont_person,cont_email,cont_tel,cont_fax,cont_mob,shipcont_person,shipcont_email,shipcont_tel,shipcont_fax,cont_country,cont_city,cont_notes
-        vendor=Toplevel(inv_midFrame)
-        vendor.title("Add new Customer")
-        vendor.geometry("930x650+240+10")
-        check_active=IntVar()
-        checktax_exem=IntVar()
-        custype_radio=IntVar()
-        create_cust_frame=Frame(vendor, bg="#f5f3f2", height=650)
-        create_cust_frame.pack(side="top", fill="both")
-
-        labelframe1 = LabelFrame(create_cust_frame,text="Customer",bg="#f5f3f2",font=("arial",15))
-        labelframe1.place(x=10,y=5,width=910,height=600)
-
-        customer_id=Label(labelframe1, text="Customer ID:",bg="#f5f3f2",fg="blue").place(x=5 ,y=10)
-        cust_id=Entry(labelframe1,width=25).place(x=150,y=10)
-
-        cust_cate = StringVar()
-        category=Label(labelframe1, text="Category:",bg="#f5f3f2").place(x=390 ,y=10)
-        cust_category = ttk.Combobox(labelframe1,width=25,value="Default",textvariable=cust_cate)
-        cust_category.place(x=460 ,y=10)
-
-        status=Label(labelframe1, text="Status:",bg="#f5f3f2").place(x=710 ,y=10)
-        cust_status = Checkbutton(labelframe1,text="Active",variable=check_active,onvalue=1,offvalue=0,bg="#f5f3f2")
-        cust_status.place(x=760 ,y=10)
-        
-        labelframe2 = LabelFrame(labelframe1,text="Invoice to (appears on invoices)",bg="#f5f3f2")
-        labelframe2.place(x=5,y=40,width=420,height=150)
-
-        bn = StringVar()
-        bname = Label(labelframe2, text="Business name:",bg="#f5f3f2",fg="blue").place(x=5,y=5)
-        bus_name = Entry(labelframe2,width=28 ,textvariable=bn)
-        bus_name.place(x=130,y=5)
-
-        badd = StringVar()
-        baddress = Label(labelframe2, text="Address:",bg="#f5f3f2",fg="blue").place(x=5,y=40)
-        bus_address = Entry(labelframe2,width=28,textvariable=badd)
-        bus_address.place(x=130,y=40,height=80)
-        
-        btn_mover = Button(labelframe1,width=3,height=2,compound = LEFT,text=">>")
-        btn_mover.place(x=440, y=90)
-
-        labelframe3 = LabelFrame(labelframe1,text="Ship to (appears on invoices)",bg="#f5f3f2")
-        labelframe3.place(x=480,y=40,width=420,height=150)
-
-        sn = StringVar()
-        sname = Label(labelframe3, text="Ship to name:",bg="#f5f3f2").place(x=5,y=5)
-        ship_name = Entry(labelframe3,width=28,textvariable=sn)
-        ship_name.place(x=130,y=5)
-        sadd = StringVar()
-        saddress = Label(labelframe3, text="Address:",bg="#f5f3f2").place(x=5,y=40)
-        ship_address = Entry(labelframe3,width=28,textvariable=sadd)
-        ship_address.place(x=130,y=40,height=80)
-        
-        labelframe4 = LabelFrame(labelframe1,text="Contact",bg="#f5f3f2")
-        labelframe4.place(x=5,y=195,width=420,height=150)
-
-        cn = StringVar()
-        cname = Label(labelframe4, text="Contact person:",bg="#f5f3f2").place(x=5,y=5)
-        cont_person = Entry(labelframe4,width=28,textvariable=cn)
-        cont_person.place(x=130,y=5)
-
-        cem = StringVar()
-        cemail = Label(labelframe4, text="E-mail address:",bg="#f5f3f2",fg="blue").place(x=5,y=35)
-        cont_email = Entry(labelframe4,width=28,textvariable=cem)
-
-        def validate_email(value):
-          
-          """
-          Validate the email entry
-          :param value
-          :return:
-          """
-
-          pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-          if re.fullmatch(pattern, value) is None:
-            return False
-          cont_email.config(fg="black")
-          return True
-
-        def on_invalid_email():
-          cont_email(fg="red")
-
-        valid_cmnd = (labelframe2.register(validate_email), '%P')
-        invalid_cmnd = (labelframe2.register(on_invalid_email),)
-        cont_email.config(validate='focusout',validatecommand=valid_cmnd,invalidcommand=invalid_cmnd)
-        cont_email.place(x=130,y=35)
-        
-
-        ct = StringVar()
-        ctel = Label(labelframe4, text="Tel.number:",bg="#f5f3f2").place(x=5,y=65)
-        cont_tel = Entry(labelframe4,width=11,textvariable=ct)
-
-        def validate_tel(value):
-              
-          """
-          Validat the email entry
-          :param value:
-          :return:
-          """
-          pattern = r'^[0-9]\d{0-12}$'
-          if re.fullmatch(pattern, value) is None:
-              
-              return False
-          cont_tel.config(fg="black")
-          return True
-
-        def on_invalid_tel():
-          cont_tel.config(fg="red")
-              
-        valid_tel_cmnd = (labelframe2.register(validate_tel), '%P')
-        invalid_tel_cmnd = (labelframe2.register(on_invalid_tel),)
-        
-        
-        cont_tel.config(validate='focusout', validatecommand=valid_tel_cmnd, invalidcommand=invalid_tel_cmnd)
-        cont_tel.place(x=130,y=65)
-
-        cf = StringVar()
-        cfax = Label(labelframe4, text="Fax:",bg="#f5f3f2").place(x=240,y=65)
-        cont_fax = Entry(labelframe4,width=11,textvariable=cf)
-        cont_fax.place(x=280,y=65)
-
-        cs = StringVar()
-        csms = Label(labelframe4, text="Mobile number for SMS notifications:",bg="#f5f3f2").place(x=5,y=95)
-        cont_mob = Entry(labelframe4,width=15,textvariable=cs)
-        cont_mob.place(x=248,y=95)      
-
-        btn1=Button(labelframe1,width=3,height=2,compound = LEFT,text=">>").place(x=440, y=250)
-
-        
-        labelframe5 = LabelFrame(labelframe1,text="Ship to contact",bg="#f5f3f2")
-        labelframe5.place(x=480,y=195,width=420,height=125)
-        scname = Label(labelframe5, text="Contact person:",bg="#f5f3f2").place(x=5,y=5)
-        shipcont_person = Entry(labelframe5,width=28).place(x=130,y=5)
-        scemail = Label(labelframe5, text="E-mail address:",bg="#f5f3f2").place(x=5,y=35)
-        shipcont_email = Entry(labelframe5,width=28).place(x=130,y=35)
-        sctel = Label(labelframe5, text="Tel.number:",bg="#f5f3f2").place(x=5,y=65)
-        shipcont_tel = Entry(labelframe5,width=11).place(x=130,y=65)
-        scfax = Label(labelframe5, text="Fax:",bg="#f5f3f2").place(x=240,y=65)
-        shipcont_fax = Entry(labelframe5,width=11).place(x=280,y=65)
-
-        labelframe6 = LabelFrame(labelframe1,text="Contact",bg="#f5f3f2")
-        labelframe6.place(x=5,y=350,width=420,height=100)
-        Checkbutton(labelframe6,text="Tax Exempt",variable=checktax_exem,onvalue=1,offvalue=0,bg="#f5f3f2").place(x=5 ,y=5)
-        tax = Label(labelframe6, text="Specific Tax1 %:",bg="#f5f3f2").place(x=180,y=5)
-        e1 = Entry(labelframe6,width=10).place(x=290,y=5)
-        discount = Label(labelframe6, text="Discount%:",bg="#f5f3f2").place(x=5,y=35)
-        e2 = Entry(labelframe6,width=10).place(x=100,y=35)
-
-        labelframe7 = LabelFrame(labelframe1,text="Contact",bg="#f5f3f2")
-        labelframe7.place(x=480,y=330,width=420,height=100)
-        country = Label(labelframe7, text="country:",bg="#f5f3f2").place(x=5,y=5)
-        cont_country = Entry(labelframe7,width=28).place(x=130,y=5)
-        city = Label(labelframe7, text="City:",bg="#f5f3f2").place(x=5,y=35)
-        cont_city = Entry(labelframe7,width=28).place(x=130,y=35)
-
-        labelframe8 = LabelFrame(labelframe1,text="Customer Type",bg="#f5f3f2")
-        labelframe8.place(x=5,y=460,width=420,height=100)
-        R1=Radiobutton(labelframe8,text=" Client ",variable=custype_radio,value=1,bg="#f5f3f2").place(x=5,y=15)
-        R2=Radiobutton(labelframe8,text=" Vendor ",variable=custype_radio,value=2,bg="#f5f3f2").place(x=150,y=15)
-        R3=Radiobutton(labelframe8,text=" Both(client/vendor)",variable=custype_radio,value=3,bg="#f5f3f2").place(x=250,y=15)
-        
-
-        labelframe9 = LabelFrame(labelframe1,text="Notes",bg="#f5f3f2")
-        labelframe9.place(x=480,y=430,width=420,height=150)
-        cont_notes = Entry(labelframe9).place(x=10,y=10,height=100,width=390)
-
-        btn1=Button(vendor,width=60,height=10,bg="#f5f3f2",compound = LEFT,image=tick ,text="OK").place(x=20, y=615)
-        btn2=Button(vendor,width=60,height=10,bg="#f5f3f2",compound = LEFT,image=cancel,text="Cancel").place(x=800, y=615)
-      
 
 
       cust_fil_cat_tree=ttk.Treeview(customer_selection, height=27)
@@ -690,9 +1318,12 @@ def mainpage():
       scrollbar.place(x=640, y=45, height=560)
       scrollbar.config( command=select_cust_tree.yview )
 
-      ok_btn=Button(customer_selection,compound = LEFT,image=tick ,text="ok", width=60,command=cust_tree_fetch).place(x=15, y=610)
-      edit_btn=Button(customer_selection,compound = LEFT,image=tick,text="Edit selected customer", width=150,command=inv_create_newcustomer).place(x=250, y=610)
-      add_btn=Button(customer_selection,compound = LEFT,image=tick, text="Add new customer", width=150,command=inv_create_newcustomer).place(x=435, y=610)
+      cust_ok_btn=Button(customer_selection,compound = LEFT,image=tick ,text="ok", width=60,command=cust_tree_fetch)
+      cust_ok_btn.place(x=15, y=610)
+      edit_custbtn=Button(customer_selection,compound = LEFT,image=tick,text="Edit selected customer", width=150,command=inv_edit_customer)
+      edit_custbtn.place(x=250, y=610)
+      add_custbtn=Button(customer_selection,compound = LEFT,image=tick, text="Add new customer", width=150,command=inv_create_newcustomer)
+      add_custbtn.place(x=435, y=610)
       cust_cancel_btn=Button(customer_selection,compound = LEFT,image=cancel ,text="Cancel", width=60,command=lambda:customer_selection.destroy())
       cust_cancel_btn.place(x=740, y=610)   
 
@@ -17785,95 +18416,404 @@ def mainpage():
 
 
       #add new customer
-      def create1():
-        ven=Toplevel(inv_midFrame)
-        ven.title("Add new vendor")
-        ven.geometry("930x650+240+10")
-        checkvar1=IntVar()
-        checkvar2=IntVar()
-        radio=IntVar()
-        createFrame=Frame(ven, bg="#f5f3f2", height=650)
-        createFrame.pack(side="top", fill="both")
-        labelframe1 = LabelFrame(createFrame,text="Customer",bg="#f5f3f2",font=("arial",15))
+      def inv_create_newcustomer_1():
+        def cancel_add_customer_1():
+          vendor_1.destroy()
+        def add_customer_1():
+          customerno = cust_id.get()
+          if customerno == 0 or None:
+            pass
+          else:
+            businessname = 	bn.get()
+            businessaddress = badd.get()
+            contactperson = cn.get()
+            cpemail = cem.get()
+            cptelno = ct.get()
+            cpfax = cf.get()
+            cpmobileforsms = cs.get()
+            taxexempt = check_taxexempt.get()
+            specifictax1 = specf_tax1_entry.get()
+            specifictax2 = specf_tax2_entry.get()
+            discount = discount_entry.get()
+            customertype = custypeVar.get()
+
+            category = cust_cate.get()
+            status = check_active.get()
+            shipname = sn.get()
+            shipaddress = sadd.get()
+            shipcontactperson = scn.get()
+            shipcpemail = scem.get()
+            shipcptelno = sct.get()
+            shipcpfax = scf.get()
+            country = countryVar.get()
+            city = cityVar.get()
+            notes = scroll_notes.get("1.0", END)
+            custno_sql = "SELECT * FROM customer WHERE customerno=%s"
+            custno_val = (customerno,)
+            fbcursor.execute(custno_sql,custno_val)
+            custno_data = fbcursor.fetchone()
+
+            if custno_data is None:
+              cust_add_sql = "INSERT INTO customer(customerno,category,status,businessname,businessaddress,shipname,shipaddress,contactperson,cpemail,cptelno,cpfax,cpmobileforsms,shipcontactperson,shipcpemail,shipcptelno,shipcpfax,taxexempt,specifictax1,discount,country,city,customertype,notes,specifictax2)VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)" #adding values into db
+              cust_add_val = (customerno,category,status,businessname,businessaddress,shipname,shipaddress,contactperson,cpemail,cptelno,cpfax,cpmobileforsms,shipcontactperson,shipcpemail,shipcptelno,shipcpfax,taxexempt,specifictax1,discount,country,city,customertype,notes,specifictax2)
+              fbcursor.execute(cust_add_sql,cust_add_val)
+              fbilldb.commit()
+              for record in select_cust_tree_1.get_children():
+                select_cust_tree_1.delete(record)
+              all_cust_sql = "SELECT * FROM customer"
+              fbcursor.execute(all_cust_sql)
+              all_cust_data = fbcursor.fetchall()
+
+              count_cus=0
+              for i in all_cust_data:
+                select_cust_tree_1.insert(parent='', index='end', iid=count_cus, text='', values=(i[0],i[4],i[10],i[8]))
+                count_cus +=1
+              
+              vendor_1.destroy()
+            else:
+                messagebox.askyesno("Already Exists", "Customer ID value already exists. Duplicate value not allowed")
+
+
+
+        vendor_1=Toplevel(inv_midFrame)
+        vendor_1.title("Add new Customer")
+        vendor_1.geometry("930x650+240+10")
+        create_cust_frame=Frame(vendor_1, bg="#f5f3f2", height=650)
+        create_cust_frame.pack(side="top", fill="both")
+
+        labelframe1 = LabelFrame(create_cust_frame,text="Customer",bg="#f5f3f2",font=("arial",15))
         labelframe1.place(x=10,y=5,width=910,height=600)
-        text1=Label(labelframe1, text="Customer ID:",bg="#f5f3f2",fg="blue").place(x=5 ,y=10)
-        e1=Entry(labelframe1,width=25).place(x=150,y=10)
-        text2=Label(labelframe1, text="Category:",bg="#f5f3f2").place(x=390 ,y=10)
-        e2=ttk.Combobox(labelframe1,width=25,value="Default").place(x=460 ,y=10)
-        text3=Label(labelframe1, text="Status:",bg="#f5f3f2").place(x=710 ,y=10)
-        Checkbutton(labelframe1,text="Active",variable=checkvar1,onvalue=1,offvalue=0,bg="#f5f3f2").place(x=760 ,y=10)
+
+        custVar = IntVar()
+        customer_id=Label(labelframe1, text="Customer ID:",bg="#f5f3f2",fg="blue").place(x=5 ,y=10)
+        cust_id=Entry(labelframe1,width=25)
+        cust_id.place(x=150,y=10)
+
+        cust_cate = StringVar()
+        category=Label(labelframe1, text="Category:",bg="#f5f3f2").place(x=390 ,y=10)
+        cust_category = ttk.Combobox(labelframe1,width=25,value="Default",textvariable=cust_cate)
+        category_sql = 'SELECT DISTINCT category FROM customer'
+        fbcursor.execute(category_sql,)
+        category_data = fbcursor.fetchall()
+        cust_category['values'] = category_data
+        cust_category.current(0)
+        cust_category.place(x=460 ,y=10)
+
+        check_active = IntVar()
+        status=Label(labelframe1, text="Status:",bg="#f5f3f2").place(x=710 ,y=10)
+        cust_status = Checkbutton(labelframe1,text="Active",variable=check_active,onvalue=1,offvalue=0,bg="#f5f3f2")
+        cust_status.select()
+        cust_status.place(x=760 ,y=10)
         
         labelframe2 = LabelFrame(labelframe1,text="Invoice to (appears on invoices)",bg="#f5f3f2")
         labelframe2.place(x=5,y=40,width=420,height=150)
-        name = Label(labelframe2, text="Business name:",bg="#f5f3f2",fg="blue").place(x=5,y=5)
-        e1 = Entry(labelframe2,width=28).place(x=130,y=5)
-        addr = Label(labelframe2, text="Address:",bg="#f5f3f2",fg="blue").place(x=5,y=40)
-        e2 = Entry(labelframe2,width=28).place(x=130,y=40,height=80)
+
+        bn = StringVar()
+        bname = Label(labelframe2, text="Business name:",bg="#f5f3f2",fg="blue").place(x=5,y=5)
+        bus_name = Entry(labelframe2,width=28 ,textvariable=bn)
+        bus_name.place(x=130,y=5)
+
+        badd = StringVar()
+        baddress = Label(labelframe2, text="Address:",bg="#f5f3f2",fg="blue").place(x=5,y=40)
+        bus_address = Entry(labelframe2,width=28,textvariable=badd)
+        bus_address.place(x=130,y=40,height=80)
         
-        btn1=Button(labelframe1,width=3,height=2,compound = LEFT,text=">>").place(x=440, y=90)
+        btn_mover1 = Button(labelframe1,width=3,height=2,compound = LEFT,text=">>")
+        btn_mover1.place(x=440, y=90)
 
         labelframe3 = LabelFrame(labelframe1,text="Ship to (appears on invoices)",bg="#f5f3f2")
         labelframe3.place(x=480,y=40,width=420,height=150)
-        name = Label(labelframe3, text="Ship to name:",bg="#f5f3f2").place(x=5,y=5)
-        e1 = Entry(labelframe3,width=28).place(x=130,y=5)
-        addr = Label(labelframe3, text="Address:",bg="#f5f3f2").place(x=5,y=40)
-        e2 = Entry(labelframe3,width=28).place(x=130,y=40,height=80)
+
+        sn = StringVar()
+        sname = Label(labelframe3, text="Ship to name:",bg="#f5f3f2").place(x=5,y=5)
+        ship_name = Entry(labelframe3,width=28,textvariable=sn)
+        ship_name.place(x=130,y=5)
+        sadd = StringVar()
+        saddress = Label(labelframe3, text="Address:",bg="#f5f3f2").place(x=5,y=40)
+        ship_address = Entry(labelframe3,width=28,textvariable=sadd)
+        ship_address.place(x=130,y=40,height=80)
         
         labelframe4 = LabelFrame(labelframe1,text="Contact",bg="#f5f3f2")
         labelframe4.place(x=5,y=195,width=420,height=150)
-        name = Label(labelframe4, text="Contact person:",bg="#f5f3f2").place(x=5,y=5)
-        e1 = Entry(labelframe4,width=28).place(x=130,y=5)
-        email = Label(labelframe4, text="E-mail address:",bg="#f5f3f2",fg="blue").place(x=5,y=35)
-        e2 = Entry(labelframe4,width=28).place(x=130,y=35)
-        tel = Label(labelframe4, text="Tel.number:",bg="#f5f3f2").place(x=5,y=65)
-        e3 = Entry(labelframe4,width=11).place(x=130,y=65)
-        fax = Label(labelframe4, text="Fax:",bg="#f5f3f2").place(x=240,y=65)
-        e4 = Entry(labelframe4,width=11).place(x=280,y=65)
-        sms = Label(labelframe4, text="Mobile number for SMS notifications:",bg="#f5f3f2").place(x=5,y=95)
-        e5 = Entry(labelframe4,width=15).place(x=248,y=95)      
 
-        btn1=Button(labelframe1,width=3,height=2,compound = LEFT,text=">>").place(x=440, y=250)
+        cn = StringVar()
+        cname = Label(labelframe4, text="Contact person:",bg="#f5f3f2").place(x=5,y=5)
+        cont_person = Entry(labelframe4,width=28,textvariable=cn)
+        cont_person.place(x=130,y=5)
+
+        cem = StringVar()
+        cemail = Label(labelframe4, text="E-mail address:",bg="#f5f3f2",fg="blue").place(x=5,y=35)
+        cont_email = Entry(labelframe4,width=28,textvariable=cem)
+
+        def validate_email(value):
+          
+          """
+          Validate the email entry
+          :param value
+          :return:
+          """
+
+          pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+          if re.fullmatch(pattern, value) is None:
+            return False
+          cont_email.config(fg="black")
+          return True
+
+        def on_invalid_email():
+          cont_email,config(fg="red")
+
+        valid_cmnd = (labelframe2.register(validate_email), '%P')
+        invalid_cmnd = (labelframe2.register(on_invalid_email),)
+        cont_email.config(validate='focusout',validatecommand=valid_cmnd,invalidcommand=invalid_cmnd)
+        cont_email.place(x=130,y=35)
+        
+
+        ct = StringVar()
+        ctel = Label(labelframe4, text="Tel.number:",bg="#f5f3f2").place(x=5,y=65)
+        cont_tel = Entry(labelframe4,width=11,textvariable=ct)
+
+        def validate_tel(value):
+              
+          """
+          Validat the email entry
+          :param value:
+          :return:
+          """
+          pattern = r'^[0-9]\d{0-12}$'
+          if re.fullmatch(pattern, value) is None:
+              
+              return False
+          cont_tel.config(fg="black")
+          return True
+
+        def on_invalid_tel():
+          cont_tel.config(fg="red")
+              
+        valid_tel_cmnd = (labelframe2.register(validate_tel), '%P')
+        invalid_tel_cmnd = (labelframe2.register(on_invalid_tel),)
+        
+        
+        cont_tel.config(validate='focusout', validatecommand=valid_tel_cmnd, invalidcommand=invalid_tel_cmnd)
+        cont_tel.place(x=130,y=65)
+
+        cf = StringVar()
+        cfax = Label(labelframe4, text="Fax:",bg="#f5f3f2").place(x=240,y=65)
+        cont_fax = Entry(labelframe4,width=11,textvariable=cf)
+
+        def validate_fax(value):
+          """
+          Validate the email entry
+          :param value:
+          :return:
+          """
+          pattern = r'^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}$'
+          if re.fullmatch(pattern,value) is None:
+            return False
+          cont_fax.config(fg="black")
+          return True
+
+        def on_invalid_fax():
+          cont_fax.config(fg="red")
+
+        valid_fax_cmnd = (labelframe2.register(validate_fax),'%P')
+        invalid_fax_cmnd = (labelframe2.register(on_invalid_fax),)
+        cont_fax.config(validate='focusout',validatecommand=valid_fax_cmnd,invalidcommand=invalid_fax_cmnd)
+        cont_fax.place(x=280,y=65)
+
+
+        cs = StringVar()
+        csms = Label(labelframe4, text="Mobile number for SMS notifications:",bg="#f5f3f2").place(x=5,y=95)
+        cont_mob = Entry(labelframe4,width=15,textvariable=cs)
+
+        def validate_sms(value):
+          
+          """
+          Validat the email entry
+          :param value:
+          :return:
+          """
+          pattern = r'^[0-9]\d{10}$'
+          if re.fullmatch(pattern, value) is None:
+            return False
+          cont_mob.config(fg="black")
+          return True
+
+        def on_invalid_sms():
+          cont_mob.config(fg="red")
+          
+        valid_sms_cmnd = (labelframe2.register(validate_sms), '%P')
+        invalid_sms_cmnd = (labelframe2.register(on_invalid_sms),)
+        cont_mob.config(validate='focusout', validatecommand=valid_sms_cmnd, invalidcommand=invalid_sms_cmnd)
+        cont_mob.place(x=248,y=95)      
+
+        btn_mover2 = Button(labelframe1,width=3,height=2,compound = LEFT,text=">>")
+        btn_mover2.place(x=440, y=250)
 
         
         labelframe5 = LabelFrame(labelframe1,text="Ship to contact",bg="#f5f3f2")
         labelframe5.place(x=480,y=195,width=420,height=125)
-        name = Label(labelframe5, text="Contact person:",bg="#f5f3f2").place(x=5,y=5)
-        e1 = Entry(labelframe5,width=28).place(x=130,y=5)
-        email = Label(labelframe5, text="E-mail address:",bg="#f5f3f2").place(x=5,y=35)
-        e2 = Entry(labelframe5,width=28).place(x=130,y=35)
-        tel = Label(labelframe5, text="Tel.number:",bg="#f5f3f2").place(x=5,y=65)
-        e3 = Entry(labelframe5,width=11).place(x=130,y=65)
-        fax = Label(labelframe5, text="Fax:",bg="#f5f3f2").place(x=240,y=65)
-        e4 = Entry(labelframe5,width=11).place(x=280,y=65)
 
-        labelframe6 = LabelFrame(labelframe1,text="Contact",bg="#f5f3f2")
+        scn = StringVar()
+        scname = Label(labelframe5, text="Contact person:",bg="#f5f3f2").place(x=5,y=5)
+        shipcont_person = Entry(labelframe5,width=28,textvariable=scn)
+        shipcont_person.place(x=130,y=5)
+
+        scem = StringVar()
+        scemail = Label(labelframe5, text="E-mail address:",bg="#f5f3f2").place(x=5,y=35)
+        shipcont_email = Entry(labelframe5,width=28,textvariable=scem)
+        def validate_shipemail(value):
+          
+          """
+          Validat the email entry
+          :param value:
+          :return:
+          """
+          pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+          if re.fullmatch(pattern, value) is None:
+            return False
+          shipcont_email.config(fg="black")
+          return True
+
+        def on_invalid_shipemail():
+          shipcont_email.config(fg="red")
+              
+        valid_shipemail_cmnd = (labelframe2.register(validate_shipemail), '%P')
+        invalid_shipemail_cmnd = (labelframe2.register(on_invalid_shipemail),)
+        shipcont_email.config(validate='focusout', validatecommand=valid_shipemail_cmnd, invalidcommand=invalid_shipemail_cmnd)
+        shipcont_email.place(x=130,y=35)
+
+        sct = StringVar()
+        sctel = Label(labelframe5, text="Tel.number:",bg="#f5f3f2").place(x=5,y=65)
+        shipcont_tel = Entry(labelframe5,width=11,textvariable=sct)
+        def validate_shiptel(value):
+          
+          """
+          Validat the email entry
+          :param value:
+          :return:
+          """
+          pattern = r'^[0-9]\d{10}$'
+          if re.fullmatch(pattern, value) is None:
+            return False
+          shipcont_tel.config(fg="black")
+          return True
+
+        def on_invalid_shiptel():
+          shipcont_tel.config(fg="red")
+              
+        valid_shiptel_cmnd = (labelframe2.register(validate_shiptel), '%P')
+        invalid_shiptel_cmnd = (labelframe2.register(on_invalid_shiptel),)
+        shipcont_tel.config(validate='focusout', validatecommand=valid_shiptel_cmnd, invalidcommand=invalid_shiptel_cmnd)
+        shipcont_tel.place(x=130,y=65)
+
+        scf = StringVar()
+        scfax = Label(labelframe5, text="Fax:",bg="#f5f3f2").place(x=240,y=65)
+        shipcont_fax = Entry(labelframe5,width=11,textvariable=scf)
+        def validate_shipfax(value):
+          
+          """
+          Validat the email entry
+          :param value:
+          :return:
+          """
+          pattern = r'^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}$'
+          if re.fullmatch(pattern, value) is None:
+            return False
+          shipcont_fax.config(fg="black")
+          return True
+
+        def on_invalid_shipfax():
+              shipcont_fax.config(fg="red")
+              
+        valid_shipfax_cmnd = (labelframe2.register(validate_shipfax), '%P')
+        invalid_shipfax_cmnd = (labelframe2.register(on_invalid_shipfax),)
+        shipcont_fax.config(validate='focusout', validatecommand=valid_shipfax_cmnd, invalidcommand=invalid_shipfax_cmnd)
+        shipcont_fax.place(x=280,y=65)
+
+        labelframe6 = LabelFrame(labelframe1,text="Payment Option",bg="#f5f3f2")
         labelframe6.place(x=5,y=350,width=420,height=100)
-        Checkbutton(labelframe6,text="Tax Exempt",variable=checkvar2,onvalue=1,offvalue=0,bg="#f5f3f2").place(x=5 ,y=5)
-        tax = Label(labelframe6, text="Specific Tax1 %:",bg="#f5f3f2").place(x=180,y=5)
-        e1 = Entry(labelframe6,width=10).place(x=290,y=5)
-        discount = Label(labelframe6, text="Discount%:",bg="#f5f3f2").place(x=5,y=35)
-        e2 = Entry(labelframe6,width=10).place(x=100,y=35)
 
-        labelframe7 = LabelFrame(labelframe1,text="Contact",bg="#f5f3f2")
+        check_taxexempt = StringVar()
+        checkbtn_taxexempt = Checkbutton(labelframe6,text="Tax Exempt",variable=check_taxexempt,onvalue=1,offvalue=0,bg="#f5f3f2")
+        checkbtn_taxexempt.place(x=5 ,y=5)
+        checkbtn_taxexempt.select()
+
+        spfc_tax1 = IntVar() 
+        tax_sql = "SELECT taxtype FROM company"
+        fbcursor.execute(tax_sql,)
+        tax_data = fbcursor.fetchone()
+        def tax_t(S,d):
+          if d == '1':
+            if not S in ['.','0','1','2','3','4','5','6','7','8','9']:
+              return False
+            return True
+            
+          if d.isdigit():
+            return True
+        valid_spfctax1 = (labelframe6.register(tax_t), '%S','%d')
+        specf_tax1_entry = Entry(labelframe6, textvariable=spfc_tax1)
+        specf_tax2_entry = Entry(labelframe6,width=10)
+        if tax_data[0] == '3':
+          specf_tax1 = Label(labelframe6, text="Specific Tax1 %:",bg="#f5f3f2").place(x=180,y=5)
+          specf_tax1_entry = Entry(labelframe6,width=10)
+          specf_tax1_entry.config(validate='key',validatecommand=valid_spfctax1)
+          specf_tax1_entry.place(x=290,y=5)
+          specf_tax2 = Label(labelframe6,text="Specific Tax2%::").place(x=180,y=30)
+          specf_tax2_entry.config(validate='key',validatecommand=valid_spfctax1)
+          specf_tax2_entry.place(x=290,y=28)
+        elif tax_data[0] == '2':
+          specf_tax1 = Label(labelframe6, text="Specific Tax1 %:",bg="#f5f3f2").place(x=180,y=5)
+          specf_tax1_entry.config(validate='key',validatecommand=valid_spfctax1)
+          specf_tax1_entry.place(x=290,y=5)
+        elif tax_data[0] == '1':
+          pass
+        # unknwn = Entry(labelframe6,)
+        # unknwn.config(validate='key',validatecommand=(valid_spfctax1))
+        # unknwn.place(x=110,y=30,width=10)
+
+        discVar = IntVar()
+        discount = Label(labelframe6, text="Discount%:",bg="#f5f3f2").place(x=5,y=35)
+        discVar = IntVar(labelframe6)
+        discount_entry = Entry(labelframe6,width=10)
+        discount_entry.config(validate='key',validatecommand=(valid_spfctax1))
+        discount_entry.place(x=100,y=35)
+
+        labelframe7 = LabelFrame(labelframe1,text="Additional Info",bg="#f5f3f2")
         labelframe7.place(x=480,y=330,width=420,height=100)
+
+        countryVar = StringVar()
         country = Label(labelframe7, text="country:",bg="#f5f3f2").place(x=5,y=5)
-        e1 = Entry(labelframe7,width=28).place(x=130,y=5)
+        addi_country = ttk.Combobox(labelframe7,width=28,textvariable=countryVar)
+        addi_country.place(x=130,y=5)
+        addi_country['values'] = ('India','America')
+
+        cityVar = StringVar()
         city = Label(labelframe7, text="City:",bg="#f5f3f2").place(x=5,y=35)
-        e2 = Entry(labelframe7,width=28).place(x=130,y=35)
+        addi_city = Entry(labelframe7,width=28,textvariable=cityVar)
+        addi_city.place(x=130,y=35)
 
         labelframe8 = LabelFrame(labelframe1,text="Customer Type",bg="#f5f3f2")
         labelframe8.place(x=5,y=460,width=420,height=100)
-        R1=Radiobutton(labelframe8,text=" Client ",variable=radio,value=1,bg="#f5f3f2").place(x=5,y=15)
-        R2=Radiobutton(labelframe8,text=" Vendor ",variable=radio,value=2,bg="#f5f3f2").place(x=150,y=15)
-        R3=Radiobutton(labelframe8,text=" Both(client/vendor)",variable=radio,value=3,bg="#f5f3f2").place(x=250,y=15)
+        custypeVar = StringVar()
+        client_radio = Radiobutton(labelframe8,text=" Client ",variable=custypeVar,value="Client",bg="#f5f3f2")
+        client_radio.place(x=5,y=15)
+        vendor_radio = Radiobutton(labelframe8,text=" Vendor ",variable=custypeVar,value="Vendor",bg="#f5f3f2")
+        vendor_radio.place(x=150,y=15)
+        both_radio = Radiobutton(labelframe8,text=" Both(client/vendor)",variable=custypeVar,value="Both(client/vendor)",bg="#f5f3f2")
+        both_radio.place(x=250,y=15)
         
 
         labelframe9 = LabelFrame(labelframe1,text="Notes",bg="#f5f3f2")
         labelframe9.place(x=480,y=430,width=420,height=150)
-        e1 = Entry(labelframe9).place(x=10,y=10,height=100,width=390)
+        scrollnoteVar = StringVar()
+        global scroll_notes
+        scroll_notes = scrolledtext.ScrolledText(labelframe9)
+        scroll_notes.place(x=10,y=10,height=100,width=390)
 
-        btn1=Button(ven,width=60,height=10,bg="#f5f3f2",compound = LEFT,image=tick ,text="OK").place(x=20, y=615)
-        btn2=Button(ven,width=60,height=10,bg="#f5f3f2",compound = LEFT,image=cancel,text="Cancel").place(x=800, y=615)
+        add_customer_btnok = Button(vendor_1,width=60,height=10,bg="#f5f3f2",compound = LEFT,image=tick ,text="OK",command=add_customer_1)
+        add_customer_btnok.place(x=20, y=615)
+        add_customer_btncancel = Button(vendor_1,width=60,height=10,bg="#f5f3f2",compound = LEFT,image=cancel,text="Cancel",command=cancel_add_customer_1)
+        add_customer_btncancel.place(x=800, y=615)
 
 
       # filter customers
@@ -17986,11 +18926,14 @@ def mainpage():
       scrollbar.place(x=640, y=45, height=560)
       scrollbar.config( command=select_cust_tree_1.yview )
 
-      ok_btn_1=Button(customer_selection_1,compound = LEFT,image=tick ,text="ok", width=60,command=cust_tree_fetch_1)
-      ok_btn_1.place(x=15, y=610)
-      edit_btn_1=Button(customer_selection_1,compound = LEFT,image=tick,text="Edit selected customer", width=150,command=create1).place(x=250, y=610)
-      add_btn_1=Button(customer_selection_1,compound = LEFT,image=tick, text="Add new customer", width=150,command=create1).place(x=435, y=610)
-      cancel_btn_1=Button(customer_selection_1,compound = LEFT,image=cancel ,text="Cancel", width=60).place(x=740, y=610)   
+      cust_ok_btn_1=Button(customer_selection_1,compound = LEFT,image=tick ,text="ok", width=60,command=cust_tree_fetch_1)
+      cust_ok_btn_1.place(x=15, y=610)
+      edit_custbtn_1=Button(customer_selection_1,compound = LEFT,image=tick,text="Edit selected customer", width=150)
+      edit_custbtn_1.place(x=250, y=610)
+      add_custbtn_1=Button(customer_selection_1,compound = LEFT,image=tick, text="Add new customer", width=150,command=inv_create_newcustomer_1)
+      add_custbtn_1.place(x=435, y=610)
+      cust_cancel_btn_1=Button(customer_selection_1,compound = LEFT,image=cancel ,text="Cancel", width=60,command=lambda:customer_selection_1.destroy())
+      cust_cancel_btn_1.place(x=740, y=610)  
 
 
 
