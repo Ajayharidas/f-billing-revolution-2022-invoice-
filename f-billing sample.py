@@ -352,6 +352,40 @@ def mainpage():
       pop.destroy()
       messagebox.showinfo("F-Billing Revolution","Invoice saved")
 
+      sql = "SELECT * FROM Invoice"
+      fbcursor.execute(sql)
+      invoice_records = fbcursor.fetchall()
+
+      for record in inv_tree.get_children():
+        inv_tree.delete(record)
+
+      count = 0
+      for i in invoice_records:
+        if True:
+          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[20], i[4], i[5], i[6], i[7], i[8], i[9], i[10]))
+        else:
+          pass
+      count += 1
+      
+      try:
+        if showtotsum_btn['text'] == "Hide totals\nSum":
+          total_invtot = 0.0
+          total_totpaid = 0.0
+          total_balance = 0.0
+          for i in inv_tree.get_children():
+            total_invtot += float(inv_tree.item(i,'values')[9])
+            total_totpaid += float(inv_tree.item(i,'values')[10])
+            total_balance += float(inv_tree.item(i,'values')[11])
+
+          invtot_label.config(text=round(total_invtot,2))
+          totpaid_label.config(text=round(total_totpaid,2))
+          balance_label.config(text=round(total_balance,2))
+        else:
+          pass
+      except:
+        pass
+
+
     #select customer
     def inv_sel_customer():
       global customer_selection
@@ -1458,6 +1492,7 @@ def mainpage():
           total1.config(text=round(tot_paid,2))
           bal = round((total_cost - tot_paid),2)
           balance1.config(text=bal)
+          totalprice_view.config(text=round(price,2))
         elif comp_data[12] == "2":
           if sel_pro_str[10] == "1":
             add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],sel_pro_str[8],'Yes',sel_pro_str[7]))
@@ -1494,6 +1529,7 @@ def mainpage():
           total1.config(text=round(tot_paid,2))
           bal = round((total_cost - tot_paid),2)
           balance1.config(text=bal)
+          totalprice_view.config(text=round((price + p),2))
         elif comp_data[12] == "3":
           if sel_pro_str[10] == "1" and sel_pro_str[19] == "1":
             add_newline_tree.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],sel_pro_str[8],'Yes','Yes',sel_pro_str[7]))
@@ -1549,6 +1585,7 @@ def mainpage():
           total1.config(text=round(tot_paid,2))
           bal = round((total_cost - tot_paid),2)
           balance1.config(text=bal)
+          totalprice_view.config(text=round((price + p1 + p2 + p3),2))
         inv_newline_sel.destroy()
       show_newline = inv_combo_e1.get()
       if show_newline == '':
@@ -7563,7 +7600,8 @@ def mainpage():
         messagebox.showwarning("F-Billing Revolution 2022","This invoice has no line items.\nPlease add line item(s) before printing.")
       else:
         from reportlab.pdfgen import canvas
-        pdf = canvas.Canvas("Invoice/Invoice_Report.pdf", pagesize=letter)
+        invnumber = inv_number_entry.get().split('/')[0]
+        pdf = canvas.Canvas("Invoice Documents/"+invnumber+".pdf", pagesize=letter)
         type_temp = template_entry.get()
         if type_temp == 'Professional 1 (logo on left side)':
           pdf.setFont('Helvetica',12)
@@ -15734,7 +15772,7 @@ def mainpage():
 
 
         pdf.save()
-        win32api.ShellExecute(0,"","Invoice\Invoice_Report.pdf",None,".",0)
+        win32api.ShellExecute(0,"",os.getcwd()+"/Invoice Documents/"+invnumber+".pdf",None,".",0)
 
       # def property1():
       #   propert=Toplevel()
@@ -17122,6 +17160,109 @@ def mainpage():
     def delete_line_item():
       selected_line_item = add_newline_tree.selection()[0]
       add_newline_tree.delete(selected_line_item)
+      if comp_data[12] == "1":
+        price = 0.0
+        total_cost = 0.0
+        exc = float(ex_cost_entry.get())
+        dis_rate = float(dis_rate_entry.get())
+        for i in add_newline_tree.get_children():
+          price += float(add_newline_tree.item(i,'values')[6])
+        discount_rate = (price*dis_rate)/100
+        total_cost += (price - discount_rate) + exc
+        discount.config(text= str(dis_rate) + "" +"% Discount")
+        discount1.config(text=round(discount_rate,2))
+        sub_tot = round((price - discount_rate),2)
+        sub1.config(text=sub_tot)
+        cost1.config(text=round(exc,2))
+        invoicetot1.config(text=round(total_cost,2))
+        tot_paid = 0.0
+        for tp in pay_tree.get_children():
+          tot_paid += float(pay_tree.item(tp,'values')[4])
+        total1.config(text=round(tot_paid,2))
+        bal = round((total_cost - tot_paid),2)
+        balance1.config(text=bal)
+        totalprice_view.config(text=price)
+      elif comp_data[12] == "2":
+        price = 0.0
+        p = 0.0
+        total_cost = 0.0
+        exc = float(ex_cost_entry.get())
+        dis_rate = float(dis_rate_entry.get())
+        tx1 = float(tax1_entry.get())
+        for i in add_newline_tree.get_children():
+          if add_newline_tree.item(i,'values')[6] == "No":
+            p += float(add_newline_tree.item(i,'values')[3])
+          else:
+            price += float(add_newline_tree.item(i,'values')[7])
+        discount_rate = ((price + p) * dis_rate)/100
+        dis_price = (price * dis_rate)/100
+        dis_p = (p * dis_rate)/100
+        tax1_rate = ((price - dis_price)*tx1)/100
+        tx_calc = (price - dis_price) + tax1_rate
+        tx_calc1 = p - dis_p
+        total_cost += (tx_calc + tx_calc1) + exc 
+        discount.config(text= str(dis_rate) + "" +"% Discount")
+        discount1.config(text=round(discount_rate,2))
+        sub_tot = round(((price + p) - discount_rate),2)
+        sub1.config(text=sub_tot)
+        tax_1.config(text=round(tax1_rate,2))
+        cost1.config(text=round(exc,2))
+        invoicetot1.config(text=round(total_cost,2))
+        tot_paid = 0.0
+        for tp in pay_tree.get_children():
+          tot_paid += float(pay_tree.item(tp,'values')[4]) 
+        total1.config(text=round(tot_paid,2))
+        bal = round((total_cost - tot_paid),2)
+        balance1.config(text=bal)
+        totalprice_view.config(text=round((price + p),2))
+      elif comp_data[12] == "3":
+        price = 0.0
+        p1 = 0.0
+        p2 = 0.0
+        p3 = 0.0
+        total_cost = 0.0
+        tx1 = float(tax1_entry.get())
+        tx2 = float(tax2_entry.get())
+        exc = float(ex_cost_entry.get())
+        dis_rate = float(dis_rate_entry.get())
+        for i in add_newline_tree.get_children():
+          if add_newline_tree.item(i,'values')[6] == "No" and add_newline_tree.item(i,'values')[7] == "No":
+            p1 += float(add_newline_tree.item(i,'values')[3])
+          elif add_newline_tree.item(i,'values')[6] == "Yes" and add_newline_tree.item(i,'values')[7] == "No":
+            p2 += float(add_newline_tree.item(i,'values')[3])
+          elif add_newline_tree.item(i,'values')[6] == "No" and add_newline_tree.item(i,'values')[7] == "Yes":
+            p3 += float(add_newline_tree.item(i,'values')[3])
+          else:
+            price += float(add_newline_tree.item(i,'values')[8])
+        discount_rate = ((p1 + p2 + p3 + price) * dis_rate)/100
+        dis_p2 = (p2 * dis_rate)/100
+        tax1_rate = ((p2 - dis_p2) * tx1)/100
+        dis_price = (price * dis_rate)/100
+        tax2_rate = ((price - dis_price) * tx1)/100
+        tax3_rate = ((price - dis_price) * tx2)/100
+        dis_p3= (p3 * dis_rate)/100
+        tax4_rate = ((p3 - dis_p3) * tx2)/100
+        dis_p4 = (p1 * dis_rate)/100
+        tx_calc1 = (p2 - dis_p2) + tax1_rate
+        tx_calc2 = (price - dis_price) + tax2_rate + tax3_rate
+        tx_calc3 = (p3 - dis_p3) + tax4_rate
+        tx_calc4 = (p1 - dis_p4)
+        total_cost += (tx_calc1 + tx_calc2 + tx_calc3 + tx_calc4) + exc
+        discount.config(text= str(dis_rate) + "" +"% Discount")
+        discount1.config(text=round(discount_rate,2))
+        sub_tot = round(((price + p1 + p2 + p3) - discount_rate),2)
+        sub1.config(text=sub_tot)
+        tax_1.config(text=round((tax1_rate + tax2_rate),2))
+        tax_2.config(text=round((tax3_rate + tax4_rate),2))
+        cost1.config(text=round(exc,2))
+        invoicetot1.config(text=round(total_cost,2))
+        tot_paid = 0.0
+        for tp in pay_tree.get_children():
+          tot_paid += float(pay_tree.item(tp,'values')[4]) 
+        total1.config(text=round(tot_paid,2))
+        bal = round((total_cost - tot_paid),2)
+        balance1.config(text=bal)
+        totalprice_view.config(text=round((price + p1 + p2 + p3),2))
 
 
     ############## Email Invoice ###################
@@ -17753,6 +17894,9 @@ def mainpage():
       add_newline_tree.pack(fill="both", expand=1)
       listFrame.pack(side="top", fill="both", padx=5, pady=3, expand=1)
 
+      totalprice_view = Label(listFrame,bg="#f5f3f2")
+      totalprice_view.place(x=850,y=200,width=78,height=18)
+
     proquanVar = StringVar()
     def inv_proquanedit_box(val):
       change_quanwindow = Toplevel()
@@ -17767,10 +17911,10 @@ def mainpage():
       change_quanwindow.focus()
       
       def assign_value(event):
-          print_quantity = quantity_editbox.get()
-          proquanVar.set(print_quantity)
-          change_quanwindow.quit()
-          change_quanwindow.destroy()
+        print_quantity = quantity_editbox.get()
+        proquanVar.set(print_quantity)
+        change_quanwindow.quit()
+        change_quanwindow.destroy()
           
       
       change_quanwindow.bind('<Return>', assign_value )
@@ -17823,6 +17967,7 @@ def mainpage():
         total1.config(text=round(tot_paid,2))
         bal = round((total_cost - tot_paid),2)
         balance1.config(text=bal)
+        totalprice_view.config(text=price)
       elif comp_data[12] == "2":
         price = 0.0
         p = 0.0
@@ -17855,6 +18000,7 @@ def mainpage():
         total1.config(text=round(tot_paid,2))
         bal = round((total_cost - tot_paid),2)
         balance1.config(text=bal)
+        totalprice_view.config(text=round((price + p),2))
       elif comp_data[12] == "3":
         price = 0.0
         p1 = 0.0
@@ -17902,6 +18048,7 @@ def mainpage():
         total1.config(text=round(tot_paid,2))
         bal = round((total_cost - tot_paid),2)
         balance1.config(text=bal)
+        totalprice_view.config(text=round((price + p1 + p2 + p3),2))
       
     
     add_newline_tree.bind('<Double-Button-1>' , edit_quantity)
@@ -18671,6 +18818,39 @@ def mainpage():
       fbilldb.commit()
       pop_1.destroy()
       messagebox.showinfo("F-Billing Revolution","Invoice saved")
+
+      sql = "SELECT * FROM Invoice"
+      fbcursor.execute(sql)
+      invoice_records = fbcursor.fetchall()
+
+      for record in inv_tree.get_children():
+        inv_tree.delete(record)
+
+      count = 0
+      for i in invoice_records:
+        if True:
+          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[20], i[4], i[5], i[6], i[7], i[8], i[9], i[10]))
+        else:
+          pass
+      count += 1
+      
+      try:
+        if showtotsum_btn['text'] == "Hide totals\nSum":
+          total_invtot = 0.0
+          total_totpaid = 0.0
+          total_balance = 0.0
+          for i in inv_tree.get_children():
+            total_invtot += float(inv_tree.item(i,'values')[9])
+            total_totpaid += float(inv_tree.item(i,'values')[10])
+            total_balance += float(inv_tree.item(i,'values')[11])
+
+          invtot_label.config(text=round(total_invtot,2))
+          totpaid_label.config(text=round(total_totpaid,2))
+          balance_label.config(text=round(total_balance,2))
+        else:
+          pass
+      except:
+        pass
 
 
     #select customer
@@ -19784,6 +19964,7 @@ def mainpage():
           total1_1.config(text=round(tot_paid,2))
           bal = round((total_cost - tot_paid),2)
           balance1_1.config(text=bal)
+          totalprice_view_1.config(text=round(price,2))
         elif comp_data[12] == "2":
           if sel_pro_str[10] == "1":
             add_newline_tree_1.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],sel_pro_str[8],'Yes',sel_pro_str[7]))
@@ -19820,6 +20001,7 @@ def mainpage():
           total1_1.config(text=round(tot_paid,2))
           bal = round((total_cost - tot_paid),2)
           balance1_1.config(text=bal)
+          totalprice_view_1.config(text=round((price + p),2))
         elif comp_data[12] == "3":
           if sel_pro_str[10] == "1" and sel_pro_str[19] == "1":
             add_newline_tree_1.insert(parent='',index='end',text='',values=(sel_pro_str[2],sel_pro_str[4],sel_pro_str[5],sel_pro_str[7],sel_pro_str[18],sel_pro_str[8],'Yes','Yes',sel_pro_str[7]))
@@ -19875,6 +20057,7 @@ def mainpage():
           total1_1.config(text=round(tot_paid,2))
           bal = round((total_cost - tot_paid),2)
           balance1_1.config(text=bal)
+          totalprice_view_1.config(text=round((price + p1 + p2 + p3),2))
         inv_newline_sel_1.destroy()
       show_newline_1 = inv_combo_e1_1.get()
       if show_newline_1 == '':
@@ -25896,7 +26079,8 @@ def mainpage():
         messagebox.showwarning("F-Billing Revolution 2022","This invoice has no line items.\nPlease add line item(s) before printing.")
       else:
         from reportlab.pdfgen import canvas
-        pdf = canvas.Canvas("Invoice/Invoice_Report.pdf", pagesize=letter)
+        invnumber = inv_number_entry_1.get().split('/')[0]
+        pdf = canvas.Canvas("Invoice Documents/"+invnumber+".pdf", pagesize=letter)
 
         type_temp = template_entry_1.get()
         if type_temp == 'Professional 1 (logo on left side)':
@@ -34075,7 +34259,7 @@ def mainpage():
 
 
         pdf.save()
-        win32api.ShellExecute(0,"","Invoice\Invoice_Report.pdf",None,".",0)
+        win32api.ShellExecute(0,"",os.getcwd()+"/Invoice Documents/"+invnumber+".pdf",None,".",0)
 
 
     
@@ -35292,6 +35476,109 @@ def mainpage():
     def delete_line_item_1():
       selected_line_item_1 = add_newline_tree_1.selection()[0]
       add_newline_tree_1.delete(selected_line_item_1)
+      if comp_data[12] == "1":
+        price = 0.0
+        total_cost = 0.0
+        exc = float(ex_cost_entry_1.get())
+        dis_rate = float(dis_rate_entry_1.get())
+        for i in add_newline_tree_1.get_children():
+          price += float(add_newline_tree_1.item(i,'values')[6])
+        discount_rate = (price*dis_rate)/100
+        total_cost += (price - discount_rate) + exc
+        discount_1.config(text= str(dis_rate) + "" +"% Discount")
+        discount1_1.config(text=round(discount_rate,2))
+        sub_tot = round((price - discount_rate),2)
+        sub1_1.config(text=sub_tot)
+        cost1_1.config(text=round(exc,2))
+        invoicetot1_1.config(text=round(total_cost,2))
+        tot_paid = 0.0
+        for tp in pay_tree_1.get_children():
+          tot_paid += float(pay_tree_1.item(tp,'values')[4])
+        total1_1.config(text=round(tot_paid,2))
+        bal = round((total_cost - tot_paid),2)
+        balance1_1.config(text=bal)
+        totalprice_view_1.config(text=price)
+      elif comp_data[12] == "2":
+        price = 0.0
+        p = 0.0
+        total_cost = 0.0
+        exc = float(ex_cost_entry_1.get())
+        dis_rate = float(dis_rate_entry_1.get())
+        tx1 = float(tax1_entry_1.get())
+        for i in add_newline_tree_1.get_children():
+          if add_newline_tree_1.item(i,'values')[6] == "No":
+            p += float(add_newline_tree_1.item(i,'values')[3])
+          else:
+            price += float(add_newline_tree_1.item(i,'values')[7])
+        discount_rate = ((price + p) * dis_rate)/100
+        dis_price = (price * dis_rate)/100
+        dis_p = (p * dis_rate)/100
+        tax1_rate = ((price - dis_price)*tx1)/100
+        tx_calc = (price - dis_price) + tax1_rate
+        tx_calc1 = p - dis_p
+        total_cost += (tx_calc + tx_calc1) + exc
+        discount_1.config(text= str(dis_rate) + "" +"% Discount")
+        discount1_1.config(text=round(discount_rate,2))
+        sub_tot = round(((price + p) - discount_rate),2)
+        sub1_1.config(text=sub_tot)
+        tax1_1.config(text=round(tax1_rate,2))
+        cost1_1.config(text=round(exc,2))
+        invoicetot1_1.config(text=round(total_cost,2))
+        tot_paid = 0.0
+        for tp in pay_tree_1.get_children():
+          tot_paid += float(pay_tree_1.item(tp,'values')[4]) 
+        total1_1.config(text=round(tot_paid,2))
+        bal = round((total_cost - tot_paid),2)
+        balance1_1.config(text=bal) 
+        totalprice_view_1.config(text=round((price + p),2))
+      elif comp_data[12] == "3":
+        price = 0.0
+        p1 = 0.0
+        p2 = 0.0
+        p3 = 0.0
+        total_cost = 0.0
+        tx1 = float(tax1_entry_1.get())
+        tx2 = float(tax2_entry_1.get())
+        exc = float(ex_cost_entry_1.get())
+        dis_rate = float(dis_rate_entry_1.get())
+        for i in add_newline_tree_1.get_children():
+          if add_newline_tree_1.item(i,'values')[6] == "No" and add_newline_tree_1.item(i,'values')[7] == "No":
+            p1 += float(add_newline_tree_1.item(i,'values')[3])
+          elif add_newline_tree_1.item(i,'values')[6] == "Yes" and add_newline_tree_1.item(i,'values')[7] == "No":
+            p2 += float(add_newline_tree_1.item(i,'values')[3])
+          elif add_newline_tree_1.item(i,'values')[6] == "No" and add_newline_tree_1.item(i,'values')[7] == "Yes":
+            p3 += float(add_newline_tree_1.item(i,'values')[3])
+          else:
+            price += float(add_newline_tree_1.item(i,'values')[8])
+        discount_rate = ((p1 + p2 + p3 + price) * dis_rate)/100
+        dis_p2 = (p2 * dis_rate)/100
+        tax1_rate = ((p2 - dis_p2) * tx1)/100
+        dis_price = (price * dis_rate)/100
+        tax2_rate = ((price - dis_price) * tx1)/100
+        tax3_rate = ((price - dis_price) * tx2)/100
+        dis_p3= (p3 * dis_rate)/100
+        tax4_rate = ((p3 - dis_p3) * tx2)/100
+        dis_p4 = (p1 * dis_rate)/100
+        tx_calc1 = (p2 - dis_p2) + tax1_rate
+        tx_calc2 = (price - dis_price) + tax2_rate + tax3_rate
+        tx_calc3 = (p3 - dis_p3) + tax4_rate
+        tx_calc4 = (p1 - dis_p4)
+        total_cost += (tx_calc1 + tx_calc2 + tx_calc3 + tx_calc4) + exc
+        discount_1.config(text= str(dis_rate) + "" +"% Discount")
+        discount1_1.config(text=round(discount_rate,2))
+        sub_tot = round(((price + p1 + p2 + p3) - discount_rate),2)
+        sub1_1.config(text=sub_tot)
+        tax1_1.config(text=round((tax1_rate + tax2_rate),2))
+        tax2_1.config(text=round((tax3_rate + tax4_rate),2))
+        cost1_1.config(text=round(exc,2))
+        invoicetot1_1.config(text=round(total_cost,2))
+        tot_paid = 0.0
+        for tp in pay_tree_1.get_children():
+          tot_paid += float(pay_tree_1.item(tp,'values')[4])
+        total1_1.config(text=round(tot_paid,2))
+        bal = round((total_cost - tot_paid),2)
+        balance1_1.config(text=bal)
+        totalprice_view_1.config(text=round((price + p1 + p2 + p3),2))
 
 
     ############# Email Invoice ######################
@@ -36040,10 +36327,10 @@ def mainpage():
 
     fir2Frame=Frame(pop_1, height=150,width=100,bg="#f5f3f2")
     fir2Frame.pack(side="top", fill=X)
-    listFrame = Frame(fir2Frame, bg="white", height=140,borderwidth=5,  relief=RIDGE)
+    listFrame_1 = Frame(fir2Frame, bg="white", height=140,borderwidth=5,  relief=RIDGE)
 
     if comp_data[12] == "1":
-      add_newline_tree_1=ttk.Treeview(listFrame)
+      add_newline_tree_1=ttk.Treeview(listFrame_1)
       add_newline_tree_1["columns"]=["1","2","3","4","5","6","7"]
 
       add_newline_tree_1.column("#0", width=20)
@@ -36065,9 +36352,9 @@ def mainpage():
       add_newline_tree_1.heading("7",text="Price")
     
       add_newline_tree_1.pack(fill="both", expand=1)
-      listFrame.pack(side="top", fill="both", padx=5, pady=3, expand=1)
+      listFrame_1.pack(side="top", fill="both", padx=5, pady=3, expand=1)
     elif comp_data[12] == "2":
-      add_newline_tree_1=ttk.Treeview(listFrame)
+      add_newline_tree_1=ttk.Treeview(listFrame_1)
       add_newline_tree_1["columns"]=["1","2","3","4","5","6","7","8"]
 
       add_newline_tree_1.column("#0", width=20)
@@ -36091,9 +36378,9 @@ def mainpage():
       add_newline_tree_1.heading("8",text="Price")
     
       add_newline_tree_1.pack(fill="both", expand=1)
-      listFrame.pack(side="top", fill="both", padx=5, pady=3, expand=1)
+      listFrame_1.pack(side="top", fill="both", padx=5, pady=3, expand=1)
     elif comp_data[12] == "3":
-      add_newline_tree_1=ttk.Treeview(listFrame)
+      add_newline_tree_1=ttk.Treeview(listFrame_1)
       add_newline_tree_1["columns"]=["1","2","3","4","5","6","7","8","9"]
 
       add_newline_tree_1.column("#0", width=20)
@@ -36119,7 +36406,165 @@ def mainpage():
       add_newline_tree_1.heading("9",text="Price")
     
       add_newline_tree_1.pack(fill="both", expand=1)
-      listFrame.pack(side="top", fill="both", padx=5, pady=3, expand=1)
+      listFrame_1.pack(side="top", fill="both", padx=5, pady=3, expand=1)
+
+      totalprice_view_1 = Label(listFrame_1,bg="#f5f3f2")
+      totalprice_view_1.place(x=850,y=200,width=78,height=18)
+
+    proquanVar1 = StringVar()
+    def inv_proquanedit_box_1(val):
+      change_quanwindow_1 = Toplevel()
+      change_quanwindow_1.title("Edit the value or cancel")
+      change_quanwindow_1.geometry("400x200+350+300")
+      root.resizable(False, False)
+      change_quantity_lbl_1 = Label(change_quanwindow_1 , text='Quality', 
+      font = ("Times New Roman", 10)).place(x=80,y=60)
+      quantity_editbox_1 = Entry(change_quanwindow_1)
+      quantity_editbox_1.insert(0,val)
+      quantity_editbox_1.place(x=180,y=63)
+      change_quanwindow_1.focus()
+      
+      def assign_value_1(event):
+        print_quantity_1 = quantity_editbox_1.get()
+        proquanVar1.set(print_quantity_1)
+        change_quanwindow_1.quit()
+        change_quanwindow_1.destroy()
+          
+      
+      change_quanwindow_1.bind('<Return>', assign_value_1 )
+  
+      okbtn_quantity_1 = Button(change_quanwindow_1, text="Okay")
+      okbtn_quantity_1.bind('<Button-1>',assign_value_1)
+      okbtn_quantity_1.place(x=70,y=130)
+      
+      cancelbtn_quantity_1 = Button(change_quanwindow_1, text="Cancel", command = change_quanwindow_1.destroy).place(x=276,y=130)
+      change_quanwindow_1.mainloop()
+
+    def edit_quantity_1(event):
+      selected_item = add_newline_tree_1.selection()[0]
+      temp = list(add_newline_tree_1.item(selected_item , 'values'))
+      inv_proquanedit_box_1(temp[4])
+      temp[4] = proquanVar1.get()
+      add_newline_tree_1.item(selected_item, values= temp)
+      sql = "select * from company"
+      fbcursor.execute(sql)
+      priceupdate = fbcursor.fetchone()
+      if not priceupdate:
+        add_newline_tree_1.set(selected_item, '#7', (float(temp[3])*float(temp[4])))
+      elif priceupdate[12] =="1":
+        add_newline_tree_1.set(selected_item, '#7', (float(temp[3])*float(temp[4])))
+      elif priceupdate[12] =="2":
+        add_newline_tree_1.set(selected_item, '#8', (float(temp[3])*float(temp[4])))
+      elif priceupdate[12] =="3":
+        add_newline_tree_1.set(selected_item, '#9', (float(temp[3])*float(temp[4])))
+      sql = "select * from company"
+      fbcursor.execute(sql)
+      comp_data = fbcursor.fetchone()
+      if comp_data[12] == "1":
+        price = 0.0
+        total_cost = 0.0
+        exc = float(ex_cost_entry_1.get())
+        dis_rate = float(dis_rate_entry_1.get())
+        for i in add_newline_tree_1.get_children():
+          price += float(add_newline_tree_1.item(i,'values')[6])
+        discount_rate = (price*dis_rate)/100
+        total_cost += (price - discount_rate) + exc
+        discount_1.config(text= str(dis_rate) + "" +"% Discount")
+        discount1_1.config(text=round(discount_rate,2))
+        sub_tot = round((price - discount_rate),2)
+        sub1_1.config(text=sub_tot)
+        cost1_1.config(text=round(exc,2))
+        invoicetot1_1.config(text=round(total_cost,2))
+        tot_paid = 0.0
+        for tp in pay_tree_1.get_children():
+          tot_paid += float(pay_tree_1.item(tp,'values')[4])
+        total1_1.config(text=round(tot_paid,2))
+        bal = round((total_cost - tot_paid),2)
+        balance1_1.config(text=bal)
+        totalprice_view_1.config(text=price)
+      elif comp_data[12] == "2":
+        price = 0.0
+        p = 0.0
+        total_cost = 0.0
+        exc = float(ex_cost_entry_1.get())
+        dis_rate = float(dis_rate_entry_1.get())
+        tx1 = float(tax1_entry_1.get())
+        for i in add_newline_tree_1.get_children():
+          if add_newline_tree_1.item(i,'values')[6] == "No":
+            p += float(add_newline_tree_1.item(i,'values')[3])
+          else:
+            price += float(add_newline_tree_1.item(i,'values')[7])
+        discount_rate = ((price + p) * dis_rate)/100
+        dis_price = (price * dis_rate)/100
+        dis_p = (p * dis_rate)/100
+        tax1_rate = ((price - dis_price)*tx1)/100
+        tx_calc = (price - dis_price) + tax1_rate
+        tx_calc1 = p - dis_p
+        total_cost += (tx_calc + tx_calc1) + exc
+        discount_1.config(text= str(dis_rate) + "" +"% Discount")
+        discount1_1.config(text=round(discount_rate,2))
+        sub_tot = round(((price + p) - discount_rate),2)
+        sub1_1.config(text=sub_tot)
+        tax1_1.config(text=round(tax1_rate,2))
+        cost1_1.config(text=round(exc,2))
+        invoicetot1_1.config(text=round(total_cost,2))
+        tot_paid = 0.0
+        for tp in pay_tree_1.get_children():
+          tot_paid += float(pay_tree_1.item(tp,'values')[4]) 
+        total1_1.config(text=round(tot_paid,2))
+        bal = round((total_cost - tot_paid),2)
+        balance1_1.config(text=bal) 
+        totalprice_view_1.config(text=round((price + p),2))
+      elif comp_data[12] == "3":
+        price = 0.0
+        p1 = 0.0
+        p2 = 0.0
+        p3 = 0.0
+        total_cost = 0.0
+        tx1 = float(tax1_entry_1.get())
+        tx2 = float(tax2_entry_1.get())
+        exc = float(ex_cost_entry_1.get())
+        dis_rate = float(dis_rate_entry_1.get())
+        for i in add_newline_tree_1.get_children():
+          if add_newline_tree_1.item(i,'values')[6] == "No" and add_newline_tree_1.item(i,'values')[7] == "No":
+            p1 += float(add_newline_tree_1.item(i,'values')[3])
+          elif add_newline_tree_1.item(i,'values')[6] == "Yes" and add_newline_tree_1.item(i,'values')[7] == "No":
+            p2 += float(add_newline_tree_1.item(i,'values')[3])
+          elif add_newline_tree_1.item(i,'values')[6] == "No" and add_newline_tree_1.item(i,'values')[7] == "Yes":
+            p3 += float(add_newline_tree_1.item(i,'values')[3])
+          else:
+            price += float(add_newline_tree_1.item(i,'values')[8])
+        discount_rate = ((p1 + p2 + p3 + price) * dis_rate)/100
+        dis_p2 = (p2 * dis_rate)/100
+        tax1_rate = ((p2 - dis_p2) * tx1)/100
+        dis_price = (price * dis_rate)/100
+        tax2_rate = ((price - dis_price) * tx1)/100
+        tax3_rate = ((price - dis_price) * tx2)/100
+        dis_p3= (p3 * dis_rate)/100
+        tax4_rate = ((p3 - dis_p3) * tx2)/100
+        dis_p4 = (p1 * dis_rate)/100
+        tx_calc1 = (p2 - dis_p2) + tax1_rate
+        tx_calc2 = (price - dis_price) + tax2_rate + tax3_rate
+        tx_calc3 = (p3 - dis_p3) + tax4_rate
+        tx_calc4 = (p1 - dis_p4)
+        total_cost += (tx_calc1 + tx_calc2 + tx_calc3 + tx_calc4) + exc
+        discount_1.config(text= str(dis_rate) + "" +"% Discount")
+        discount1_1.config(text=round(discount_rate,2))
+        sub_tot = round(((price + p1 + p2 + p3) - discount_rate),2)
+        sub1_1.config(text=sub_tot)
+        tax1_1.config(text=round((tax1_rate + tax2_rate),2))
+        tax2_1.config(text=round((tax3_rate + tax4_rate),2))
+        cost1_1.config(text=round(exc,2))
+        invoicetot1_1.config(text=round(total_cost,2))
+        tot_paid = 0.0
+        for tp in pay_tree_1.get_children():
+          tot_paid += float(pay_tree_1.item(tp,'values')[4])
+        total1_1.config(text=round(tot_paid,2))
+        bal = round((total_cost - tot_paid),2)
+        balance1_1.config(text=bal)
+        totalprice_view_1.config(text=round((price + p1 + p2 + p3),2))
+
+    add_newline_tree_1.bind('<Double-Button-1>' , edit_quantity_1)
 
 
     fir3Frame=Frame(pop_1,height=200,width=700,bg="#f5f3f2")
@@ -37099,6 +37544,7 @@ def mainpage():
         total1_1.config(text=round(tot_paid,2))
         bal = round((total_cost - tot_paid),2)
         balance1_1.config(text=bal)
+        totalprice_view_1.config(text=round(price,2))
     elif comp_data[12] == "2":
       for i in product_details:
         if i[11] == "Yes":
@@ -37136,6 +37582,7 @@ def mainpage():
         total1_1.config(text=round(tot_paid,2))
         bal = round((total_cost - tot_paid),2)
         balance1_1.config(text=bal)
+        totalprice_view_1.config(text=round((price + p),2))
     elif comp_data[12] == "3":
       for i in product_details:
         if i[11] == "Yes" and i[12] == "Yes":
@@ -37192,6 +37639,7 @@ def mainpage():
         total1_1.config(text=round(tot_paid,2))
         bal = round((total_cost - tot_paid),2)
         balance1_1.config(text=bal)
+        totalprice_view_1.config(text=round((price + p1 + p2 + p3),2))
 
     if draft_label_1['text'] == "Void":
       select_customer_btn_1['state'] = DISABLED
@@ -42149,14 +42597,14 @@ def mainpage():
       messagebox.showwarning("F-Billing Revolution 2022","This invoice has no line items.\nPlease add line item(s) before printing.")
     else:
       from reportlab.pdfgen import canvas
-      pdf = canvas.Canvas("Invoice/Invoice_Report.pdf", pagesize=letter)
-
       selected_invoice = inv_tree.item(inv_tree.focus())["values"][1]
       invo_sql = "SELECT * FROM invoice WHERE invoice_number=%s"
       invo_val = (selected_invoice,)
       fbcursor.execute(invo_sql,invo_val)
       invo_data = fbcursor.fetchone()
       type_temp = invo_data[13]
+      invnumber = invo_data[1].split('/')[0]
+      pdf = canvas.Canvas(os.getcwd()+"/Invoice Documents/"+invnumber+".pdf", pagesize=letter)
       if type_temp == 'Professional 1 (logo on left side)':
         pdf.setFont('Helvetica',12)
         pdf.drawCentredString(302,770,invo_data[39])
@@ -50184,7 +50632,7 @@ def mainpage():
 
 
       pdf.save()
-      win32api.ShellExecute(0,"","Invoice\Invoice_Report.pdf",None,".",0)
+      win32api.ShellExecute(0,"",os.getcwd()+"/Invoice Documents/"+invnumber+".pdf",None,".",0)
 
 
 
@@ -50196,51 +50644,164 @@ def mainpage():
         messagebox.destroy()
     
 
-  #delete orders  
-  def dele():  
-    messagebox.askyesno("Delete order", "Are you sure to delete this order? All products will be placed back into stock")
+  ####################### delete invoice #################
+  def inv_delete_selected():
+    selected_inv = inv_tree.item(inv_tree.focus())["values"][1] 
+    messagebox.askyesno("Delete Invoice","[" +  str(selected_inv) + "]\n" + "Are you sure to delete this invoice? \nAll products will be placed back into stock")
+    delinv_sql = "DELETE FROM invoice WHERE invoice_number=%s"
+    delinv_val = (selected_inv,)
+    fbcursor.execute(delinv_sql,delinv_val)
+    fbilldb.commit()
+
+    delinvpro_sql = "DELETE FROM storingproduct WHERE invoice_number=%s"
+    delinvpro_val = (selected_inv,)
+    fbcursor.execute(delinvpro_sql,delinvpro_val)
+    fbilldb.commit()
+
+    delinvpay_sql = "DELETE FROM payments WHERE invoice_number=%s"
+    delinvpay_val = (selected_inv,)
+    fbcursor.execute(delinvpay_sql,delinvpay_val)
+    fbilldb.commit()
+
+    delinvdoc_sql = "DELETE FROM documents WHERE invoice_number=%s"
+    delinvdoc_val = (selected_inv,)
+    fbcursor.execute(delinvdoc_sql,delinvdoc_val)
+    fbilldb.commit()
+
+    for record in inv_tree.get_children():
+      inv_tree.delete(record)
+    afdel_sql = "SELECT * FROM invoice"
+    fbcursor.execute(afdel_sql,)
+    afdel_data = fbcursor.fetchall()
+    counti = 0
+    for i in afdel_data:
+      inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1],i[2],i[3],i[18],i[4],i[5],i[6],i[7],i[8],i[9],i[10]))
+    counti += 1
+
+    try:
+      if showtotsum_btn['text'] == "Hide totals\nSum":
+        total_invtot = 0.0
+        total_totpaid = 0.0
+        total_balance = 0.0
+        for i in inv_tree.get_children():
+          total_invtot += float(inv_tree.item(i,'values')[9])
+          total_totpaid += float(inv_tree.item(i,'values')[10])
+          total_balance += float(inv_tree.item(i,'values')[11])
+
+        invtot_label.config(text=round(total_invtot,2))
+        totpaid_label.config(text=round(total_totpaid,2))
+        balance_label.config(text=round(total_balance,2))
+      else:
+        pass
+    except:
+      pass
 
 
 
+  ################### search invoice ################3  
+  def invo_search():
+    def find_invrow():
+      try:
+        srchtxt = srchtxtVar.get()
+        if findtxtVar.get() == "Invoice#":
+          fndinv_sql = "SELECT * FROM invoice WHERE invoice_number=%s"
+          fndinv_val = (srchtxt,)
+          fbcursor.execute(fndinv_sql,fndinv_val)
+          fndinv_data = fbcursor.fetchall()
 
-  #search in orders  
-  def search():  
-      top = Toplevel()     
-      top.title("Find Text")   
-      top.geometry("600x250+390+250")
-      findwhat1=Label(top,text="Find What:",pady=5,padx=10).place(x=5,y=20)
-      n = StringVar()
-      findwhat = ttk.Combobox(top, width = 40, textvariable = n ).place(x=90,y=25)
-    
-      findin1=Label(top,text="Find in:",pady=5,padx=10).place(x=5,y=47)
-      n = StringVar()
-      findIN = ttk.Combobox(top, width = 30, textvariable = n )
-      findIN['values'] = ('Product/Service id', ' Category', ' Active',' name',' stock',' location', ' image',' <<All>>')                       
-      findIN.place(x=90,y=54)
-      findIN.current(0)
+          for record in inv_tree.get_children():
+            inv_tree.delete(record)
+          
+          counti = 0
+          for i in fndinv_data:
+            inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1],i[2],i[3],i[18],i[4],i[5],i[6],i[7],i[8],i[9],i[10]))
+          counti += 1
+          searchinvo.destroy()
+        elif findtxtVar.get() == "Customer Name":
+          fndinv_sql = "SELECT * FROM invoice WHERE businessname=%s"
+          fndinv_val = (srchtxt,)
+          fbcursor.execute(fndinv_sql,fndinv_val)
+          fndinv_data = fbcursor.fetchall()
 
-      findButton = Button(top, text ="Find next",width=10).place(x=480,y=22)
-      closeButton = Button(top,text ="Close",width=10).place(x=480,y=52)
-      
-      match1=Label(top,text="Match:",pady=5,padx=10).place(x=5,y=74)
-      n = StringVar()
-      match = ttk.Combobox(top, width = 23, textvariable = n )   
-      match['values'] = ('From Any part',' Whole Field',' From the beginning of the field')                                   
-      match.place(x=90,y=83)
-      match.current(0)
+          for record in inv_tree.get_children():
+            inv_tree.delete(record)
+          
+          counti = 0
+          for i in fndinv_data:
+            inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1],i[2],i[3],i[18],i[4],i[5],i[6],i[7],i[8],i[9],i[10]))
+          counti += 1
+          searchinvo.destroy()
+        elif findtxtVar.get() == "Invoice Total":
+          fndinv_sql = "SELECT * FROM invoice WHERE invoicetot=%s"
+          fndinv_val = (srchtxt,)
+          fbcursor.execute(fndinv_sql,fndinv_val)
+          fndinv_data = fbcursor.fetchall()
 
-      search1=Label(top,text="Search:",pady=5,padx=10).place(x=5,y=102)
-      n = StringVar()
-      search = ttk.Combobox(top, width = 23, textvariable = n )
-      search['values'] = ('All', 'up',' Down')
-      search.place(x=90,y=112)
-      search.current(0)
-      checkvarStatus4=IntVar()  
-      Button4 = Checkbutton(top,variable = checkvarStatus4,text="Match Case",onvalue =0 ,offvalue = 1,height=3,width = 15)
-      Button4.place(x=90,y=141)
-      checkvarStatus5=IntVar()   
-      Button5 = Checkbutton(top,variable = checkvarStatus5,text="Match Format",onvalue =0 ,offvalue = 1,height=3,width = 15)
-      Button5.place(x=300,y=141)
+          for record in inv_tree.get_children():
+            inv_tree.delete(record)
+          
+          counti = 0
+          for i in fndinv_data:
+            inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1],i[2],i[3],i[18],i[4],i[5],i[6],i[7],i[8],i[9],i[10]))
+          counti += 1
+          searchinvo.destroy()
+        elif findtxtVar.get() == "Total Paid":
+          fndinv_sql = "SELECT * FROM invoice WHERE totpaid=%s"
+          fndinv_val = (srchtxt,)
+          fbcursor.execute(fndinv_sql,fndinv_val)
+          fndinv_data = fbcursor.fetchall()
+
+          for record in inv_tree.get_children():
+            inv_tree.delete(record)
+          
+          counti = 0
+          for i in fndinv_data:
+            inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1],i[2],i[3],i[18],i[4],i[5],i[6],i[7],i[8],i[9],i[10]))
+          counti += 1
+          searchinvo.destroy()
+        elif findtxtVar.get() == "Balance":
+          fndinv_sql = "SELECT * FROM invoice WHERE balance=%s"
+          fndinv_val = (srchtxt,)
+          fbcursor.execute(fndinv_sql,fndinv_val)
+          fndinv_data = fbcursor.fetchall()
+
+          for record in inv_tree.get_children():
+            inv_tree.delete(record)
+          
+          counti = 0
+          for i in fndinv_data:
+            inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1],i[2],i[3],i[18],i[4],i[5],i[6],i[7],i[8],i[9],i[10]))
+          counti += 1
+          searchinvo.destroy()
+      except:
+        pass
+
+
+    searchinvo = Toplevel()  
+    searchinvo.title("Find Text")
+    p2 = PhotoImage(file = "images/fbicon.png")
+    searchinvo.iconphoto(False, p2)
+    searchinvo.geometry("520x150+390+250")
+    findwhat_lbl=Label(searchinvo,text="Find What:")
+    findwhat_lbl.place(x=5,y=15)
+    srchtxtVar = StringVar() 
+    findwhat_combo = ttk.Combobox(searchinvo, width = 50, textvariable = srchtxtVar )
+    findwhat_combo.place(x=85,y=15,height=23) 
+    findbtn = Button(searchinvo, text ="Find next",width=10, command=lambda:find_invrow())
+    findbtn.place(x=420,y=15)
+    findin_lbl=Label(searchinvo,text="Find in:")
+    findin_lbl.place(x=5,y=40)
+    findtxtVar = StringVar() 
+    findin_combo = ttk.Combobox(searchinvo, width = 37, textvariable =findtxtVar )
+    findin_combo['values'] = ('Invoice#',
+                              'Customer Name',
+                              'Invoice Total',
+                              'Total Paid',
+                              'Balance')        
+    findin_combo.place(x=85,y=40,height=23) 
+    findin_combo.current(0)
+    srch_cancelbtn = Button(searchinvo, text ="Close",width=10, command=lambda:searchinvo.destroy())
+    srch_cancelbtn.place(x=420,y=45)
 
 
   ############## Email Invoice ###################
@@ -50553,14 +51114,14 @@ def mainpage():
   w = Canvas(inv_midFrame, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=(0, 5))
 
-  invoiceLabel = Button(inv_midFrame,compound="top", text="Create new\nInvoice",relief=RAISED, image=photo,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=inv_create)
-  invoiceLabel.pack(side="left", pady=3, ipadx=4)
+  create_invoice = Button(inv_midFrame,compound="top", text="Create new\nInvoice",relief=RAISED, image=photo,bg="#f5f3f2", fg="black", height=55, bd=1, width=55,command=inv_create)
+  create_invoice.pack(side="left", pady=3, ipadx=4)
 
-  orderLabel = Button(inv_midFrame,compound="top", text="View/Edit\nInvoice",relief=RAISED, image=photo1,bg="#f8f8f2", fg="black", height=55, bd=1, width=55,command=inv_edit_view)
-  orderLabel.pack(side="left")
+  edit_invoice = Button(inv_midFrame,compound="top", text="View/Edit\nInvoice",relief=RAISED, image=photo1,bg="#f8f8f2", fg="black", height=55, bd=1, width=55,command=inv_edit_view)
+  edit_invoice.pack(side="left")
 
-  estimateLabel = Button(inv_midFrame,compound="top", text="Delete\nSelected",relief=RAISED, image=photo2,bg="#f8f8f2", fg="black", height=55, bd=1, width=55,command=dele)
-  estimateLabel.pack(side="left")
+  delete_invoice = Button(inv_midFrame,compound="top", text="Delete\nSelected",relief=RAISED, image=photo2,bg="#f8f8f2", fg="black", height=55, bd=1, width=55,command=inv_delete_selected)
+  delete_invoice.pack(side="left")
 
   w = Canvas(inv_midFrame, width=1, height=65, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
@@ -50587,8 +51148,8 @@ def mainpage():
   w = Canvas(inv_midFrame, width=1, height=55, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  productLabel = Button(inv_midFrame,compound="top", text="Search in\nInvoices",relief=RAISED, image=photo7,bg="#f8f8f2", fg="black", height=55, bd=1, width=55,command=search)
-  productLabel.pack(side="left")
+  search_invoice = Button(inv_midFrame,compound="top", text="Search in\nInvoices",relief=RAISED, image=photo7,bg="#f8f8f2", fg="black", height=55, bd=1, width=55,command=invo_search)
+  search_invoice.pack(side="left")
 
   comp_sql = "SELECT * FROM company"
   fbcursor.execute(comp_sql,)
@@ -50701,10 +51262,37 @@ def mainpage():
     count = 0
     for i in invoice_records:
       if True:
-        inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[20], i[4], i[5], i[6], i[7], i[8], i[9], i[10]))
+        inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7], i[8], i[9], i[10]))
       else:
         pass
     count += 1
+
+
+  ######### hide total sum #############
+  def inv_hidetotsum():
+    showtotsum_btn.config(text="Show totals\nSum",command=inv_showtotsum)
+    invtot_label.config(text='')
+    totpaid_label.config(text='')
+    balance_label.config(text='')
+
+
+  ######### show total sum #############
+  def inv_showtotsum():
+    showtotsum_btn.config(text="Hide totals\nSum",command=inv_hidetotsum)
+
+    total_invtot = 0.0
+    total_totpaid = 0.0
+    total_balance = 0.0
+    for i in inv_tree.get_children():
+      total_invtot += float(inv_tree.item(i,'values')[9])
+      total_totpaid += float(inv_tree.item(i,'values')[10])
+      total_balance += float(inv_tree.item(i,'values')[11])
+
+    invtot_label.config(text=round(total_invtot,2))
+    totpaid_label.config(text=round(total_totpaid,2))
+    balance_label.config(text=round(total_balance,2))
+
+
 
   inv_refresh_btn = Button(inv_midFrame,compound="top", text="Refresh\nInvoice list",relief=RAISED, image=photo8,fg="black", height=55, bd=1, width=55,command=refresh_invoice)
   inv_refresh_btn.pack(side="left")
@@ -50712,8 +51300,8 @@ def mainpage():
   w = Canvas(inv_midFrame, width=1, height=55, bg="#b3b3b3", bd=0)
   w.pack(side="left", padx=5)
 
-  productLabel = Button(inv_midFrame,compound="top", text="Hide totals\nSum",relief=RAISED, image=photo9,bg="#f8f8f2", fg="black", height=55, bd=1, width=55)
-  productLabel.pack(side="left")
+  showtotsum_btn = Button(inv_midFrame,compound="top", text="Show totals\nSum",relief=RAISED, image=photo9,bg="#f8f8f2", fg="black", height=55, bd=1, width=55,command=inv_showtotsum)
+  showtotsum_btn.pack(side="left")
 
   invoice_all_label = Label(inv_mainFrame, text="Invoices(All)", font=("arial", 18), bg="#f8f8f2")
   invoice_all_label.pack(side="left", padx=(20,0))
@@ -50746,8 +51334,8 @@ def mainpage():
         expand=YES,
         )
 
-      #Invoice all tree
-      global inv_tree,invtot_rowcol
+      #Invoice main tree
+      global inv_tree,invtot_label,totpaid_label,balance_label
       inv_tree = ttk.Treeview(self.left_frame, columns = (1,2,3,4,5,6,7,8,9,10,11,12), height = 15, show = "headings")
       inv_tree.pack(side = 'top')
       inv_tree.heading(1)
@@ -50774,9 +51362,15 @@ def mainpage():
       inv_tree.column(10, width = 110)
       inv_tree.column(11, width = 110)
       inv_tree.column(12, width = 100)
-      invtot_rowcol = Label(self.left_frame,bg="#f5f3f2")
-      invtot_rowcol.place(x=1260,y=400,width=80,height=18)
+     
+      invtot_label = Label(self.left_frame,bg="#f5f3f2",anchor="w")
+      invtot_label.place(x=1015,y=300,width=110,height=18)
 
+      totpaid_label = Label(self.left_frame,bg="#f5f3f2",anchor="w")
+      totpaid_label.place(x=1125,y=300,width=110,height=18)
+
+      balance_label = Label(self.left_frame,bg="#f5f3f2",anchor="w")
+      balance_label.place(x=1235,y=300,width=100,height=18)
 
       sql = "SELECT * FROM Invoice"
       fbcursor.execute(sql)
@@ -50785,7 +51379,7 @@ def mainpage():
       count = 0
       for i in invoice_records:
         if True:
-          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[20], i[4], i[5], i[6], i[7], i[8], i[9], i[10]))
+          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7], i[8], i[9], i[10]))
         else:
           pass
       count += 1
