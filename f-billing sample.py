@@ -361,25 +361,67 @@ def mainpage():
 
       count = 0
       for i in invoice_records:
-        if True:
-          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[20], i[4], i[5], i[6], i[7], i[8], i[9], i[10]))
-        else:
-          pass
+        if comp_data[7] == "before amount":
+          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + str(i[8]),comp_data[6] + str(i[9]),comp_data[6] + str(i[10])))
+        elif comp_data[7] == "after amount":
+          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + comp_data[6],str(i[9]) + comp_data[6],str(i[10]) + comp_data[6]))
+        elif comp_data[7] == "before amount with space":
+          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + " " + str(i[8]),comp_data[6] + " " + str(i[9]),comp_data[6] + " " + str(i[10])))
+        elif comp_data[7] == "after amount with space":
+          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + " " + comp_data[6],str(i[9]) + " " + comp_data[6],str(i[10]) + " " + comp_data[6]))
       count += 1
       
       try:
         if showtotsum_btn['text'] == "Hide totals\nSum":
+          it = []
+          tp = []
+          bl = []
+          for i in inv_tree.get_children():
+            invtot = inv_tree.item(i,'values')[9]
+            totpaid = inv_tree.item(i,'values')[10]
+            balance = inv_tree.item(i,'values')[11]
+            if comp_data[7] == "before amount":
+              it.append(invtot.split(str(comp_data[6]))[-1])
+              tp.append(totpaid.split(str(comp_data[6]))[-1])
+              bl.append(balance.split(str(comp_data[6]))[-1])
+            if comp_data[7] == "after amount":
+              it.append(invtot.split(str(comp_data[6]))[0])
+              tp.append(totpaid.split(str(comp_data[6]))[0])
+              bl.append(balance.split(str(comp_data[6]))[0])
+            if comp_data[7] == "before amount with space":
+              it.append(invtot.split(' ')[-1])
+              tp.append(totpaid.split(' ')[-1])
+              bl.append(balance.split(' ')[-1])
+            if comp_data[7] == "after amount with space":
+              it.append(invtot.split(' ')[0])
+              tp.append(totpaid.split(' ')[0])
+              bl.append(balance.split(' ')[0])
+
           total_invtot = 0.0
           total_totpaid = 0.0
           total_balance = 0.0
-          for i in inv_tree.get_children():
-            total_invtot += float(inv_tree.item(i,'values')[9])
-            total_totpaid += float(inv_tree.item(i,'values')[10])
-            total_balance += float(inv_tree.item(i,'values')[11])
-
-          invtot_label.config(text=round(total_invtot,2))
-          totpaid_label.config(text=round(total_totpaid,2))
-          balance_label.config(text=round(total_balance,2))
+          for a in it:
+            total_invtot += float(a)
+          for b in tp:
+            total_totpaid += float(b)
+          for c in bl:
+            total_balance += float(c)
+          if comp_data[7] == "before amount":
+            invtot_label.config(text=comp_data[6] + str(round(total_invtot,2)))
+            totpaid_label.config(text=comp_data[6] + str(round(total_totpaid,2)))
+            balance_label.config(text=comp_data[6] + str(round(total_balance,2)))
+          elif comp_data[7] == "after amount":
+            invtot_label.config(text=str(round(total_invtot,2)) + comp_data[6])
+            totpaid_label.config(text=str(round(total_totpaid,2)) + comp_data[6])
+            balance_label.config(text=str(round(total_balance,2)) + comp_data[6])
+          elif comp_data[7] == "before amount  with space":
+            invtot_label.config(text=comp_data[6] + " " + str(round(total_invtot,2)))
+            totpaid_label.config(text=comp_data[6] + " " + str(round(total_totpaid,2)))
+            balance_label.config(text=comp_data[6] + " " + str(round(total_balance,2)))
+          elif comp_data[7] == "after amount with space":
+            invtot_label.config(text=str(round(total_invtot,2)) + " " + comp_data[6])
+            totpaid_label.config(text=str(round(total_totpaid,2)) + " " + comp_data[6])
+            balance_label.config(text=str(round(total_balance,2)) + " " + comp_data[6])
         else:
           pass
       except:
@@ -17894,8 +17936,8 @@ def mainpage():
       add_newline_tree.pack(fill="both", expand=1)
       listFrame.pack(side="top", fill="both", padx=5, pady=3, expand=1)
 
-      totalprice_view = Label(listFrame,bg="#f5f3f2")
-      totalprice_view.place(x=850,y=200,width=78,height=18)
+    totalprice_view = Label(listFrame,bg="#f5f3f2")
+    totalprice_view.place(x=850,y=200,width=78,height=18)
 
     proquanVar = StringVar()
     def inv_proquanedit_box(val):
@@ -18471,21 +18513,7 @@ def mainpage():
       import win32api
       selected_file = doc_tree.item(doc_tree.focus())["values"][1]
       win32api.ShellExecute(0,"",os.getcwd()+"/images/"+selected_file,None,".",0)
-      # show = Toplevel()
-      # show.geometry("700x500")
-      # show.title("View Files")
-      # if selected_file.lower().endswith(('.png','.jpg')):
-      #   open_image = Image.open("images/"+selected_file)
-      #   resize_img = open_image.resize((700,500))
-      #   img = ImageTk.PhotoImage(resize_img)
-      #   image = Label(show,image=img)
-      #   image.photo = img
-      #   image.pack()
-      # else:
-      #   with open("images/"+selected_file,mode='r',encoding="utf-8",errors="ignore") as none_img:
-      #     data = none_img.read()
-      #     image = Label(show,text=data)
-      #     image.pack()
+    
     
 
     doc_plus_btn=Button(doc_labelframe,image=plus_1,text="",width=20,height=25,command=attach_file)
@@ -18828,29 +18856,109 @@ def mainpage():
 
       count = 0
       for i in invoice_records:
-        if True:
-          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[20], i[4], i[5], i[6], i[7], i[8], i[9], i[10]))
-        else:
-          pass
+        if comp_data_1[7] == "before amount":
+          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data_1[6] + str(i[8]),comp_data_1[6] + str(i[9]),comp_data_1[6] + str(i[10])))
+        elif comp_data_1[7] == "after amount":
+          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + comp_data_1[6],str(i[9]) + comp_data_1[6],str(i[10]) + comp_data_1[6]))
+        elif comp_data_1[7] == "before amount with space":
+          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data_1[6] + " " + str(i[8]),comp_data_1[6] + " " + str(i[9]),comp_data_1[6] + " " + str(i[10])))
+        elif comp_data_1[7] == "after amount with space":
+          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + " " + comp_data_1[6],str(i[9]) + " " + comp_data_1[6],str(i[10]) + " " + comp_data_1[6]))
       count += 1
       
       try:
         if showtotsum_btn['text'] == "Hide totals\nSum":
+          it = []
+          tp = []
+          bl = []
+          for i in inv_tree.get_children():
+            invtot = inv_tree.item(i,'values')[9]
+            totpaid = inv_tree.item(i,'values')[10]
+            balance = inv_tree.item(i,'values')[11]
+            if comp_data_1[7] == "before amount":
+              it.append(invtot.split(str(comp_data_1[6]))[-1])
+              tp.append(totpaid.split(str(comp_data_1[6]))[-1])
+              bl.append(balance.split(str(comp_data_1[6]))[-1])
+            if comp_data_1[7] == "after amount":
+              it.append(invtot.split(str(comp_data_1[6]))[0])
+              tp.append(totpaid.split(str(comp_data_1[6]))[0])
+              bl.append(balance.split(str(comp_data_1[6]))[0])
+            if comp_data_1[7] == "before amount with space":
+              it.append(invtot.split(' ')[-1])
+              tp.append(totpaid.split(' ')[-1])
+              bl.append(balance.split(' ')[-1])
+            if comp_data_1[7] == "after amount with space":
+              it.append(invtot.split(' ')[0])
+              tp.append(totpaid.split(' ')[0])
+              bl.append(balance.split(' ')[0])
+
           total_invtot = 0.0
           total_totpaid = 0.0
           total_balance = 0.0
-          for i in inv_tree.get_children():
-            total_invtot += float(inv_tree.item(i,'values')[9])
-            total_totpaid += float(inv_tree.item(i,'values')[10])
-            total_balance += float(inv_tree.item(i,'values')[11])
-
-          invtot_label.config(text=round(total_invtot,2))
-          totpaid_label.config(text=round(total_totpaid,2))
-          balance_label.config(text=round(total_balance,2))
+          for a in it:
+            total_invtot += float(a)
+          for b in tp:
+            total_totpaid += float(b)
+          for c in bl:
+            total_balance += float(c)
+          if comp_data_1[7] == "before amount":
+            invtot_label.config(text=comp_data_1[6] + str(round(total_invtot,2)))
+            totpaid_label.config(text=comp_data_1[6] + str(round(total_totpaid,2)))
+            balance_label.config(text=comp_data_1[6] + str(round(total_balance,2)))
+          elif comp_data_1[7] == "after amount":
+            invtot_label.config(text=str(round(total_invtot,2)) + comp_data_1[6])
+            totpaid_label.config(text=str(round(total_totpaid,2)) + comp_data_1[6])
+            balance_label.config(text=str(round(total_balance,2)) + comp_data_1[6])
+          elif comp_data_1[7] == "before amount  with space":
+            invtot_label.config(text=comp_data_1[6] + " " + str(round(total_invtot,2)))
+            totpaid_label.config(text=comp_data_1[6] + " " + str(round(total_totpaid,2)))
+            balance_label.config(text=comp_data_1[6] + " " + str(round(total_balance,2)))
+          elif comp_data_1[7] == "after amount with space":
+            invtot_label.config(text=str(round(total_invtot,2)) + " " + comp_data_1[6])
+            totpaid_label.config(text=str(round(total_totpaid,2)) + " " + comp_data_1[6])
+            balance_label.config(text=str(round(total_balance,2)) + " " + comp_data_1[6])
         else:
           pass
       except:
         pass
+
+      
+      for record in inv_product_tree.get_children():
+        inv_product_tree.delete(record)
+      pro_sql = "SELECT * FROM storingproduct WHERE invoice_number=%s"
+      pro_val = (invoice_number_1,)
+      fbcursor.execute(pro_sql,pro_val)
+      product_details = fbcursor.fetchall()
+      countpro = 0
+      for i in product_details:
+        if comp_data[12] == "1":
+          if comp_data[7] == "before amount":
+            inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],comp_data[6] + "" + str(i[8]),i[9],comp_data[6] + "" + str(i[13])))
+          elif comp_data[7] == "after amount":
+            inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],str(i[8]) + "" + comp_data[6],i[9],str(i[13]) + "" + comp_data[6]))
+          elif comp_data[7] == "before amount with space":
+            inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],comp_data[6] + " " + str(i[8]),i[9],comp_data[6] + " " + str(i[13])))
+          elif comp_data[7] == "after amount with space":
+            inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],str(i[8]) + " " + comp_data[6],i[9],str(i[13]) + " " + comp_data[6]))
+        elif comp_data[12] == "2":
+          if comp_data[7] == "before amount":
+            inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],comp_data[6] + "" + str(i[8]),i[9],i[11],comp_data[6] + "" + str(i[13])))
+          elif comp_data[7] == "after amount":
+            inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],str(i[8]) + "" + comp_data[6],i[9],i[11],str(i[13]) + "" + comp_data[6]))
+          elif comp_data[7] == "before amount with space":
+            inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],comp_data[6] + " " + str(i[8]),i[9],i[11],comp_data[6] + " " + str(i[13])))
+          elif comp_data[7] == "after amount with space":
+            inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],str(i[8]) + " " + comp_data[6],i[9],i[11],str(i[13]) + " " + comp_data[6]))
+        elif comp_data[12] == "3":
+          if comp_data[7] == "before amount":
+            inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],comp_data[6] + "" + str(i[8]),i[9],i[11],i[12],comp_data[6] + "" + str(i[13])))
+          elif comp_data[7] == "after amount":
+            inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],str(i[8]) + "" + comp_data[6],i[9],i[11],i[12],str(i[13]) + "" + comp_data[6]))
+          elif comp_data[7] == "before amount with space":
+            inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],comp_data[6] + " " + str(i[8]),i[9],i[11],i[12],comp_data[6] + " " + str(i[13])))
+          elif comp_data[7] == "after amount with space":
+            inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],str(i[8]) + " " + comp_data[6],i[9],i[11],i[12],str(i[13]) + " " + comp_data[6]))
+      countpro += 1
 
 
     #select customer
@@ -34597,13 +34705,13 @@ def mainpage():
           stop_recurring_1 = NULL
           recurring_period_1 = NULL
           recurring_period_month_1 = NULL
-          recurring_check_1 = 0
+          recurring_check_1 = checkrecStatus_1.get()
         else:
           next_invoice_1 = recur_nxt_inv_date_1.get_date()
           stop_recurring_1 = recur_stop_date_1.get_date()
           recurring_period_1 = recur_period_entry_1.get()
           recurring_period_month_1 = recur_month_combo_1.get()
-          recurring_check_1 = 1
+          recurring_check_1 = checkrecStatus_1.get()
         title_text_1 = title_txt_combo_1.get()
         header_text_1 = pageh_txt_combo_1.get()
         footer_text_1 = footer_txt_combo_1.get()
@@ -36329,6 +36437,7 @@ def mainpage():
     fir2Frame.pack(side="top", fill=X)
     listFrame_1 = Frame(fir2Frame, bg="white", height=140,borderwidth=5,  relief=RIDGE)
 
+
     if comp_data[12] == "1":
       add_newline_tree_1=ttk.Treeview(listFrame_1)
       add_newline_tree_1["columns"]=["1","2","3","4","5","6","7"]
@@ -36408,8 +36517,8 @@ def mainpage():
       add_newline_tree_1.pack(fill="both", expand=1)
       listFrame_1.pack(side="top", fill="both", padx=5, pady=3, expand=1)
 
-      totalprice_view_1 = Label(listFrame_1,bg="#f5f3f2")
-      totalprice_view_1.place(x=850,y=200,width=78,height=18)
+    totalprice_view_1 = Label(listFrame_1,bg="#f5f3f2")
+    totalprice_view_1.place(x=850,y=200,width=78,height=18)
 
     proquanVar1 = StringVar()
     def inv_proquanedit_box_1(val):
@@ -36942,21 +37051,7 @@ def mainpage():
       import win32api
       selected_file_1 = doc_tree_1.item(doc_tree_1.focus())["values"][1]
       win32api.ShellExecute(0,"",os.getcwd()+"/images/"+selected_file_1,None,".",0)
-      # show = Toplevel()
-      # show.geometry("700x500")
-      # show.title("View Files")
-      # if selected_file_1.lower().endswith(('.png','.jpg')):
-      #   open_image_1 = Image.open("images/"+selected_file_1)
-      #   resize_img_1 = open_image_1.resize((700,500))
-      #   img_1 = ImageTk.PhotoImage(resize_img_1)
-      #   image_1 = Label(show,image=img_1)
-      #   image_1.photo = img_1
-      #   image_1.pack()
-      # else:
-      #   with open("images/"+selected_file_1,mode='r',encoding="utf-8",errors="ignore") as none_img_1:
-      #     data_1 = none_img_1.read()
-      #     image_1 = Label(show,text=data_1)
-      #     image_1.pack()
+      
 
     doc_plus_btn_1=Button(doc_labelframe_1,image=plus_1,text="",width=20,height=25,command=attach_file_1)
     doc_plus_btn_1.place(x=5,y=10)
@@ -50675,22 +50770,67 @@ def mainpage():
     afdel_data = fbcursor.fetchall()
     counti = 0
     for i in afdel_data:
-      inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1],i[2],i[3],i[18],i[4],i[5],i[6],i[7],i[8],i[9],i[10]))
+      if comp_data[7] == "before amount":
+        inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + str(i[8]),comp_data[6] + str(i[9]),comp_data[6] + str(i[10])))
+      elif comp_data[7] == "after amount":
+        inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + comp_data[6],str(i[9]) + comp_data[6],str(i[10]) + comp_data[6]))
+      elif comp_data[7] == "before amount with space":
+        inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + " " + str(i[8]),comp_data[6] + " " + str(i[9]),comp_data[6] + " " + str(i[10])))
+      elif comp_data[7] == "after amount with space":
+        inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + " " + comp_data[6],str(i[9]) + " " + comp_data[6],str(i[10]) + " " + comp_data[6]))
     counti += 1
 
     try:
       if showtotsum_btn['text'] == "Hide totals\nSum":
+        it = []
+        tp = []
+        bl = []
+        for i in inv_tree.get_children():
+          invtot = inv_tree.item(i,'values')[9]
+          totpaid = inv_tree.item(i,'values')[10]
+          balance = inv_tree.item(i,'values')[11]
+          if comp_data[7] == "before amount":
+            it.append(invtot.split(str(comp_data[6]))[-1])
+            tp.append(totpaid.split(str(comp_data[6]))[-1])
+            bl.append(balance.split(str(comp_data[6]))[-1])
+          if comp_data[7] == "after amount":
+            it.append(invtot.split(str(comp_data[6]))[0])
+            tp.append(totpaid.split(str(comp_data[6]))[0])
+            bl.append(balance.split(str(comp_data[6]))[0])
+          if comp_data[7] == "before amount with space":
+            it.append(invtot.split(' ')[-1])
+            tp.append(totpaid.split(' ')[-1])
+            bl.append(balance.split(' ')[-1])
+          if comp_data[7] == "after amount with space":
+            it.append(invtot.split(' ')[0])
+            tp.append(totpaid.split(' ')[0])
+            bl.append(balance.split(' ')[0])
+
         total_invtot = 0.0
         total_totpaid = 0.0
         total_balance = 0.0
-        for i in inv_tree.get_children():
-          total_invtot += float(inv_tree.item(i,'values')[9])
-          total_totpaid += float(inv_tree.item(i,'values')[10])
-          total_balance += float(inv_tree.item(i,'values')[11])
-
-        invtot_label.config(text=round(total_invtot,2))
-        totpaid_label.config(text=round(total_totpaid,2))
-        balance_label.config(text=round(total_balance,2))
+        for a in it:
+          total_invtot += float(a)
+        for b in tp:
+          total_totpaid += float(b)
+        for c in bl:
+          total_balance += float(c)
+        if comp_data[7] == "before amount":
+          invtot_label.config(text=comp_data[6] + str(round(total_invtot,2)))
+          totpaid_label.config(text=comp_data[6] + str(round(total_totpaid,2)))
+          balance_label.config(text=comp_data[6] + str(round(total_balance,2)))
+        elif comp_data[7] == "after amount":
+          invtot_label.config(text=str(round(total_invtot,2)) + comp_data[6])
+          totpaid_label.config(text=str(round(total_totpaid,2)) + comp_data[6])
+          balance_label.config(text=str(round(total_balance,2)) + comp_data[6])
+        elif comp_data[7] == "before amount  with space":
+          invtot_label.config(text=comp_data[6] + " " + str(round(total_invtot,2)))
+          totpaid_label.config(text=comp_data[6] + " " + str(round(total_totpaid,2)))
+          balance_label.config(text=comp_data[6] + " " + str(round(total_balance,2)))
+        elif comp_data[7] == "after amount with space":
+          invtot_label.config(text=str(round(total_invtot,2)) + " " + comp_data[6])
+          totpaid_label.config(text=str(round(total_totpaid,2)) + " " + comp_data[6])
+          balance_label.config(text=str(round(total_balance,2)) + " " + comp_data[6])
       else:
         pass
     except:
@@ -50703,6 +50843,11 @@ def mainpage():
     def find_invrow():
       try:
         srchtxt = srchtxtVar.get()
+
+        comp_sql = "SELECT * FROM company"
+        fbcursor.execute(comp_sql,)
+        comp_data = fbcursor.fetchone()
+
         if findtxtVar.get() == "Invoice#":
           fndinv_sql = "SELECT * FROM invoice WHERE invoice_number=%s"
           fndinv_val = (srchtxt,)
@@ -50714,7 +50859,14 @@ def mainpage():
           
           counti = 0
           for i in fndinv_data:
-            inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1],i[2],i[3],i[18],i[4],i[5],i[6],i[7],i[8],i[9],i[10]))
+            if comp_data[7] == "before amount":
+              inv_tree.insert(parent='',index='end',text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + str(i[8]),comp_data[6] + str(i[9]),comp_data[6] + str(i[10])))
+            elif comp_data[7] == "after amount":
+              inv_tree.insert(parent='',index='end',text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + comp_data[6],str(i[9]) + comp_data[6],str(i[10]) + comp_data[6]))
+            elif comp_data[7] == "before amount with space":
+              inv_tree.insert(parent='',index='end',text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + " " + str(i[8]),comp_data[6] + " " + str(i[9]),comp_data[6] + " " + str(i[10])))
+            elif comp_data[7] == "after amount with space":
+              inv_tree.insert(parent='',index='end',text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + " " + comp_data[6],str(i[9]) + " " + comp_data[6],str(i[10]) + " " + comp_data[6]))
           counti += 1
           searchinvo.destroy()
         elif findtxtVar.get() == "Customer Name":
@@ -50728,7 +50880,14 @@ def mainpage():
           
           counti = 0
           for i in fndinv_data:
-            inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1],i[2],i[3],i[18],i[4],i[5],i[6],i[7],i[8],i[9],i[10]))
+            if comp_data[7] == "before amount":
+              inv_tree.insert(parent='',index='end',text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + str(i[8]),comp_data[6] + str(i[9]),comp_data[6] + str(i[10])))
+            elif comp_data[7] == "after amount":
+              inv_tree.insert(parent='',index='end',text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + comp_data[6],str(i[9]) + comp_data[6],str(i[10]) + comp_data[6]))
+            elif comp_data[7] == "before amount with space":
+              inv_tree.insert(parent='',index='end',text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + " " + str(i[8]),comp_data[6] + " " + str(i[9]),comp_data[6] + " " + str(i[10])))
+            elif comp_data[7] == "after amount with space":
+              inv_tree.insert(parent='',index='end',text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + " " + comp_data[6],str(i[9]) + " " + comp_data[6],str(i[10]) + " " + comp_data[6]))
           counti += 1
           searchinvo.destroy()
         elif findtxtVar.get() == "Invoice Total":
@@ -50742,7 +50901,14 @@ def mainpage():
           
           counti = 0
           for i in fndinv_data:
-            inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1],i[2],i[3],i[18],i[4],i[5],i[6],i[7],i[8],i[9],i[10]))
+            if comp_data[7] == "before amount":
+              inv_tree.insert(parent='',index='end',text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + str(i[8]),comp_data[6] + str(i[9]),comp_data[6] + str(i[10])))
+            elif comp_data[7] == "after amount":
+              inv_tree.insert(parent='',index='end',text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + comp_data[6],str(i[9]) + comp_data[6],str(i[10]) + comp_data[6]))
+            elif comp_data[7] == "before amount with space":
+              inv_tree.insert(parent='',index='end',text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + " " + str(i[8]),comp_data[6] + " " + str(i[9]),comp_data[6] + " " + str(i[10])))
+            elif comp_data[7] == "after amount with space":
+              inv_tree.insert(parent='',index='end',text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + " " + comp_data[6],str(i[9]) + " " + comp_data[6],str(i[10]) + " " + comp_data[6]))
           counti += 1
           searchinvo.destroy()
         elif findtxtVar.get() == "Total Paid":
@@ -50756,7 +50922,14 @@ def mainpage():
           
           counti = 0
           for i in fndinv_data:
-            inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1],i[2],i[3],i[18],i[4],i[5],i[6],i[7],i[8],i[9],i[10]))
+            if comp_data[7] == "before amount":
+              inv_tree.insert(parent='',index='end',text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + str(i[8]),comp_data[6] + str(i[9]),comp_data[6] + str(i[10])))
+            elif comp_data[7] == "after amount":
+              inv_tree.insert(parent='',index='end',text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + comp_data[6],str(i[9]) + comp_data[6],str(i[10]) + comp_data[6]))
+            elif comp_data[7] == "before amount with space":
+              inv_tree.insert(parent='',index='end',text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + " " + str(i[8]),comp_data[6] + " " + str(i[9]),comp_data[6] + " " + str(i[10])))
+            elif comp_data[7] == "after amount with space":
+              inv_tree.insert(parent='',index='end',text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + " " + comp_data[6],str(i[9]) + " " + comp_data[6],str(i[10]) + " " + comp_data[6]))
           counti += 1
           searchinvo.destroy()
         elif findtxtVar.get() == "Balance":
@@ -50770,9 +50943,72 @@ def mainpage():
           
           counti = 0
           for i in fndinv_data:
-            inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1],i[2],i[3],i[18],i[4],i[5],i[6],i[7],i[8],i[9],i[10]))
+            if comp_data[7] == "before amount":
+              inv_tree.insert(parent='',index='end',text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + str(i[8]),comp_data[6] + str(i[9]),comp_data[6] + str(i[10])))
+            elif comp_data[7] == "after amount":
+              inv_tree.insert(parent='',index='end',text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + comp_data[6],str(i[9]) + comp_data[6],str(i[10]) + comp_data[6]))
+            elif comp_data[7] == "before amount with space":
+              inv_tree.insert(parent='',index='end',text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + " " + str(i[8]),comp_data[6] + " " + str(i[9]),comp_data[6] + " " + str(i[10])))
+            elif comp_data[7] == "after amount with space":
+              inv_tree.insert(parent='',index='end',text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + " " + comp_data[6],str(i[9]) + " " + comp_data[6],str(i[10]) + " " + comp_data[6]))
           counti += 1
           searchinvo.destroy()
+
+        try:
+          if showtotsum_btn['text'] == "Hide totals\nSum":
+            it = []
+            tp = []
+            bl = []
+            for i in inv_tree.get_children():
+              invtot = inv_tree.item(i,'values')[9]
+              totpaid = inv_tree.item(i,'values')[10]
+              balance = inv_tree.item(i,'values')[11]
+              if comp_data[7] == "before amount":
+                it.append(invtot.split(str(comp_data[6]))[-1])
+                tp.append(totpaid.split(str(comp_data[6]))[-1])
+                bl.append(balance.split(str(comp_data[6]))[-1])
+              if comp_data[7] == "after amount":
+                it.append(invtot.split(str(comp_data[6]))[0])
+                tp.append(totpaid.split(str(comp_data[6]))[0])
+                bl.append(balance.split(str(comp_data[6]))[0])
+              if comp_data[7] == "before amount with space":
+                it.append(invtot.split(' ')[-1])
+                tp.append(totpaid.split(' ')[-1])
+                bl.append(balance.split(' ')[-1])
+              if comp_data[7] == "after amount with space":
+                it.append(invtot.split(' ')[0])
+                tp.append(totpaid.split(' ')[0])
+                bl.append(balance.split(' ')[0])
+
+            total_invtot = 0.0
+            total_totpaid = 0.0
+            total_balance = 0.0
+            for a in it:
+              total_invtot += float(a)
+            for b in tp:
+              total_totpaid += float(b)
+            for c in bl:
+              total_balance += float(c)
+            if comp_data[7] == "before amount":
+              invtot_label.config(text=comp_data[6] + str(round(total_invtot,2)))
+              totpaid_label.config(text=comp_data[6] + str(round(total_totpaid,2)))
+              balance_label.config(text=comp_data[6] + str(round(total_balance,2)))
+            elif comp_data[7] == "after amount":
+              invtot_label.config(text=str(round(total_invtot,2)) + comp_data[6])
+              totpaid_label.config(text=str(round(total_totpaid,2)) + comp_data[6])
+              balance_label.config(text=str(round(total_balance,2)) + comp_data[6])
+            elif comp_data[7] == "before amount  with space":
+              invtot_label.config(text=comp_data[6] + " " + str(round(total_invtot,2)))
+              totpaid_label.config(text=comp_data[6] + " " + str(round(total_totpaid,2)))
+              balance_label.config(text=comp_data[6] + " " + str(round(total_balance,2)))
+            elif comp_data[7] == "after amount with space":
+              invtot_label.config(text=str(round(total_invtot,2)) + " " + comp_data[6])
+              totpaid_label.config(text=str(round(total_totpaid,2)) + " " + comp_data[6])
+              balance_label.config(text=str(round(total_balance,2)) + " " + comp_data[6])
+          else:
+            pass
+        except:
+          pass
       except:
         pass
 
@@ -50785,7 +51021,7 @@ def mainpage():
     findwhat_lbl=Label(searchinvo,text="Find What:")
     findwhat_lbl.place(x=5,y=15)
     srchtxtVar = StringVar() 
-    findwhat_combo = ttk.Combobox(searchinvo, width = 50, textvariable = srchtxtVar )
+    findwhat_combo = Entry(searchinvo, width = 50, textvariable = srchtxtVar )
     findwhat_combo.place(x=85,y=15,height=23) 
     findbtn = Button(searchinvo, text ="Find next",width=10, command=lambda:find_invrow())
     findbtn.place(x=420,y=15)
@@ -50860,15 +51096,23 @@ def mainpage():
     fbcursor.execute(sql)
     invoice_records = fbcursor.fetchall()
 
+    comp_sql = "SELECT * FROM company"
+    fbcursor.execute(comp_sql)
+    comp_data = fbcursor.fetchone()
+
     for record in inv_tree.get_children():
       inv_tree.delete(record)
 
     count = 0
     for i in invoice_records:
-      if True:
-        inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[20], i[4], i[5], i[6], i[7], i[8], i[9], i[10]))
-      else:
-        pass
+      if comp_data[7] == "before amount":
+        inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + str(i[8]),comp_data[6] + str(i[9]),comp_data[6] + str(i[10])))
+      elif comp_data[7] == "after amount":
+        inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + comp_data[6],str(i[9]) + comp_data[6],str(i[10]) + comp_data[6]))
+      elif comp_data[7] == "before amount with space":
+        inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + " " + str(i[8]),comp_data[6] + " " + str(i[9]),comp_data[6] + " " + str(i[10])))
+      elif comp_data[7] == "after amount with space":
+        inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + " " + comp_data[6],str(i[9]) + " " + comp_data[6],str(i[10]) + " " + comp_data[6]))
     count += 1
 
 
@@ -50909,6 +51153,7 @@ def mainpage():
       filenamez = askopenfilename(filetypes=(("png file ",'.png'),("jpg file", ".jpg"), ('PDF', '.pdf',), ("All files", ".*"),))
       shutil.copyfile(filenamez, os.getcwd()+'/images/'+filenamez.split('/')[-1])
       attach_list.insert(0, filenamez.split('/')[-1])
+      inv_pdf = os.path.op
 
 
     def inv_deletefile_main():
@@ -51164,13 +51409,81 @@ def mainpage():
       date_val = (start_date,end_date)
       fbcursor.execute(date_sql,date_val)
       date_data = fbcursor.fetchall()
+
+      comp_sql = "SELECT * FROM company"
+      fbcursor.execute(comp_sql,)
+      comp_data = fbcursor.fetchone()
+
       for record in inv_tree.get_children():
         inv_tree.delete(record)
 
       countd = 0
-      for date in date_data:
-        inv_tree.insert(parent='',index='end',iid=countd,text='',values=('',date[1], date[2], date[3], date[20], date[4], date[5], date[6], date[7], date[8], date[9], date[10]))
+      for i in date_data:
+        if comp_data[7] == "before amount":
+          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + str(i[8]),comp_data[6] + str(i[9]),comp_data[6] + str(i[10])))
+        elif comp_data[7] == "after amount":
+          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + comp_data[6],str(i[9]) + comp_data[6],str(i[10]) + comp_data[6]))
+        elif comp_data[7] == "before amount with space":
+          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + " " + str(i[8]),comp_data[6] + " " + str(i[9]),comp_data[6] + " " + str(i[10])))
+        elif comp_data[7] == "after amount with space":
+          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + " " + comp_data[6],str(i[9]) + " " + comp_data[6],str(i[10]) + " " + comp_data[6]))
       countd += 1
+
+      try:
+        if showtotsum_btn['text'] == "Hide totals\nSum":
+          it = []
+          tp = []
+          bl = []
+          for i in inv_tree.get_children():
+            invtot = inv_tree.item(i,'values')[9]
+            totpaid = inv_tree.item(i,'values')[10]
+            balance = inv_tree.item(i,'values')[11]
+            if comp_data[7] == "before amount":
+              it.append(invtot.split(str(comp_data[6]))[-1])
+              tp.append(totpaid.split(str(comp_data[6]))[-1])
+              bl.append(balance.split(str(comp_data[6]))[-1])
+            if comp_data[7] == "after amount":
+              it.append(invtot.split(str(comp_data[6]))[0])
+              tp.append(totpaid.split(str(comp_data[6]))[0])
+              bl.append(balance.split(str(comp_data[6]))[0])
+            if comp_data[7] == "before amount with space":
+              it.append(invtot.split(' ')[-1])
+              tp.append(totpaid.split(' ')[-1])
+              bl.append(balance.split(' ')[-1])
+            if comp_data[7] == "after amount with space":
+              it.append(invtot.split(' ')[0])
+              tp.append(totpaid.split(' ')[0])
+              bl.append(balance.split(' ')[0])
+
+          total_invtot = 0.0
+          total_totpaid = 0.0
+          total_balance = 0.0
+          for a in it:
+            total_invtot += float(a)
+          for b in tp:
+            total_totpaid += float(b)
+          for c in bl:
+            total_balance += float(c)
+          if comp_data[7] == "before amount":
+            invtot_label.config(text=comp_data[6] + str(round(total_invtot,2)))
+            totpaid_label.config(text=comp_data[6] + str(round(total_totpaid,2)))
+            balance_label.config(text=comp_data[6] + str(round(total_balance,2)))
+          elif comp_data[7] == "after amount":
+            invtot_label.config(text=str(round(total_invtot,2)) + comp_data[6])
+            totpaid_label.config(text=str(round(total_totpaid,2)) + comp_data[6])
+            balance_label.config(text=str(round(total_balance,2)) + comp_data[6])
+          elif comp_data[7] == "before amount  with space":
+            invtot_label.config(text=comp_data[6] + " " + str(round(total_invtot,2)))
+            totpaid_label.config(text=comp_data[6] + " " + str(round(total_totpaid,2)))
+            balance_label.config(text=comp_data[6] + " " + str(round(total_balance,2)))
+          elif comp_data[7] == "after amount with space":
+            invtot_label.config(text=str(round(total_invtot,2)) + " " + comp_data[6])
+            totpaid_label.config(text=str(round(total_totpaid,2)) + " " + comp_data[6])
+            balance_label.config(text=str(round(total_balance,2)) + " " + comp_data[6])
+        else:
+          pass
+      except:
+        pass
 
       if comp_data[10] == "mm-dd-yyyy":
         s = datetime.strftime(start_date,"%m-%d-%Y")
@@ -51262,7 +51575,14 @@ def mainpage():
     count = 0
     for i in invoice_records:
       if True:
-        inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7], i[8], i[9], i[10]))
+        if comp_data[7] == "before amount":
+          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + str(i[8]),comp_data[6] + str(i[9]),comp_data[6] + str(i[10])))
+        elif comp_data[7] == "after amount":
+          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + comp_data[6],str(i[9]) + comp_data[6],str(i[10]) + comp_data[6]))
+        elif comp_data[7] == "before amount with space":
+          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + " " + str(i[8]),comp_data[6] + " " + str(i[9]),comp_data[6] + " " + str(i[10])))
+        elif comp_data[7] == "after amount with space":
+          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + " " + comp_data[6],str(i[9]) + " " + comp_data[6],str(i[10]) + " " + comp_data[6]))
       else:
         pass
     count += 1
@@ -51280,17 +51600,55 @@ def mainpage():
   def inv_showtotsum():
     showtotsum_btn.config(text="Hide totals\nSum",command=inv_hidetotsum)
 
+    it = []
+    tp = []
+    bl = []
+    for i in inv_tree.get_children():
+      invtot = inv_tree.item(i,'values')[9]
+      totpaid = inv_tree.item(i,'values')[10]
+      balance = inv_tree.item(i,'values')[11]
+      if comp_data[7] == "before amount":
+        it.append(invtot.split(str(comp_data[6]))[-1])
+        tp.append(totpaid.split(str(comp_data[6]))[-1])
+        bl.append(balance.split(str(comp_data[6]))[-1])
+      if comp_data[7] == "after amount":
+        it.append(invtot.split(str(comp_data[6]))[0])
+        tp.append(totpaid.split(str(comp_data[6]))[0])
+        bl.append(balance.split(str(comp_data[6]))[0])
+      if comp_data[7] == "before amount with space":
+        it.append(invtot.split(' ')[-1])
+        tp.append(totpaid.split(' ')[-1])
+        bl.append(balance.split(' ')[-1])
+      if comp_data[7] == "after amount with space":
+        it.append(invtot.split(' ')[0])
+        tp.append(totpaid.split(' ')[0])
+        bl.append(balance.split(' ')[0])
+
     total_invtot = 0.0
     total_totpaid = 0.0
     total_balance = 0.0
-    for i in inv_tree.get_children():
-      total_invtot += float(inv_tree.item(i,'values')[9])
-      total_totpaid += float(inv_tree.item(i,'values')[10])
-      total_balance += float(inv_tree.item(i,'values')[11])
-
-    invtot_label.config(text=round(total_invtot,2))
-    totpaid_label.config(text=round(total_totpaid,2))
-    balance_label.config(text=round(total_balance,2))
+    for a in it:
+      total_invtot += float(a)
+    for b in tp:
+      total_totpaid += float(b)
+    for c in bl:
+      total_balance += float(c)
+    if comp_data[7] == "before amount":
+      invtot_label.config(text=comp_data[6] + str(round(total_invtot,2)))
+      totpaid_label.config(text=comp_data[6] + str(round(total_totpaid,2)))
+      balance_label.config(text=comp_data[6] + str(round(total_balance,2)))
+    elif comp_data[7] == "after amount":
+      invtot_label.config(text=str(round(total_invtot,2)) + comp_data[6])
+      totpaid_label.config(text=str(round(total_totpaid,2)) + comp_data[6])
+      balance_label.config(text=str(round(total_balance,2)) + comp_data[6])
+    elif comp_data[7] == "before amount  with space":
+      invtot_label.config(text=comp_data[6] + " " + str(round(total_invtot,2)))
+      totpaid_label.config(text=comp_data[6] + " " + str(round(total_totpaid,2)))
+      balance_label.config(text=comp_data[6] + " " + str(round(total_balance,2)))
+    elif comp_data[7] == "after amount with space":
+      invtot_label.config(text=str(round(total_invtot,2)) + " " + comp_data[6])
+      totpaid_label.config(text=str(round(total_totpaid,2)) + " " + comp_data[6])
+      balance_label.config(text=str(round(total_balance,2)) + " " + comp_data[6])
 
 
 
@@ -51305,10 +51663,41 @@ def mainpage():
 
   invoice_all_label = Label(inv_mainFrame, text="Invoices(All)", font=("arial", 18), bg="#f8f8f2")
   invoice_all_label.pack(side="left", padx=(20,0))
-  drop = ttk.Combobox(inv_mainFrame, value="Hello")
-  drop.pack(side="right", padx=(0,10))
-  invoilabel = Label(inv_mainFrame, text="Category filter", font=("arial", 15), bg="#f8f8f2")
-  invoilabel.pack(side="right", padx=(0,10))
+
+  category_filter_lbl = Label(inv_mainFrame, text="Category filter", font=("arial", 15), bg="#f8f8f2")
+  category_filter_lbl.pack(side="right", padx=(0,10))
+
+
+  def filterby_category(event):
+    fdata = category_filtercombo.get()
+    for record in inv_tree.get_children():
+      inv_tree.delete(record)
+
+    filter_sql = "SELECT * FROM invoice WHERE category=%s"
+    filter_val = (fdata,)
+    fbcursor.execute(filter_sql,filter_val)
+    filter_data = fbcursor.fetchall()
+
+    countf = 0
+    for i in filter_data:
+      if comp_data[7] == "before amount":
+        inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + str(i[8]),comp_data[6] + str(i[9]),comp_data[6] + str(i[10])))
+      elif comp_data[7] == "after amount":
+        inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + comp_data[6],str(i[9]) + comp_data[6],str(i[10]) + comp_data[6]))
+      elif comp_data[7] == "before amount with space":
+        inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + " " + str(i[8]),comp_data[6] + " " + str(i[9]),comp_data[6] + " " + str(i[10])))
+      elif comp_data[7] == "after amount with space":
+        inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + " " + comp_data[6],str(i[9]) + " " + comp_data[6],str(i[10]) + " " + comp_data[6]))
+    countf += 1
+
+  category_sql = "SELECT DISTINCT category FROM invoice"
+  fbcursor.execute(category_sql,)
+  category_data = fbcursor.fetchall()
+  category_filtercombo = ttk.Combobox(inv_mainFrame,)
+  category_filtercombo['values'] = category_data
+  category_filtercombo.current(0)
+  category_filtercombo.pack(side="right", padx=(0,10))
+  category_filtercombo.bind("<<ComboboxSelected>>",filterby_category)
 
   class MyApp:
     def __init__(self, parent):
@@ -51335,7 +51724,7 @@ def mainpage():
         )
 
       #Invoice main tree
-      global inv_tree,invtot_label,totpaid_label,balance_label
+      global inv_tree,invtot_label,totpaid_label,balance_label,inv_product_tree
       inv_tree = ttk.Treeview(self.left_frame, columns = (1,2,3,4,5,6,7,8,9,10,11,12), height = 15, show = "headings")
       inv_tree.pack(side = 'top')
       inv_tree.heading(1)
@@ -51376,10 +51765,21 @@ def mainpage():
       fbcursor.execute(sql)
       invoice_records = fbcursor.fetchall()
 
+      comp_sql = "SELECT * FROM company"
+      fbcursor.execute(comp_sql)
+      comp_data = fbcursor.fetchone()
+
       count = 0
       for i in invoice_records:
         if True:
-          inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7], i[8], i[9], i[10]))
+          if comp_data[7] == "before amount":
+            inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + str(i[8]),comp_data[6] + str(i[9]),comp_data[6] + str(i[10])))
+          elif comp_data[7] == "after amount":
+            inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + comp_data[6],str(i[9]) + comp_data[6],str(i[10]) + comp_data[6]))
+          elif comp_data[7] == "before amount with space":
+            inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],comp_data[6] + " " + str(i[8]),comp_data[6] + " " + str(i[9]),comp_data[6] + " " + str(i[10])))
+          elif comp_data[7] == "after amount with space":
+            inv_tree.insert(parent='',index='end',iid=i,text='',values=('',i[1], i[2], i[3], i[18], i[4], i[5], i[6], i[7],str(i[8]) + " " + comp_data[6],str(i[9]) + " " + comp_data[6],str(i[10]) + " " + comp_data[6]))
         else:
           pass
       count += 1
@@ -51410,7 +51810,33 @@ def mainpage():
         product_details = fbcursor.fetchall()
         countpro = 0
         for i in product_details:
-          inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],i[13],i[9],i[11],''))
+          if comp_data[12] == "1":
+            if comp_data[7] == "before amount":
+              inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],comp_data[6] + "" + str(i[8]),i[9],comp_data[6] + "" + str(i[13])))
+            elif comp_data[7] == "after amount":
+              inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],str(i[8]) + "" + comp_data[6],i[9],str(i[13]) + "" + comp_data[6]))
+            elif comp_data[7] == "before amount with space":
+              inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],comp_data[6] + " " + str(i[8]),i[9],comp_data[6] + " " + str(i[13])))
+            elif comp_data[7] == "after amount with space":
+              inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],str(i[8]) + " " + comp_data[6],i[9],str(i[13]) + " " + comp_data[6]))
+          elif comp_data[12] == "2":
+            if comp_data[7] == "before amount":
+              inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],comp_data[6] + "" + str(i[8]),i[9],i[11],comp_data[6] + "" + str(i[13])))
+            elif comp_data[7] == "after amount":
+              inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],str(i[8]) + "" + comp_data[6],i[9],i[11],str(i[13]) + "" + comp_data[6]))
+            elif comp_data[7] == "before amount with space":
+              inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],comp_data[6] + " " + str(i[8]),i[9],i[11],comp_data[6] + " " + str(i[13])))
+            elif comp_data[7] == "after amount with space":
+              inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],str(i[8]) + " " + comp_data[6],i[9],i[11],str(i[13]) + " " + comp_data[6]))
+          elif comp_data[12] == "3":
+            if comp_data[7] == "before amount":
+              inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],comp_data[6] + "" + str(i[8]),i[9],i[11],i[12],comp_data[6] + "" + str(i[13])))
+            elif comp_data[7] == "after amount":
+              inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],str(i[8]) + "" + comp_data[6],i[9],i[11],i[12],str(i[13]) + "" + comp_data[6]))
+            elif comp_data[7] == "before amount with space":
+              inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],comp_data[6] + " " + str(i[8]),i[9],i[11],i[12],comp_data[6] + " " + str(i[13])))
+            elif comp_data[7] == "after amount with space":
+              inv_product_tree.insert(parent='',index='end',iid=i,text='',values=(' ',i[5], i[6], i[7],str(i[8]) + " " + comp_data[6],i[9],i[11],i[12],str(i[13]) + " " + comp_data[6]))
         countpro += 1
 
         for record in inv_pay_tree.get_children():
@@ -51422,7 +51848,14 @@ def mainpage():
 
         countpay = 0
         for pay in pay_details:
-          inv_pay_tree.insert(parent='',index='end',iid=pay,text='',values=('',pay[0],pay[1],pay[2],pay[3],pay[4]))
+          if comp_data[7] == "before amount":
+            inv_pay_tree.insert(parent='',index='end',iid=pay,text='',values=('',pay[0],pay[1],pay[2],pay[3],comp_data[6] + "" + str(pay[4])))
+          elif comp_data[7] == "after amount":
+            inv_pay_tree.insert(parent='',index='end',iid=pay,text='',values=('',pay[0],pay[1],pay[2],pay[3],str(pay[4]) + "" + comp_data[6]))
+          elif comp_data[7] == "before amount with space":
+            inv_pay_tree.insert(parent='',index='end',iid=pay,text='',values=('',pay[0],pay[1],pay[2],pay[3],comp_data[6] + " " + str(pay[4])))
+          elif comp_data[7] == "after amount with space":
+            inv_pay_tree.insert(parent='',index='end',iid=pay,text='',values=('',pay[0],pay[1],pay[2],pay[3],str(pay[4]) + " " + comp_data[6]))
         countpay += 1
 
         private_sql = "SELECT * FROM invoice WHERE invoice_number=%s"
@@ -51496,13 +51929,13 @@ def mainpage():
         inv_product_tree.heading(5, text="Price")
         inv_product_tree.heading(6, text="QTY")
         inv_product_tree.heading(7, text="Line Total")   
-        inv_product_tree.column(1, width = 75)
-        inv_product_tree.column(2, width = 230)
+        inv_product_tree.column(1, width = 35)
+        inv_product_tree.column(2, width = 265)
         inv_product_tree.column(3, width = 230)
-        inv_product_tree.column(4, width = 275)
-        inv_product_tree.column(5, width = 130)
-        inv_product_tree.column(6, width = 130)
-        inv_product_tree.column(7, width = 130)
+        inv_product_tree.column(4, width = 295)
+        inv_product_tree.column(5, width = 195)
+        inv_product_tree.column(6, width = 125)
+        inv_product_tree.column(7, width = 195)
       elif inv_comp_data[12] == "2":
         inv_product_tree = ttk.Treeview(tab1, columns = (1,2,3,4,5,6,7,8), height = 15, show = "headings")
         inv_product_tree.pack(side = 'top')
@@ -51514,14 +51947,14 @@ def mainpage():
         inv_product_tree.heading(6, text="QTY")
         inv_product_tree.heading(7, text="Tax1")
         inv_product_tree.heading(8, text="Line Total")   
-        inv_product_tree.column(1, width = 75)
-        inv_product_tree.column(2, width = 230)
-        inv_product_tree.column(3, width = 230)
+        inv_product_tree.column(1, width = 35)
+        inv_product_tree.column(2, width = 250)
+        inv_product_tree.column(3, width = 210)
         inv_product_tree.column(4, width = 275)
-        inv_product_tree.column(5, width = 130)
-        inv_product_tree.column(6, width = 130)
-        inv_product_tree.column(7, width = 137)
-        inv_product_tree.column(8, width = 130)
+        inv_product_tree.column(5, width = 180)
+        inv_product_tree.column(6, width = 110)
+        inv_product_tree.column(7, width = 100)
+        inv_product_tree.column(8, width = 180)
       elif inv_comp_data[12] == "3":
         inv_product_tree = ttk.Treeview(tab1, columns = (1,2,3,4,5,6,7,8,9), height = 15, show = "headings")
         inv_product_tree.pack(side = 'top')
@@ -51534,15 +51967,15 @@ def mainpage():
         inv_product_tree.heading(7, text="Tax1")
         inv_product_tree.heading(8, text="Tax2")
         inv_product_tree.heading(9, text="Line Total")   
-        inv_product_tree.column(1, width = 75)
+        inv_product_tree.column(1, width = 35)
         inv_product_tree.column(2, width = 230)
-        inv_product_tree.column(3, width = 230)
+        inv_product_tree.column(3, width = 200)
         inv_product_tree.column(4, width = 275)
-        inv_product_tree.column(5, width = 130)
-        inv_product_tree.column(6, width = 130)
-        inv_product_tree.column(7, width = 137)
-        inv_product_tree.column(8, width = 137)
-        inv_product_tree.column(9, width = 130)
+        inv_product_tree.column(5, width = 160)
+        inv_product_tree.column(6, width = 100)
+        inv_product_tree.column(7, width = 90)
+        inv_product_tree.column(8, width = 90)
+        inv_product_tree.column(9, width = 160)
 
 
       inv_pay_tree = ttk.Treeview(tab2, columns = (1,2,3,4,5,6), height = 15, show = "headings")
@@ -51553,12 +51986,12 @@ def mainpage():
       inv_pay_tree.heading(4, text="PaidBy")
       inv_pay_tree.heading(5, text="Description")
       inv_pay_tree.heading(6, text="Amount")
-      inv_pay_tree.column(1, width = 50)
-      inv_pay_tree.column(2, width = 270)
-      inv_pay_tree.column(3, width = 270)
-      inv_pay_tree.column(4, width = 300)
-      inv_pay_tree.column(5, width = 450)
-      inv_pay_tree.column(6, width = 150)
+      inv_pay_tree.column(1, width = 35)
+      inv_pay_tree.column(2, width = 230)
+      inv_pay_tree.column(3, width = 230)
+      inv_pay_tree.column(4, width = 230)
+      inv_pay_tree.column(5, width = 380)
+      inv_pay_tree.column(6, width = 235)
       
 
       inv_private_note=Text(tab3, width=170,height=10)
